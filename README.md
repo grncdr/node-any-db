@@ -1,5 +1,7 @@
 # any-db - a less-opinionated database abstraction layer.
 
+[![Build Status](https://secure.travis-ci.org/grncdr/node-any-db.png?branch=master)](http://travis-ci.org/grncdr/node-any-db)
+
 The general idea behind this library is to consolidate the behaviours of various
 database drivers into a consistent API.
 
