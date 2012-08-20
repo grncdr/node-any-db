@@ -14,9 +14,10 @@ Things it does:
 
 Things it will do soon:
 
- * Optionally :eplace driver specific parameter placeholders with db-agnostic ones.
+ * Optionally replace db-agnostic parameter placeholders with driver specific ones.
  * Expose a transaction API
  * Have lot's and lot's of tests
+ * Wrap errors
 
 Things it will never do:
 
@@ -25,6 +26,6 @@ Things it will never do:
 	 [gesundheit](https://github.com/BetSmartMedia/gesundheit) for that.
  * Leave it's dishes in the sink and leave town for the weekend.
 
-License
+## License
 
 MIT
