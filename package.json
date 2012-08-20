@@ -1,0 +1,25 @@
+{
+  "name": "any-db",
+  "version": "0.0.0",
+  "description": "Database-agnostic connection pooling, querying, and result sets",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/smoke.js"
+  },
+  "repository": "",
+  "author": "",
+  "keywords": [
+    "mysql",
+    "postgres",
+    "pg",
+    "sqlite",
+    "sqlite3"
+  ],
+  "license": "BSD",
+  "dependencies": {
+    "generic-pool": "~2.0.0"
+  },
+  "devDependencies": {
+    "sqlite3": "~2.1.5"
+  }
+}
