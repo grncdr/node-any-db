@@ -4,4 +4,4 @@ node_js: [ 0.6, 0.8 ]
 # parameters to work.
 before_script:
   - psql -c 'create database any_db_test' -Upostgres
-  - mysql -c 'create database any_db_test' -uroot
+  - mysql -e 'create database any_db_test' -uroot
