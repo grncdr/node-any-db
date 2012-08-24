@@ -1,5 +1,5 @@
 url = require('url')
-Pool = require('generic-pool').Pool
+ConnectionPool = require('./lib/connection-pool')
 
 exports.adapters = {
 	mysql:    require('./lib/adapters/mysql'),
@@ -15,17 +15,12 @@ exports.createConnection = function connect (dbUrl, callback) {
 	return adapter
 }
 
-exports.getPool = function getPool (dbUrl, opts) {
-	if (options.create || options.destroy) {
+exports.createPool = function getPool (dbUrl, opts) {
+	if (opts.create || opts.destroy) {
 		throw new Error("Cannot override the create/destroy pool options. Try afterCreate/afterRelease/beforeDestroy instead.")
 	}
-
-	var pool = pools[dbUrl]
-
-	if (pool) return pool
-
 	var ctor = getAdapterConstructor(dbUrl)
-			return pools[url] = new ConnectionPool(ctor, dbUrl, opts || {})
+			return new ConnectionPool(ctor, dbUrl, opts || {})
 }
 
 function getAdapterConstructor (dbUrl) {
