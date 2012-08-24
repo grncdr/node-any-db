@@ -35,6 +35,89 @@ Things it will never do:
 	 for that.
  * Leave it's dishes in the sink and leave town for the weekend.
 
+## Usage
+
+Creating a connection:
+
+	var anyDB = require('any-db')
+		, conn = anyDB.createConnection('postgres://user:pass@localhost/dbname')
+
+Simple queries with callbacks are exactly what you'd expect:
+
+	conn.query("SELECT * FROM my_table LIMIT 10", function (err, rows) {
+		for (var i in rows) {
+			console.log("Row " + i + ": %j", row)
+		}
+	})
+
+If no callback is provided, the query object returned will emit the following
+events:
+
+	var query = conn.query('SELECT * FROM my_table')
+	query.on('fields', function (fields) { /* fields is an array of field names */ })
+	query.on('row', function (row) { /* row is plain object */ })
+	query.on('end', function () { /* always emitted when results are exhausted */ })
+	query.on('error', function () { /* emitted on errors :P */ })
+
+You can also create or get an existing connection pool with `anyDB.getPool`. It
+takes the following options:
+
+	var pool = anyDB.getPool('postgres://user:pass@localhost/dbname', {
+		min: 5,  // Minimum connections
+		max: 10, // Maximum connections
+		afterCreate: function (conn, ready) {
+			/*
+			perform any necessary connection setup before calling ready(err, conn)
+			note that the connection is *not* established at this point and you
+			will need to call conn.connect(function (err, conn) { ... }) manually.
+			*/
+		},
+		afterRelease: function (conn, ready) {
+			/*
+			perform any necessary reset of connection state before the connection can
+			be re-used. The default callback does conn.query("ROLLBACK", ready)
+			*/
+		},
+		beforeDestroy: function (conn, done) {
+			/*
+			perform any necessary teardown on a connection before it is .end()'ed.
+			This will be removed if nobody comes forward with a use-case.
+			*/
+		}
+	})
+
+A connection pool has the following methods available:
+
+	// Exactly like conn.query above, but the underlying connection will be
+	// auto-released back into the pool when the query completes.
+	pool.query(...)
+
+Transactions can be managed by holding onto a single connection like so:
+
+	pool.connect(function (err, conn) {
+		// you are now responsible for releasing `conn` to the pool.
+		conn.query('BEGIN')
+		function rollback () {
+			conn.query('ROLLBACK', pool.release.bind(pool, conn))
+		}
+		someOtherAsyncFunction(function (err, res) {
+			if (err) {
+				rollback()
+				// do something about err
+				return
+			}
+			conn.query('INSERT INTO ...', [1, 2, 3], function (err) {
+				if (err) {
+					rollback()
+					// do something about err
+					return
+				}
+				// great success!
+				conn.query('COMMIT', pool.release.bind(conn, pool))
+			})
+		})
+	})
+
 ## License
 
 MIT
