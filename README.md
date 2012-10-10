@@ -3,7 +3,9 @@
 [![Build Status](https://secure.travis-ci.org/grncdr/node-any-db.png?branch=master)](http://travis-ci.org/grncdr/node-any-db)
 
 The purpose of this library is to consolidate the behaviours of various database
-drivers into a minimal and consistent API.
+drivers into a minimal and consistent API. See the [design
+document](https://github.com/grncdr/node-any-db/blob/master/DESIGN.md) for a
+thorough overview of the planned API.
 
 Things it does:
 
