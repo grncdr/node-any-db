@@ -1,5 +1,5 @@
-url = require('url')
-ConnectionPool = require('./lib/connection-pool')
+var url = require('url')
+var ConnectionPool = require('./lib/connection-pool')
 
 exports.adapters = {
 	mysql:    require('./lib/adapters/mysql'),
