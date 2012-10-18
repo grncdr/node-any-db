@@ -138,9 +138,10 @@ need to share a session with other queries.
    `poolOpts` can be an object with any of the following keys (defaults shown).
 
         {
+          name: "Unique Name",
           min: 2,
           max: 10,
-          afterCreate: function (conn, done) {
+          afterConnect: function (conn, done) {
             // Called immediately after a connection is first established.
             // Use this to do one time setup of new connections.
             done(null, conn);
@@ -151,12 +152,16 @@ need to share a session with other queries.
             // perform the same actions in your own handler if you over-ride
             // this.
             conn.reset(done)
+          },
+          beforeDestroy: function (conn, destroy) {
+            // Called immediately before a connection is closed. The destroy
+						// callback takes no arguments and will call `conn.end()`
           }
         }
    
-   TODO - finish specifying/documenting pool opts.
- * `Pool.get(url|name)` - Get the pool created with `url` or `name`. **This will
-   throw** if no such pool has been created.
+**Singleton Attributes**
+
+ * `Pool.pools[url|name]` - An object mapping urls or names to existing pools.
 
 **Instance Methods**
 
@@ -170,6 +175,8 @@ need to share a session with other queries.
    of any transaction, this will give it to you, but you are responsible for
    returning the connection manually!
  * `release(conn)` - Give back a previously `acquire`d connection.
+ * `destroy(conn)` - Give back a connection, telling the pool that it should no
+	 longer be used.
 
 **Events**
 
