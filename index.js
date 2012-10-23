@@ -5,10 +5,7 @@ exports.adapters = require('./lib/adapters');
 
 exports.createConnection = function connect (dbUrl, callback) {
 	var parsed = parseDbUrl(dbUrl)
-		, factory = getAdapterFactory(parsed.protocol)
-	
-	if (!factory) console.log(parsed.protocol)
-	return factory(parsed, callback)
+	return getAdapter(parsed.protocol).create(parsed, callback)
 }
 
 exports.createPool = function getPool (dbUrl, opts) {
@@ -16,8 +13,8 @@ exports.createPool = function getPool (dbUrl, opts) {
 		throw new Error("Cannot override the create/destroy pool options. Try afterCreate/afterRelease/beforeDestroy instead.")
 	}
 	var parsed = parseDbUrl(dbUrl);
-	var factory = getAdapterFactory(parsed.protocol);
-	return new ConnectionPool(factory, parsed, opts || {})
+	var adapter = getAdapter(parsed.protocol);
+	return new ConnectionPool(adapter, parsed, opts || {})
 }
 
 function parseDbUrl (dbUrl) {
@@ -30,10 +27,10 @@ function parseDbUrl (dbUrl) {
 	return parsed;
 }
 
-function getAdapterFactory (protocol) {
+function getAdapter (protocol) {
 	var name = protocol.replace(':', '')
 	if (!exports.adapters[name]) {
 		throw new Error("Unknown database driver: " + name)
 	}
-	return exports.adapters[name].create
+	return exports.adapters[name]
 }

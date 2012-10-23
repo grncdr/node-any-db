@@ -1,5 +1,5 @@
-anyDB = require('../')
-test = require('tap').test
+var anyDB = require('../')
+var test = require('tap').test
 require('sqlite3').verbose()
 
 databaseUrls = {
@@ -42,11 +42,9 @@ exports.allPools = function (description, callback) {
 }
 
 function _testEachDriver (description, callback) {
-	test(description, function (outer_t) {
-		Object.keys(databaseUrls).forEach(function (driverName) {
-			outer_t.test(description + ' - ' + driverName, function (t) {
-				callback(databaseUrls[driverName], t)
-			})
+	Object.keys(databaseUrls).forEach(function (driverName) {
+		test(description + ' - ' + driverName, function (t) {
+			callback(databaseUrls[driverName], t)
 		})
 	})
 }
