@@ -4,7 +4,7 @@
   "description": "Database-agnostic connection pooling, querying, and result sets",
   "main": "index.js",
   "scripts": {
-    "test": "node test/smoke.js && node test/connection-pool.js"
+    "test": "tap test/*.test.js"
   },
   "repository": "",
   "author": "",
