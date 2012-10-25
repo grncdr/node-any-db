@@ -70,8 +70,7 @@ object that implements (at minimum) the following interface.
  * `'error', err` - Emitted when `query` is called on a closed adapter, or there
    is an error in the underlying connection. In the latter case `err.orig`
    _must_ be the driver-specific error emitted by the underlying connection.
- * `'drain'` - Emitted when the connection runs out of queries to execute.
-
+ * `'close'` - Emitted when the underlying driver connection has been closed.
 ## Query Adapters
 
 **Responsibility:** Act as a container for delayed execution of a query, and
