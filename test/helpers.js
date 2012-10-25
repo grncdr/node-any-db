@@ -4,30 +4,47 @@ require('sqlite3').verbose()
 
 databaseUrls = {
 	mysql: "mysql://root@localhost/any_db_test",
+	postgres: "postgres://postgres@localhost/any_db_test",
 	sqlite3: "sqlite3://:memory:",
-	postgres: "postgres://postgres@localhost/any_db_test"
 }
 
-exports.allDrivers = function (description, callback) {
-	/*
-	Run ``callback(pool, tap_test)`` where ``pool`` is a connection to the test
-	database, and ``tap_test`` is a node-tap test object
-	*/
+/**
+ * Run ``callback(conn, tap_test)`` where ``conn`` is a connection to the test
+ * database, and ``tap_test`` is a node-tap test object
+ */
+exports.allDrivers = testRunner(function (description, opts, callback) {
 	_testEachDriver(description, function (connString, t) { 
 		anyDB.createConnection(connString, function (err, conn) {
 			if (err) throw err
-			t.on('end', conn.end.bind(conn))
+			if (opts.autoEnd !== false) t.on('end', conn.end.bind(conn))
 			callback(conn, t)
 		})
 	})
-}
+})
 
-exports.allPools = function (description, callback) {
-	/*
-	Run ``callback(pool, tap_test)`` where ``pool`` is a connection pool
-	that will connect to the test database and ``tap_test`` is a node-tap test
-	object.
-	*/
+/**
+ * Run ``callback(tx, tap_test)`` where ``tx`` is an open transaction
+ * on the test database, and ``tap_test`` is a node-tap test object
+ */
+exports.allTransactions = testRunner(function (description, opts, callback) {
+	_testEachDriver(description, function (connString, t) { 
+		anyDB.createConnection(connString, function (err, conn) {
+			if (err) throw err
+			var tx = conn.begin()
+			tx.proxyEvent('error', conn)
+			t.on('end', tx.rollback.bind(tx))
+			t.on('end', conn.end.bind(conn))
+			callback(tx, t)
+		})
+	})
+})
+
+/**
+ * Run ``callback(pool, tap_test)`` where ``pool`` is a connection pool
+ * that will connect to the test database and ``tap_test`` is a node-tap test
+ * object.
+ */
+exports.allPools = testRunner(function (description, opts, callback) {
 	var dbname = 'db_any_test'
 		, i = 0;
 	_testEachDriver(description, function (connString, t) {
@@ -39,7 +56,7 @@ exports.allPools = function (description, callback) {
 		t.on('end', pool.close.bind(pool))
 		callback(pool, t)
 	})
-}
+})
 
 function _testEachDriver (description, callback) {
 	Object.keys(databaseUrls).forEach(function (driverName) {
@@ -47,4 +64,14 @@ function _testEachDriver (description, callback) {
 			callback(databaseUrls[driverName], t)
 		})
 	})
+}
+
+function testRunner (run) {
+	return function (description, opts, callback) {
+		if (!callback) {
+			callback = opts
+			opts = {}
+		}
+		run(description, opts, callback)
+	}
 }
