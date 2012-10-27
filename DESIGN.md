@@ -12,6 +12,16 @@ suitable bare-minimum interface, then (hopefully) convincing driver implementors
 to support it natively. In short, any-db hopes to prove it's usefulness well
 enought that the adapter portions can be obviated by the drivers themselves.
 
+# Exported API
+
+ * `exports.createConnection(dbUrl, callback)` create a new `ConnectionAdapter`
+   and return it immediately. If given, `callback(err, adapter)` will be called
+   after the connection is established (or an error occurs).
+
+  * `exports.createPool(dbUrl, poolOpts, callback)` create a new `ConnectionPool`
+    and return it immediately. (See `ConnectionPool` below for a description of
+    `poolOpts`).
+
 # Components
 
 The components of AnyDB can be divided into two categories: those that are
@@ -30,9 +40,9 @@ the adapter interfaces:
  * Query adapters wrap query parameters and are used by connection adapters to
    emit events when the query is executed.
  * Connection pools manage a set of connection adapters and provide query
-   execution without having to manually establish a connection.
- * Transaction objects present a query interface where all queries are performed
-   within a single database transaction.
+   execution without having to manually acquire and release connections.
+ * Transaction objects act like a connection, but guarantee that all queries
+   are performed within a single database transaction.
  * Result sets are an array containing rows (plain java script objects) plus
    some extra non-enumerable properties.
 
@@ -45,21 +55,21 @@ object that implements (at minimum) the following interface.
 
 ### Interface
 
-**Singleton Methods**
+**Constructor Methods**
 
- * `Adapter.create(parsedURL, callback)` - A factory method attached to the
-   Adapter constructor itself. This must create _and connect_ a new connection
-   using the underlying driver. After a connection has been established `callback`
-   must be called with any errors or the connection in the standard node.js style
-   (`callback(err, connection)`).  
+ * `Adapter.create(parsedURL, callback)` - This factory method must create _and
+   connect_ a new connection using the underlying driver. After a connection has
+   been established `callback` must be called (in standard node style) with any
+   errors **or** an adapter instance wrapping the connection.
 
 **Instance Methods**
 
  * `query(statement, [params], [callback])` - Execute statement (with `params`
    if they are given) and return a `QueryAdapter` for the in-progress query. If
-   `callback` is given it must be passed to the `QueryAdapter` constructor.
- * `reset(callback)` - Set the connection back to a pristine state, for the next
-   user e.g. by rolling back any open transactions. (Also see poolOpts.reset).
+   `callback` is given it will be called with any errors or the query ResultSet.
+ * `reset(callback)` _optional_ - Set the connection back to a pristine state
+   for the next user e.g. by rolling back any open transactions. (Also see
+   poolOpts.reset for in the `ConnectionPool` section).
  * `close()` - Close the underlying connection and put this adapter in an
    unusable state. Calls to `query` made after `close()` has been called should
    construct a new Error instance and asynchronously either emit an error event
@@ -71,6 +81,7 @@ object that implements (at minimum) the following interface.
    is an error in the underlying connection. In the latter case `err.orig`
    _must_ be the driver-specific error emitted by the underlying connection.
  * `'close'` - Emitted when the underlying driver connection has been closed.
+
 ## Query Adapters
 
 **Responsibility:** Act as a container for delayed execution of a query, and
@@ -81,18 +92,12 @@ execution.
 
 **Instance Methods**
 
- * `new QueryAdapter(statement, params[, callback])` - Saves the parameters
-   for later use by a `ConnectionAdapter. `QueryAdapter` instances **must not**
-   require a connection instance, as connection pools must be able to return them
-   synchronously even without a connection available.
  * `buffer(boolean)` - If `boolean` is `false` result rows must not be buffered
    into a `ResultSet`. `QueryAdapter` instances buffer by default.
- * `cancel()` - Cancel the underlying query if the driver supports it. A
-   `'cancel'` event must be emitted, and no events other than `'error'` may be
+ * `cancel()` _PLANNED_ - Cancel the underlying query if the driver supports it.
+   A `'cancel'` event will be emitted, and no events other than `'error'` may be
    emitted after a call to `cancel()`, even if the driver does not actually
    support cancelling queries.
- * `handleError(err)` - Either re-emit `err` or call `callback(err)` if it is
-   present.
 
 **Events**
 
@@ -119,7 +124,7 @@ non-enumerable properties:
   * `rowCount` - The driver reported number of rows returned/inserted/updated.
 
 
-## Pool
+## ConnectionPool
 
 **Responsibility:** Transparently manage multiple connections using the same
 connection URL. Provides "anonymous" query execution for queries that do not
@@ -129,8 +134,8 @@ need to share a session with other queries.
 
 **Singleton Methods**
 
- * `Pool.create(url[, poolOpts])` - Create and return a new pool instance using
-   `url` and `poolOpts`. `url` should be a string containing all the necessary
+ * `ConnectionPool.create(url[, poolOpts])` - Create and return a new pool
+   instance using `url` and `poolOpts`. `url` should be a string useable by
    parameters for `ConnectionAdapter.create`. The specific `ConnectionAdapter`
    to use will be determined by the url protocol.
 
@@ -160,7 +165,7 @@ need to share a session with other queries.
    
 **Singleton Attributes**
 
- * `Pool.pools[url|name]` - An object mapping urls or names to existing pools.
+ * `ConnectionPool.pools[url|name]` - An object mapping urls or names to existing pools.
 
 **Instance Methods**
 
@@ -183,7 +188,9 @@ need to share a session with other queries.
 
 ## Transaction
 
-**Responsibility:** Wrap a `ConnectionAdapter` and return it to the connection pool when the transaction is either committed or rolled back. Roll back the transaction on any unhandled query errors before re-emitting them.
+**Responsibility:** Wrap a `ConnectionAdapter` and return it to the connection pool
+when the transaction is either committed or rolled back. Unhandled query errors will
+be re-emitted by the transaction object itself and cause an automatic rollback.
 
 ### Interface
 
@@ -201,8 +208,8 @@ need to share a session with other queries.
    method.
 
 **Events**
- * `'commit'` - Emitted after the transaction has successfully committed.
- * `'rollback'` - Emitted after the transaction has rolled back.
+ * `'committed'` - Emitted after the transaction has successfully committed.
+ * `'rolled back'` - Emitted after the transaction has rolled back.
  * `'error', err` - Emitted under three conditions:
    1. There was an error acquiring a connection.
    2. Any query performed in this transaction emits an error that would otherwise
