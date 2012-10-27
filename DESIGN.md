@@ -18,7 +18,7 @@ enought that the adapter portions can be obviated by the drivers themselves.
    and return it immediately. If given, `callback(err, adapter)` will be called
    after the connection is established (or an error occurs).
 
- * `exports.createPool(dbUrl, poolOpts, callback)` create a new `ConnectionPool`
+ * `exports.createPool(dbUrl, poolOpts)` create a new `ConnectionPool`
    and return it immediately. (See `ConnectionPool` below for a description of
    `poolOpts`).
 
