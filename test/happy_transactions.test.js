@@ -13,15 +13,6 @@ require('./helpers').allDrivers("Transactions", {autoEnd: false}, function (conn
 				if (err) t.emit('error', err)
 			})
 		})
-		
-		/**
-		 
-		t.on('error', function onError (err) {
-			dropTable()
-			this.removeListener('error', onError)
-			this.emit('error', err)
-		})
-		*/
 
 		var tx = conn.begin()
 		tx.on('error', function (err) { t.emit(err) })
