@@ -9,6 +9,7 @@ exports.createConnection = function connect (dbUrl, callback) {
 }
 
 exports.createPool = function getPool (dbUrl, opts) {
+	opts = opts || {}
 	if (opts.create || opts.destroy) {
 		throw new Error("Cannot override the create/destroy pool options. Try afterCreate/afterRelease/beforeDestroy instead.")
 	}
