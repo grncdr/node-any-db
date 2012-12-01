@@ -16,6 +16,7 @@ Things it does:
  * Simple connection pooling including the ability to execute queries against
 	 the pool directly for auto-release behaviour. E.g. this will never leak
 	 connections: `pool.query("SELECT 1", function (err, results) { ... })`
+ * Exposes a uniform transaction API.
 
 Things it will do soon:
 
@@ -25,7 +26,6 @@ Things it will do soon:
  * Provide a common result set API.
 
 Things it might do:
- * Expose a transaction API.
  * Wrap errors.
 
 Things it will never do:
@@ -42,14 +42,14 @@ Things it will never do:
 Creating a connection:
 
 	var anyDB = require('any-db')
-		, conn = anyDB.createConnection('postgres://user:pass@localhost/dbname')
+	  , conn = anyDB.createConnection('postgres://user:pass@localhost/dbname')
 
 Simple queries with callbacks are exactly what you'd expect:
 
 	conn.query("SELECT * FROM my_table LIMIT 10", function (err, rows) {
-		for (var i in rows) {
-			console.log("Row " + i + ": %j", row)
-		}
+	  for (var i in rows) {
+	    console.log("Row " + i + ": %j", row)
+	  }
 	})
 
 If no callback is provided, the query object returned will emit the following
@@ -65,27 +65,19 @@ You can also create or get an existing connection pool with `anyDB.getPool`. It
 takes the following options:
 
 	var pool = anyDB.getPool('postgres://user:pass@localhost/dbname', {
-		min: 5,  // Minimum connections
-		max: 10, // Maximum connections
-		afterCreate: function (conn, ready) {
-			/*
-			perform any necessary connection setup before calling ready(err, conn)
-			note that the connection is *not* established at this point and you
-			will need to call conn.connect(function (err, conn) { ... }) manually.
-			*/
-		},
-		afterRelease: function (conn, ready) {
-			/*
-			perform any necessary reset of connection state before the connection can
-			be re-used. The default callback does conn.query("ROLLBACK", ready)
-			*/
-		},
-		beforeDestroy: function (conn, done) {
-			/*
-			perform any necessary teardown on a connection before it is .end()'ed.
-			This will be removed if nobody comes forward with a use-case.
-			*/
-		}
+	  min: 5,  // Minimum connections
+	  max: 10, // Maximum connections
+	  onConnect: function (conn, ready) {
+	    /*
+	    perform any necessary connection setup before calling ready(err, conn)
+	    */
+	  },
+	  reset: function (conn, ready) {
+	    /*
+	    perform any necessary reset of connection state before the connection can
+	    be re-used. The default callback does conn.query("ROLLBACK", ready)
+	    */
+	  }
 	})
 
 A connection pool has the following methods available:
@@ -94,31 +86,37 @@ A connection pool has the following methods available:
 	// auto-released back into the pool when the query completes.
 	pool.query(...)
 
-Transactions can be managed by holding onto a single connection like so:
+Transactions can be started with `begin`, in this example we stream all users
+and then apply updates based on the results from an external service:
 
-	pool.connect(function (err, conn) {
-		// you are now responsible for releasing `conn` to the pool.
-		conn.query('BEGIN')
-		function rollback () {
-			conn.query('ROLLBACK', pool.release.bind(pool, conn))
-		}
-		someOtherAsyncFunction(function (err, res) {
-			if (err) {
-				rollback()
-				// do something about err
-				return
-			}
-			conn.query('INSERT INTO ...', [1, 2, 3], function (err) {
-				if (err) {
-					rollback()
-					// do something about err
-					return
-				}
-				// great success!
-				conn.query('COMMIT', pool.release.bind(conn, pool))
-			})
-		})
+	var tx = pool.begin()
+
+	tx.on('error', function (err) {
+		// Called for any query errors without an associated callback
+		tx.rollback()
+		finished(err)
 	})
+
+	tx.query('SELECT id FROM users').on('row', function (user) {
+		if (tx.state() == 'rolled back') return
+		externalService.method(user.id, function (err, result) {
+			if (err) return tx.handleError(err)
+
+			// Errors from these queries will propagate up to the transaction object
+			if (result.flag) {
+				tx.query('UPDATE users SET flag = 1 WHERE id = ?', [user.id])
+			} else if (result.deleteme) {
+				tx.query('DELETE FROM users WHERE id = ?', [user.id])
+			}
+		})
+	}).on('end', function () {
+		tx.commit(finished)
+	})
+
+	function finished (err) {
+		if (err) console.error(err)
+		else console.log('All done!')
+	}
 
 ## License
 
