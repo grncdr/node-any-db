@@ -190,7 +190,7 @@ need to share a session with other queries.
 
 **Responsibility:** Wrap a `ConnectionAdapter` and return it to the connection pool
 when the transaction is either committed or rolled back. Unhandled query errors will
-be re-emitted by the transaction object itself and cause an automatic rollback.
+be emitted by the transaction object itself and cause an automatic rollback.
 
 ### Interface
 
