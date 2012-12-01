@@ -3,9 +3,9 @@ var test = require('tap').test
 require('sqlite3').verbose()
 
 databaseUrls = {
+	sqlite3: "sqlite3://:memory:",
 	mysql: "mysql://root@localhost/any_db_test",
 	postgres: "postgres://postgres@localhost/any_db_test",
-	sqlite3: "sqlite3://:memory:",
 }
 
 /**
@@ -31,9 +31,9 @@ exports.allTransactions = testRunner(function (description, opts, callback) {
 		anyDB.createConnection(connString, function (err, conn) {
 			if (err) throw err
 			var tx = conn.begin()
-			tx.proxyEvent('error', conn)
-			t.on('end', tx.rollback.bind(tx))
-			t.on('end', conn.end.bind(conn))
+			tx.driver = connString.split(':').shift()
+			t.on('end', tx.rollback.bind(tx, conn.end.bind(conn)))
+			tx.on('error', function (err) { debugger; t.emit('error', err) })
 			callback(tx, t)
 		})
 	})
