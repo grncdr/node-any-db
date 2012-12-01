@@ -188,9 +188,9 @@ need to share a session with other queries.
 
 ## Transaction
 
-**Responsibility:** Wrap a `ConnectionAdapter` and return it to the connection pool
-when the transaction is either committed or rolled back. Unhandled query errors will
-be emitted by the transaction object itself and cause an automatic rollback.
+**Responsibility:** Wrap a `ConnectionAdapter` and so that all queries take place
+within a single database transaction. Unhandled query errors will be emitted by
+the transaction object itself and cause an automatic rollback.
 
 ### Interface
 
@@ -198,7 +198,7 @@ be emitted by the transaction object itself and cause an automatic rollback.
 
  * `query(statement[, params][, callback])` - The same as `ConnectionAdapter.query`
    except queries are guaranteed to be performed within the transaction. If the
-   transaction is committed or rolled back calls to `query` will fail.
+   transaction has been committed or rolled back calls to `query` will fail.
  * `commit([callback])` - Issue a `COMMIT` statement to the database. If
    `callback` is given it will be called with any errors (or `null`) after the
    `COMMIT` statement executes. The transaction object will be unusable after
