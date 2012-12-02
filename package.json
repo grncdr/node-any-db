@@ -1,15 +1,15 @@
 {
   "name": "any-db",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Database-agnostic connection pooling, querying, and result sets",
   "main": "index.js",
   "scripts": {
     "test": "tap test/*.test.js"
   },
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/grncdr/node-any-db.git"
-	},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grncdr/node-any-db.git"
+  },
   "author": "",
   "keywords": [
     "mysql",
