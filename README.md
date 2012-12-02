@@ -17,12 +17,12 @@ Things it does:
 	 the pool directly for auto-release behaviour. E.g. this will never leak
 	 connections: `pool.query("SELECT 1", function (err, results) { ... })`
  * Exposes a uniform transaction API.
+ * Uses one style of parameter placeholders (Postgres-style $n or $named) with
+   all drivers.
 
 Things it will do soon:
 
- * Optionally replace db-agnostic parameter placeholders with driver specific
-	 ones so you can use the exact same code against all drivers.
- * Have lot's and lot's of tests
+ * Have more and more tests.
  * Provide a common result set API.
 
 Things it might do:
@@ -35,7 +35,6 @@ Things it will never do:
 	 [gesundheit](https://github.com/BetSmartMedia/gesundheit), or one of the many
 	 [alternatives](https://encrypted.google.com/search?q=sql&q=site:npmjs.org&hl=en)
 	 for that.
- * Leave it's dishes in the sink and leave town for the weekend.
 
 ## Usage
 
@@ -61,10 +60,23 @@ events:
 	query.on('end', function () { /* always emitted when results are exhausted */ })
 	query.on('error', function () { /* emitted on errors :P */ })
 
-You can also create or get an existing connection pool with `anyDB.getPool`. It
-takes the following options:
+To use bound parameters simply pass an array as the second argument to query:
 
-	var pool = anyDB.getPool('postgres://user:pass@localhost/dbname', {
+	conn.query('SELECT * FROM users WHERE gh_username = $1', ['grncdr'])
+
+You can also use named parameters by passing an object instead:
+
+	conn.query('SELECT * FROM users WHERE gh_username = $username', {username: 'grncdr'})
+
+Any-db doesn't do any parameter escaping on it's own, so you can use any
+advanced parameter escaping features of the underlying driver exactly as though
+any-db wasn't there.
+
+### Connection pools
+
+You can create a connection pool with `anyDB.createPool`:
+
+	var pool = anyDB.createPool('postgres://user:pass@localhost/dbname', {
 	  min: 5,  // Minimum connections
 	  max: 10, // Maximum connections
 	  onConnect: function (conn, ready) {
@@ -80,35 +92,46 @@ takes the following options:
 	  }
 	})
 
-A connection pool has the following methods available:
+A connection pool has a `query` method that acts exactly like the one on
+connections, but the underlying connection is returned to the pool when the
+query completes.
 
-	// Exactly like conn.query above, but the underlying connection will be
-	// auto-released back into the pool when the query completes.
-	pool.query(...)
+### Transactions
 
-Transactions can be started with `begin`, in this example we stream all users
-and then apply updates based on the results from an external service:
+Both connections and pools have a `begin` method that starts a new transaction
+and returns a `Transaction` object. Transaction objects behave much like
+connections, but instead of an `end` method, they have `commit` and `rollback`
+methods. Additionally, an unhandled error emitted by a transaction query will
+cause an automatic rollback of the transaction before being re-emitted by the
+transaction itself.
+
+Here's an example where we stream all of our user ids, check them against an
+external abuse-monitoring service, and flag or delete users as necessary, if
+for any reason we only get part way through, the entire transaction is rolled
+back and nobody is flagged or deleted:
 
 	var tx = pool.begin()
 
-	tx.on('error', function (err) {
-		// Called for any query errors without an associated callback
-		tx.rollback()
-		finished(err)
-	})
+	tx.on('error', finished)
 
-	tx.query('SELECT id FROM users').on('row', function (user) {
+	/*
+	Why query with the pool and not the transaction?
+	Because it allows the transaction queries to begin executing immediately,
+	rather than queueing them all up behind the initial SELECT.
+	*/
+	pool.query('SELECT id FROM users').on('row', function (user) {
 		if (tx.state() == 'rolled back') return
-		externalService.method(user.id, function (err, result) {
+		abuseService.checkUser(user.id, function (err, result) {
 			if (err) return tx.handleError(err)
-
 			// Errors from these queries will propagate up to the transaction object
 			if (result.flag) {
-				tx.query('UPDATE users SET flag = 1 WHERE id = ?', [user.id])
-			} else if (result.deleteme) {
-				tx.query('DELETE FROM users WHERE id = ?', [user.id])
+				tx.query('UPDATE users SET abuse_flag = 1 WHERE id = $1', [user.id])
+			} else if (result.destroy) {
+				tx.query('DELETE FROM users WHERE id = $1', [user.id])
 			}
 		})
+	}).on('error', function (err) {
+		tx.handleError(err)
 	}).on('end', function () {
 		tx.commit(finished)
 	})
