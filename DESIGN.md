@@ -10,7 +10,8 @@ more powerful abstractions on top of in the future.
 The long-term goal of this project is to serve as a testing ground for finding a
 suitable bare-minimum interface, then (hopefully) convincing driver implementors
 to support it natively. In short, any-db hopes to prove it's usefulness well
-enought that the adapter portions can be obviated by the drivers themselves.
+enough that the adapter portions can be obviated by the drivers themselves.
+
 
 # Exported API
 
@@ -21,6 +22,7 @@ enought that the adapter portions can be obviated by the drivers themselves.
  * `exports.createPool(dbUrl, poolOpts)` create a new `ConnectionPool`
    and return it immediately. (See `ConnectionPool` below for a description of
    `poolOpts`).
+
 
 # Components
 
@@ -43,10 +45,11 @@ the adapter interfaces:
    execution without having to manually acquire and release connections.
  * Transaction objects act like a connection, but guarantee that all queries
    are performed within a single database transaction.
- * Result sets are an array containing rows (plain java script objects) plus
-   some extra non-enumerable properties.
+ * Result sets are objects containing an array of rows (plain java script
+   objects) and a row count.
 
 All of these objects (except result sets) are event emitters.
+
 
 ## Connection Adapters
 
@@ -82,18 +85,22 @@ object that implements (at minimum) the following interface.
    _must_ be the driver-specific error emitted by the underlying connection.
  * `'close'` - Emitted when the underlying driver connection has been closed.
 
+
 ## Query Adapters
 
 **Responsibility:** Act as a container for delayed execution of a query, and
 provide an interface for application code to interact with the query during
 execution.
 
+
 ### Interface
 
 **Instance Methods**
 
- * `buffer(boolean)` - If `boolean` is `false` result rows must not be buffered
-   into a `ResultSet`. `QueryAdapter` instances buffer by default.
+ * `buffer([boolean])` - Get or set the boolean value that determines whether
+   rows returned by this query should be buffered in the result set for the
+	 'end' event. If an argument is given, returns the QueryAdapter for method
+	 chaining. If no argument is given, returns the current 'buffer' value.
  * `cancel()` _PLANNED_ - Cancel the underlying query if the driver supports it.
    A `'cancel'` event will be emitted, and no events other than `'error'` may be
    emitted after a call to `cancel()`, even if the driver does not actually
@@ -115,13 +122,16 @@ execution.
    both query errors (such as SQL syntax errors) and, in the case of executing
    a query against a connection pool, errors acquiring a connection.
 
+
 ## ResultSet
 
 **Responsibility:** Present results from a driver-specific query with a
-consistent interface. `ResultSet` inherits from `Array` and adds the following
-non-enumerable properties:
+consistent interface. `ResultSet` is a plain object with the following
+properties:
 
   * `rowCount` - The driver reported number of rows returned/inserted/updated.
+  * `rows` - An array of rows (plain objects) returned by the query. May be
+		empty even when rows were returned if `query.buffer(false)` was called.
 
 
 ## ConnectionPool

@@ -1,5 +1,5 @@
 
-require('./helpers').allDrivers("Transactions", {autoEnd: false}, function (conn, t) {
+require('./helpers').allDrivers("Rollback transaction", {autoEnd: false}, function (conn, t) {
 	t.plan(2)
 
 	conn.query("CREATE TABLE transaction_test (a int)", function (err) {
@@ -19,12 +19,13 @@ require('./helpers').allDrivers("Transactions", {autoEnd: false}, function (conn
 		tx.on('error', function (err) { t.emit(err) })
 		tx.query('INSERT INTO transaction_test (a) VALUES (1)')
 		tx.query('SELECT * FROM transaction_test').on('end', function (res) {
-			t.deepEqual(res, [{a: 1}])
+			t.deepEqual(res.rows, [{a: 1}])
 			tx.rollback(function (err) {
 				if (err) throw err
 				conn.query('SELECT * FROM transaction_test', function (err, res) {
 					if (err) throw err
-					t.deepEqual(res, [])
+					if (!res) debugger
+					t.deepEqual(res.rows, [])
 				})
 			})
 		})
