@@ -45,9 +45,9 @@ Creating a connection:
 
 Simple queries with callbacks are exactly what you'd expect:
 
-	conn.query("SELECT * FROM my_table LIMIT 10", function (err, rows) {
-	  for (var i in rows) {
-	    console.log("Row " + i + ": %j", row)
+	conn.query("SELECT * FROM my_table LIMIT 10", function (err, result) {
+	  for (var i in result.rows) {
+	    console.log("Row " + i + ": %j", rows[i])
 	  }
 	})
 
