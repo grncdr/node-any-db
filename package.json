@@ -6,7 +6,10 @@
   "scripts": {
     "test": "tap test/*.test.js"
   },
-  "repository": "",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/grncdr/node-any-db.git"
+	},
   "author": "",
   "keywords": [
     "mysql",
