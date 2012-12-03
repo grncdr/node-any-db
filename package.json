@@ -25,7 +25,7 @@
   "devDependencies": {
     "sqlite3": "~2.1.5",
     "pg": "~0.8.2",
-    "mysql": "~2.0.0-alpha3",
+    "mysql": "~2.0.0-alpha5",
     "tap": "~0.3.0"
   }
 }
