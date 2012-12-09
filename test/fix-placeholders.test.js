@@ -4,6 +4,7 @@ var test = require('tap').test
 test('Placeholder replacement', function (t) {
 	t.plan(5)
 	function placeholderTest (args, result) {
+		args.push(function () { return '?' })
 		t.deepEqual(fixPlaceholders.apply(null, args), result)
 	}
 	placeholderTest(['$1', [10]],                          ['?', [10]])
