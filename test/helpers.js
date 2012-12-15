@@ -31,6 +31,7 @@ exports.allTransactions = testRunner(function (description, opts, callback) {
 		anyDB.createConnection(connString, function (err, conn) {
 			if (err) throw err
 			var tx = conn.begin()
+			tx.url = connString
 			t.on('end', tx.rollback.bind(tx, conn.end.bind(conn)))
 			tx.on('error', function (err) { t.emit('error', err) })
 			callback(tx, t)

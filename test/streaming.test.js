@@ -1,9 +1,10 @@
 require('./helpers').allTransactions("Streaming results", function (tx, t) {
 	tx.query("CREATE TABLE streaming_test (a int)")
 
+	var placeHolder = tx.url.match(/postgres/) ? '($1)' : '(?)';
 	var vals = []
 	for (var i = 0; i < 10; i++) {
-		tx.query('INSERT INTO streaming_test (a) VALUES ($1)', [i])
+		tx.query('INSERT INTO streaming_test (a) VALUES ' + placeHolder, [i])
 		vals.push(i)
 	}
 
