@@ -17,8 +17,6 @@ Things it does:
 	 the pool directly for auto-release behaviour. E.g. this will never leak
 	 connections: `pool.query("SELECT 1", function (err, results) { ... })`
  * Exposes a uniform transaction API.
- * Uses one style of parameter placeholders (Postgres-style $n or $named) with
-   all drivers.
 
 Things it will do soon:
 
