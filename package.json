@@ -24,8 +24,8 @@
   },
   "devDependencies": {
     "sqlite3": "~2.1.5",
-    "pg": "*",
-    "mysql": "~2.0.0-alpha5",
+    "pg": "git+https://github.com/grncdr/node-postgres.git#1437ddd",
+    "mysql": "git+https://github.com/grncdr/node-mysql.git#patch-1",
     "tap": "~0.3.0"
   }
 }
