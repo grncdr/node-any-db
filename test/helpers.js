@@ -2,7 +2,7 @@ var anyDB = require('../')
 var test = require('tap').test
 require('sqlite3').verbose()
 
-databaseUrls = {
+var databaseUrls = exports.databaseUrls = {
 	sqlite3: "sqlite3://:memory:",
 	mysql: "mysql://root@localhost/any_db_test",
 	postgres: "postgres://postgres@localhost/any_db_test",
