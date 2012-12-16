@@ -3,9 +3,9 @@ var test = require('tap').test
 require('sqlite3').verbose()
 
 var databaseUrls = exports.databaseUrls = {
-	sqlite3: "sqlite3://:memory:",
 	mysql: "mysql://root@localhost/any_db_test",
 	postgres: "postgres://postgres@localhost/any_db_test",
+	sqlite3: "sqlite3://:memory:",
 }
 
 /**
@@ -13,7 +13,7 @@ var databaseUrls = exports.databaseUrls = {
  * database, and ``tap_test`` is a node-tap test object
  */
 exports.allDrivers = testRunner(function (description, opts, callback) {
-	_testEachDriver(description, function (connString, t) { 
+	_testEachDriver(description, opts, function (connString, t) { 
 		anyDB.createConnection(connString, function (err, conn) {
 			if (err) throw err
 			if (opts.autoEnd !== false) t.on('end', conn.end.bind(conn))
@@ -27,7 +27,7 @@ exports.allDrivers = testRunner(function (description, opts, callback) {
  * on the test database, and ``tap_test`` is a node-tap test object
  */
 exports.allTransactions = testRunner(function (description, opts, callback) {
-	_testEachDriver(description, function (connString, t) { 
+	_testEachDriver(description, opts, function (connString, t) { 
 		anyDB.createConnection(connString, function (err, conn) {
 			if (err) throw err
 			var tx = conn.begin()
@@ -45,9 +45,7 @@ exports.allTransactions = testRunner(function (description, opts, callback) {
  * object.
  */
 exports.allPools = testRunner(function (description, opts, callback) {
-	var dbname = 'db_any_test'
-		, i = 0;
-	_testEachDriver(description, function (connString, t) {
+	_testEachDriver(description, opts, function (connString, t) {
 		var pool = anyDB.createPool(connString, {
 			max: 2,
 			min: 0,
@@ -58,10 +56,15 @@ exports.allPools = testRunner(function (description, opts, callback) {
 	})
 })
 
-function _testEachDriver (description, callback) {
-	Object.keys(databaseUrls).forEach(function (driverName) {
-		test(description + ' - ' + driverName, function (t) {
-			callback(databaseUrls[driverName], t)
+function _testEachDriver (description, opts, callback) {
+	var testOpts = {timeout: opts.timeout || 3000}
+	test(description, testOpts, function (t) {
+		var drivers = Object.keys(databaseUrls)
+		t.plan(drivers.length)
+		drivers.forEach(function (driver) {
+			t.test(driver, function (t) {
+				callback(databaseUrls[driver], t)
+			})
 		})
 	})
 }
