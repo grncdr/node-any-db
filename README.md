@@ -4,6 +4,8 @@
 
 ## Synopsis
 
+(There's a more detailed [API](#api) section below)
+
     var anyDB = require('any-db')
     var dbURL = 'driver://user:pass@hostname/database'
     
