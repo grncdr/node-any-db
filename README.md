@@ -2,106 +2,212 @@
 
 [![Build Status](https://secure.travis-ci.org/grncdr/node-any-db.png?branch=master)](http://travis-ci.org/grncdr/node-any-db)
 
-The purpose of this library is to consolidate the behaviours of various database
-drivers into a minimal and consistent API. See the [design
-document](https://github.com/grncdr/node-any-db/blob/master/DESIGN.md) for a
-thorough overview of the planned API.
+## Synopsis
 
-Things it does:
+    var anyDB = require('any-db')
+    var dbURL = 'driver://user:pass@hostname/database'
+    
+Establish a connection
 
- * Supports MySQL, Postgres, and SQLite3 as equally as possible.
- * Specify connection parameters with URLs: `driver://user:pass@host/database`
- * Stream results or get them all at once, using an interface almost identical
-	 to the existing evented interfaces of the MySQL and Postgres drivers.
+    var conn = anyDB.createConnection(dbURL)
+    
+Make queries
+
+    var sql = 'SELECT * FROM my_table'
+    conn.query(sql).on('row', function (row) {})  // evented
+    conn.query(sql, function (error, result) {})  // or callback
+    
+Use bound parameters
+
+    sql += ' WHERE my_column = ?'
+    conn.query(sql, [42])                         // again, evented
+    conn.query(sql, [42], function (err, res) {}) // or callback
+    conn.end()                                    // close a connection
+    
+Start a transaction
+
+    var tx = conn.begin()             // Can also take a callback
+    tx.on('error', function (err) {}) // Emitted for unhandled query errors
+    tx.query(...)                     // same interface as connections, plus...
+    tx.commit()                       // takes an optional callback for errors
+    tx.rollback()                     // this too
+    
+Create a connection pool that maintains 2-20 connections
+
+    var pool = anyDB.createPool(dbURL, {min: 2, max: 20})
+    
+    pool.query(...)       // perform a single query, same API as connection
+    var tx = pool.begin() // start a transaction, again, same API as connection
+    pool.close()          // close the pool (call when your app should exit)
+
+## Description
+
+The purpose of this library is to provide a consistent API for the commonly used
+functionality of SQL database drivers, while avoiding altering driver behaviour
+as much as possible.
+
+The long-term goal of this project is to serve as the testing ground for finding
+a suitable common interface, then (hopefully) convincing driver implementors to
+support it natively. In short, any-db hopes to prove it's usefulness well enough
+that most of it can be obviated by the drivers themselves.
+
+### Things it does
+
+ * Supports MySQL, Postgres, and SQLite3 as equally as possible. (More driver
+	 support is very much welcomed!)
+ * Parses connection parameters from URLs: `driver://user:pass@host/database`
+ * Streams results or gets them all at once, using an interface almost identical
+	 to the existing interfaces of the MySQL and Postgres drivers.
  * Simple connection pooling including the ability to execute queries against
 	 the pool directly for auto-release behaviour. E.g. this will never leak
 	 connections: `pool.query("SELECT 1", function (err, results) { ... })`
  * Exposes a uniform transaction API.
 
-Things it will do soon:
+### Things it will do soon
 
  * Have more and more tests.
+
+### Things it might do (feedback needed!)
+
+ * [Wrap errors](https://github.com/grncdr/node-any-db/issues/13).
  * Provide a common result set API.
 
-Things it might do:
- * Wrap errors.
-
-Things it will never do:
+### Things it will never do
 
  * Add it's own query helper methods like `.first` or `.fetchAll`
  * Include any sort SQL string building. You might want to try my other library
 	 [gesundheit](https://github.com/BetSmartMedia/gesundheit), or one of the many
 	 [alternatives](https://encrypted.google.com/search?q=sql&q=site:npmjs.org&hl=en)
-	 for that.
+	 for that. _(send me pull requests to list your libs here)_
 
-## Usage
+## API
 
-Creating a connection:
+### exports.createConnection
 
-	var anyDB = require('any-db')
-	  , conn = anyDB.createConnection('postgres://user:pass@localhost/dbname')
+`require('any-db').createConnection(dbURL, [callback])`
 
-Simple queries with callbacks are exactly what you'd expect:
+Create a connection object from a `dbURL` of the form
+_driver://user:pass@hostname/databasename_ where _driver_ is one of "mysql",
+"postgres", or "sqlite3". If a callback is given, it will be called with either
+an error or the established connection: `callback(error, conn)`. See
+[Connection](#connection) below for the connection API.
 
-	conn.query("SELECT * FROM my_table LIMIT 10", function (err, result) {
-	  for (var i in result.rows) {
-	    console.log("Row " + i + ": %j", rows[i])
-	  }
-	})
+### exports.createPool
 
-If no callback is provided, the query object returned will emit the following
-events:
+`require('any-db').createPool(dbUrl, [poolOpts])`
 
-	var query = conn.query('SELECT * FROM my_table')
-	query.on('fields', function (fields) { /* fields is an array of field names */ })
-	query.on('row', function (row) { /* row is plain object */ })
-	query.on('end', function () { /* always emitted when results are exhausted */ })
-	query.on('error', function () { /* emitted on errors :P */ })
+Create a new [ConnectionPool](#connectionpool) and return it immediately.
+`poolOpts` can be an object with any of the following keys (defaults shown):
 
-To use bound parameters simply pass an array as the second argument to query:
+ * `min: 2`
+   
+	 The minimum number of connections to keep open in the pool.
 
-	conn.query('SELECT * FROM users WHERE gh_username = $1', ['grncdr'])
+ * `max: 10`
+ 
+   The maximum number of connections to allow in the pool.
 
-You can also use named parameters by passing an object instead:
+ * `onConnect: function (conn, done) { done(null, conn) }`
 
-	conn.query('SELECT * FROM users WHERE gh_username = $username', {username: 'grncdr'})
+   Called immediately after a connection is first established. Use this to do
+	 one-time setup of new connections. You must call `done(error, connection)`
+	 for the connection to actually make it into the pool.
 
-Any-db doesn't do any parameter escaping on it's own, so you can use any
-advanced parameter escaping features of the underlying driver exactly as though
-any-db wasn't there.
+ * `reset: function (conn, done) { done(null) }`
 
-### Connection pools
+   Called each time the connection is returned to the pool. Use this to restore
+	 your connection to it's original state (e.g. rollback transactions, set the
+	 user or encoding).
 
-You can create a connection pool with `anyDB.createPool`:
+See [ConnectionPool](#connectionpool) below for the API of the returned object.
 
-	var pool = anyDB.createPool('postgres://user:pass@localhost/dbname', {
-	  min: 5,  // Minimum connections
-	  max: 10, // Maximum connections
-	  onConnect: function (conn, ready) {
-	    /*
-	    perform any necessary connection setup before calling ready(err, conn)
-	    */
-	  },
-	  reset: function (conn, ready) {
-	    /*
-	    perform any necessary reset of connection state before the connection can
-	    be re-used. The default callback does conn.query("ROLLBACK", ready)
-	    */
-	  }
-	})
+### Connection
 
-A connection pool has a `query` method that acts exactly like the one on
-connections, but the underlying connection is returned to the pool when the
-query completes.
+Connection objects returned by [exports.createConnection](#createconnection) or
+[ConnectionPool.acquire](#connectionpool-acquire) have the following methods:
 
-### Transactions
+#### Connection.query
 
-Both connections and pools have a `begin` method that starts a new transaction
-and returns a `Transaction` object. Transaction objects behave much like
-connections, but instead of an `end` method, they have `commit` and `rollback`
-methods. Additionally, an unhandled error emitted by a transaction query will
-cause an automatic rollback of the transaction before being re-emitted by the
-transaction itself.
+`conn.query(statement, [params], [callback])`
+
+Execute statement, using bound parameters if they are given, and return a
+[Query](#query) object for the in-progress query. If `callback` is given it will
+be called with any errors or an object representing the query results
+(`callback(error, results)`). The result object is specific to the driver being
+used.
+
+#### Connection.begin
+
+`var tx = conn.begin([callback])`
+
+Start a new transaction and return a [Transaction](#transaction) object to
+manage it. If `callback` is given it will be called with any errors encountered
+starting the transaction and the transaction object itself: `callback(error,
+transaction)`. See also: the [Transaction](#transaction) API.
+
+#### Connection.end
+
+`conn.end()`
+
+Close the connection.
+
+#### Connection Events
+
+ * `'error', err` - Emitted when there is a connection-level error.
+ * `'close'` - Emitted when the connection has been closed.
+
+
+### ConnectionPool
+
+ConnectionPool instances are created with [createPool](#exports-createpool).
+
+#### ConnectionPool.query
+
+Acts exactly like [Connection.query](#connection-query), but the underlying
+connection is returned to the pool when the query completes.
+
+#### ConnectionPool.begin
+
+Acts exactly like [Connection.begin](#connection-query), but the underlying
+connection is returned to the pool when the transaction commits or rolls back.
+
+### Transaction
+
+Transaction objects wrap a [Connection](#connection) so that all queries take
+place within a single database transaction. Queries that error will cause the
+database transaction to automatically rollback. If a query has no callback, the
+transaction will handle (and re-emit) `'error'` events for that query. This enables
+handling errors for the entire transaction in a single place.
+
+#### Transaction.query
+
+Acts exactly like [Connection.query](#connection-query) except queries are
+guaranteed to be performed within the transaction. If the transaction has been
+committed or rolled back further calls to `query` will fail.
+
+#### Transaction.commit([callback])
+
+Issue a `COMMIT` statement to the database. If a callback is given it will be
+called with any errors after the `COMMIT` statement completes. The transaction
+object itself will be unusable after calling `commit()`.
+
+#### Transaction.rollback([callback])
+
+The same as [Transaction.commit](#transaction-commit) but issues a `ROLLBACK`.
+Again, the transaction will be unusable after calling this method.
+
+#### Transaction events
+
+ * `'committed'` - Emitted after the transaction has successfully committed.
+ * `'rolled back'` - Emitted after the transaction has rolled back.
+ * `'error', err` - Emitted under three conditions:
+   1. There was an error acquiring a connection.
+   2. Any query performed in this transaction emits an error that would otherwise
+      go unhandled.
+   3. Any of `query`, `commit`, or `rollback` are called after the connection has
+      already been committed or rolled back.
+
+#### Transaction Example
 
 Here's an example where we stream all of our user ids, check them against an
 external abuse-monitoring service, and flag or delete users as necessary, if
