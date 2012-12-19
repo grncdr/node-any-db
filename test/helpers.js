@@ -8,6 +8,14 @@ var databaseUrls = exports.databaseUrls = {
 	sqlite3: "sqlite3://:memory:",
 }
 
+if (process.env.TEST_DRIVERS) {
+	Object.keys(databaseUrls).forEach(function (driver) {
+		if (process.env.TEST_DRIVERS.indexOf(driver) == -1) {
+			delete databaseUrls[driver]
+		}
+	})
+}
+
 /**
  * Run ``callback(conn, tap_test)`` where ``conn`` is a connection to the test
  * database, and ``tap_test`` is a node-tap test object
