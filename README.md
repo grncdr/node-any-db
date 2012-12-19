@@ -80,6 +80,11 @@ that most of it can be obviated by the drivers themselves.
 	 [alternatives](https://encrypted.google.com/search?q=sql&q=site:npmjs.org&hl=en)
 	 for that. _(send me pull requests to list your libs here)_
 
+## Install
+
+    npm install --save any-db
+    npm install --save {pg,mysql,sqlite3}
+
 ## API
 
 ### exports.createConnection
@@ -123,12 +128,12 @@ See [ConnectionPool](#connectionpool) below for the API of the returned object.
 
 ### Connection
 
-Connection objects returned by [exports.createConnection](#createconnection) or
-[ConnectionPool.acquire](#connectionpool-acquire) have the following methods:
+Connection objects returned by [createConnection](#exportscreateconnection) or
+[ConnectionPool.acquire](#connectionpoolacquire) have the following methods:
 
 #### Connection.query
 
-`conn.query(statement, [params], [callback])`
+`var q = conn.query(statement, [params], [callback])`
 
 Execute statement, using bound parameters if they are given, and return a
 [Query](#query) object for the in-progress query. If `callback` is given it will
@@ -159,17 +164,36 @@ Close the connection.
 
 ### ConnectionPool
 
-ConnectionPool instances are created with [createPool](#exports-createpool).
+ConnectionPool instances are created with [createPool](#exportscreatepool).
 
 #### ConnectionPool.query
 
-Acts exactly like [Connection.query](#connection-query), but the underlying
+`var q = pool.query(stmt, [params], [callback])`
+
+Acts exactly like [Connection.query](#connectionquery), but the underlying
 connection is returned to the pool when the query completes.
 
 #### ConnectionPool.begin
 
-Acts exactly like [Connection.begin](#connection-query), but the underlying
+`var tx = pool.begin([callback])`
+
+Acts exactly like [Connection.begin](#connectionbegin), but the underlying
 connection is returned to the pool when the transaction commits or rolls back.
+
+#### ConnectionPool.acquire
+
+`pool.acquire(function (err, conn) { ... })`
+
+Remove a connection from the pool. If you use this method you **must** return
+the connection back to the pool using [ConnectionPool.release](#connectionpoolrelease)
+
+#### ConnectionPool.release
+
+`pool.release(conn)`
+
+Return a connection to the pool. This should only be called with connections
+you've manually [acquired](#connectionpoolacquire), and you **must not**
+continue to use the connection after releasing it.
 
 ### Transaction
 
@@ -181,19 +205,25 @@ handling errors for the entire transaction in a single place.
 
 #### Transaction.query
 
-Acts exactly like [Connection.query](#connection-query) except queries are
+`var q = tx.query(stmt, [params], [callback])`
+
+Acts exactly like [Connection.query](#connectionquery) except queries are
 guaranteed to be performed within the transaction. If the transaction has been
 committed or rolled back further calls to `query` will fail.
 
-#### Transaction.commit([callback])
+#### Transaction.commit
+
+`tx.commit([callback])`
 
 Issue a `COMMIT` statement to the database. If a callback is given it will be
 called with any errors after the `COMMIT` statement completes. The transaction
 object itself will be unusable after calling `commit()`.
 
-#### Transaction.rollback([callback])
+#### Transaction.rollback
 
-The same as [Transaction.commit](#transaction-commit) but issues a `ROLLBACK`.
+`tx.rollback([callback])`
+
+The same as [Transaction.commit](#transactioncommit) but issues a `ROLLBACK`.
 Again, the transaction will be unusable after calling this method.
 
 #### Transaction events
