@@ -18,13 +18,13 @@ require('./helpers').allDrivers("Rollback transaction", {autoEnd: false}, functi
 		var tx = conn.begin()
 		tx.on('error', function (err) { t.emit(err) })
 		tx.query('INSERT INTO transaction_test (a) VALUES (1)')
-		tx.query('SELECT * FROM transaction_test').on('end', function (res) {
+		tx.query('SELECT * FROM transaction_test', function (err, res) {
+			if (err) throw err
 			t.deepEqual(res.rows, [{a: 1}])
 			tx.rollback(function (err) {
 				if (err) throw err
 				conn.query('SELECT * FROM transaction_test', function (err, res) {
 					if (err) throw err
-					if (!res) debugger
 					t.deepEqual(res.rows, [])
 				})
 			})
