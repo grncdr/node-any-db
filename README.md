@@ -87,6 +87,17 @@ that most of it can be obviated by the drivers themselves.
     npm install --save any-db
     npm install --save {pg,mysql,sqlite3}
 
+
+## Contributing
+
+For ideas that would change an existing API or behaviour please open an issue to
+propose the change before spending time on implementing it. I know it's hard (I
+code-first-ask-questions-later *way* too frequently :smile:) but I'd really hate
+for anybody to put their time into something that won't be merged.
+
+I'm not terribly picky about code-formatting, but please try and keep lines
+under 80 characters long if you can help it.
+
 ## API
 
 ### exports.createConnection
@@ -120,7 +131,7 @@ Create a new [ConnectionPool](#connectionpool) and return it immediately.
 	 one-time setup of new connections. You must call `done(error, connection)`
 	 for the connection to actually make it into the pool.
 
- * `reset: function (conn, done) { done(null) }`
+ * `reset: function (conn, done) { done(null) }`,
 
    Called each time the connection is returned to the pool. Use this to restore
 	 your connection to it's original state (e.g. rollback transactions, set the
@@ -131,17 +142,41 @@ See [ConnectionPool](#connectionpool) below for the API of the returned object.
 ### Connection
 
 Connection objects returned by [createConnection](#exportscreateconnection) or
-[ConnectionPool.acquire](#connectionpoolacquire) have the following methods:
+[ConnectionPool.acquire](#connectionpoolacquire) are guaranteed to have the
+methods and events listed here, but the connection objects of various drivers
+may have additional methods or emit additional events. If you need to access a
+feature of your database is not described here (such as Postgres' server-side
+prepared statements), consult the documentation for the database driver.
+
+#### Connection Events
+
+ * `'error', err` - Emitted when there is a connection-level error.
+ * `'close'` - Emitted when the connection has been closed.
 
 #### Connection.query
 
-`var q = conn.query(statement, [params], [callback])`
-
-Execute statement, using bound parameters if they are given, and return a
+Execute a SQL statement, using bound parameters if they are given, and return a
 [Query](#query) object for the in-progress query. If `callback` is given it will
 be called with any errors or an object representing the query results
-(`callback(error, results)`). The result object is specific to the driver being
-used.
+(`callback(error, results)`). The returned Query object and the result object
+passed to the callback may have extra driver-specific properties and events.
+
+*Callback-style*
+```javascript
+conn.query('SELECT * FROM my_table', function (err, res) {
+  if (err) return console.error(err)
+  res.rows.forEach(console.log)
+  console.log('All done!')
+})
+```
+
+*EventEmitter-style*
+```javascript
+conn.query('SELECT * FROM my_table')
+  .on('error', console.error)
+  .on('row', console.log)
+  .on('end', function () { console.log('All done!') })
+```
 
 #### Connection.begin
 
@@ -152,17 +187,41 @@ manage it. If `callback` is given it will be called with any errors encountered
 starting the transaction and the transaction object itself: `callback(error,
 transaction)`. See also: the [Transaction](#transaction) API.
 
+*Callback-style*
+```javascript
+conn.begin(function (err, transaction) {
+	if (err) return console.error(err)
+	// Do work using transaction
+})
+```
+
+```javascript
+var transaction = conn.begin()
+transaction.on('error', console.error)
+// Do work using transaction, queries are queued until transaction successfully
+// starts.
+```
+
 #### Connection.end
 
-`conn.end()`
+`conn.end([callback])`
 
-Close the connection.
+Close the database connection. If `callback` is given it will be called after
+the connection has closed.
 
-#### Connection Events
 
- * `'error', err` - Emitted when there is a connection-level error.
- * `'close'` - Emitted when the connection has been closed.
+### Query
 
+Query objects are returned by the `.query(...)` methods of
+[connections](#connection), [pools](#connectionpool), and
+[transctions](#transaction). Like connections, query objects are created by the
+drivers themselves and may have more methods and events than are described here.
+
+#### Query Events
+
+ * `'error', err` - Emitted if the query results in an error.
+ * `'row', row` - Emitted for each row in the queries result set.
+ * `'end', [res]` - Emitted when the query completes.
 
 ### ConnectionPool
 
@@ -170,7 +229,7 @@ ConnectionPool instances are created with [createPool](#exportscreatepool).
 
 #### ConnectionPool.query
 
-`var q = pool.query(stmt, [params], [callback])`
+`var query = pool.query(stmt, [params], [callback])`
 
 Acts exactly like [Connection.query](#connectionquery), but the underlying
 connection is returned to the pool when the query completes.
@@ -187,7 +246,7 @@ connection is returned to the pool when the transaction commits or rolls back.
 `pool.acquire(function (err, conn) { ... })`
 
 Remove a connection from the pool. If you use this method you **must** return
-the connection back to the pool using [ConnectionPool.release](#connectionpoolrelease)
+the connection back to the pool using [ConnectionPool.release](#connectionpoolrelease).
 
 #### ConnectionPool.release
 
@@ -196,6 +255,16 @@ the connection back to the pool using [ConnectionPool.release](#connectionpoolre
 Return a connection to the pool. This should only be called with connections
 you've manually [acquired](#connectionpoolacquire), and you **must not**
 continue to use the connection after releasing it.
+
+#### ConnectionPool.close
+
+Stop giving out new connections, and close all existing database connections as
+they are returned to the pool.
+
+#### ConnectionPool events
+
+ * `'close'` - emitted when the connection pool has closed all of it
+	 connections after a call to `close()`.
 
 ### Transaction
 
@@ -209,11 +278,11 @@ handling errors for the entire transaction in a single place.
 
 `var q = tx.query(stmt, [params], [callback])`
 
-Acts exactly like [Connection.query](#connectionquery) except queries are
+Acts exactly like [Connection.query](#connection-query) except queries are
 guaranteed to be performed within the transaction. If the transaction has been
 committed or rolled back further calls to `query` will fail.
 
-#### Transaction.commit
+#### Transaction.commit([callback])
 
 `tx.commit([callback])`
 
@@ -221,11 +290,11 @@ Issue a `COMMIT` statement to the database. If a callback is given it will be
 called with any errors after the `COMMIT` statement completes. The transaction
 object itself will be unusable after calling `commit()`.
 
-#### Transaction.rollback
+#### Transaction.rollback([callback])
 
 `tx.rollback([callback])`
 
-The same as [Transaction.commit](#transactioncommit) but issues a `ROLLBACK`.
+The same as [Transaction.commit](#transaction-commit) but issues a `ROLLBACK`.
 Again, the transaction will be unusable after calling this method.
 
 #### Transaction events
