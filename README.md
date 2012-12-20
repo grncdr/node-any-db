@@ -282,7 +282,7 @@ Acts exactly like [Connection.query](#connectionquery) except queries are
 guaranteed to be performed within the transaction. If the transaction has been
 committed or rolled back further calls to `query` will fail.
 
-#### Transaction.commit([callback])
+#### Transaction.commit
 
 `tx.commit([callback])`
 
@@ -290,7 +290,7 @@ Issue a `COMMIT` statement to the database. If a callback is given it will be
 called with any errors after the `COMMIT` statement completes. The transaction
 object itself will be unusable after calling `commit()`.
 
-#### Transaction.rollback([callback])
+#### Transaction.rollback
 
 `tx.rollback([callback])`
 
