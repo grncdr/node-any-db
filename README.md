@@ -278,7 +278,7 @@ handling errors for the entire transaction in a single place.
 
 `var q = tx.query(stmt, [params], [callback])`
 
-Acts exactly like [Connection.query](#connection-query) except queries are
+Acts exactly like [Connection.query](#connectionquery) except queries are
 guaranteed to be performed within the transaction. If the transaction has been
 committed or rolled back further calls to `query` will fail.
 
@@ -294,7 +294,7 @@ object itself will be unusable after calling `commit()`.
 
 `tx.rollback([callback])`
 
-The same as [Transaction.commit](#transaction-commit) but issues a `ROLLBACK`.
+The same as [Transaction.commit](#transactioncommit) but issues a `ROLLBACK`.
 Again, the transaction will be unusable after calling this method.
 
 #### Transaction events
