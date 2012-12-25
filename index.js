@@ -1,5 +1,6 @@
 var url = require('url')
 var ConnectionPool = require('any-db-pool')
+var Transaction = require('./lib/transaction')
 
 exports.adapters = require('./lib/adapters');
 
