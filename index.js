@@ -1,11 +1,11 @@
 var url = require('url')
-var ConnectionPool = require('./lib/connection-pool')
+var ConnectionPool = require('any-db-pool')
 
 exports.adapters = require('./lib/adapters');
 
 exports.createConnection = function connect (dbUrl, callback) {
 	var parsed = parseDbUrl(dbUrl)
-	return getAdapter(parsed.protocol).create(parsed, callback)
+	return getAdapter(parsed.protocol).createConnection(parsed, callback)
 }
 
 exports.createPool = function getPool (dbUrl, opts) {
@@ -15,7 +15,9 @@ exports.createPool = function getPool (dbUrl, opts) {
 	}
 	var parsed = parseDbUrl(dbUrl);
 	var adapter = getAdapter(parsed.protocol);
-	return new ConnectionPool(adapter, parsed, opts || {})
+	var pool = new ConnectionPool(adapter, parsed, opts || {})
+	pool.begin = Transaction.createBeginMethod(adapter.createQuery)
+	return pool
 }
 
 function parseDbUrl (dbUrl) {
