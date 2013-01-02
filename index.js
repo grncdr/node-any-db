@@ -46,7 +46,7 @@ ConnectionPool.prototype.query = function (statement, params, callback) {
 		if (err) return callback ? callback(err) : query.emit('error', err)
 		conn.query(query);
 		var release = self.release.bind(self, conn) 
-		query.on('end', release).on('error', release)
+		query.once('end', release).once('error', release)
 	})
 
 	return query
