@@ -66,7 +66,7 @@ library uses `generic-pool` and simply augments it with some added niceties:
 
 ### module.exports
 
-		var ConnectionPool = require('any-db-pool')
+    var ConnectionPool = require('any-db-pool')
     var pool = new ConnectionPool(adapter, connectionParams, options)
 
 The module exports a single constructor function, conventionally named
@@ -76,23 +76,20 @@ The module exports a single constructor function, conventionally named
 	[adapter interface](#adapterinterface) below for details.
 * `connectionParams` - An argument for `adapter.createConnection` to create connections.
 * `options` - an object with any of the following keys (defaults shown):
- * `min: 2`
-   
-	 The minimum number of connections to keep open in the pool.
 
- * `max: 10`
- 
-   The maximum number of connections to allow in the pool.
+ * `min: 2` The minimum number of connections to keep open in the pool.
+
+ * `max: 10` The maximum number of connections to allow in the pool.
 
  * `onConnect: function (conn, done) { done(null, conn) }`
 
-   Called immediately after a connection is first established. Use this to do
+	 Called immediately after a connection is first established. Use this to do
 	 one-time setup of new connections. You must call `done(error, connection)`
 	 for the connection to actually make it into the pool.
 
  * `reset: function (conn, done) { done(null) }`,
 
-   Called each time the connection is returned to the pool. Use this to restore
+	 Called each time the connection is returned to the pool. Use this to restore
 	 your connection to it's original state (e.g. rollback transactions, set the
 	 user or encoding).
 
