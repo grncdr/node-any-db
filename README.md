@@ -4,29 +4,31 @@
 
 ## Synopsis
 
-    var ConnectionPool = require('any-db-pool')
-    var mysql = require('mysql')
+```javascript
+var ConnectionPool = require('any-db-pool')
+var mysql = require('mysql')
 
-    var adapter = {
-      createConnection: function (opts, callback) {
-        var conn = mysql.createConnection(opts, callback)
-        conn.connect(function (err) {
-          if (err) callback(err)
-          else callback(null, conn)
-        })
-        return conn
-      },
-      createQuery: mysql.createQuery
-    }
-
-    var pool = new ConnectionPool(adapter, {user: 'scott', password: 'tiger'}, {
-      min: 5,
-      max: 15,
-      reset: function (conn, done) { conn.query('ROLLBACK', done) }
+var adapter = {
+  createConnection: function (opts, callback) {
+    var conn = mysql.createConnection(opts, callback)
+    conn.connect(function (err) {
+      if (err) callback(err)
+      else callback(null, conn)
     })
+    return conn
+  },
+  createQuery: mysql.createQuery
+}
 
-    // Proxies to mysql's connection.query
-    var q = pool.query('SELECT 1', function (err, res) { })
+var pool = new ConnectionPool(adapter, {user: 'scott', password: 'tiger'}, {
+  min: 5,
+  max: 15,
+  reset: function (conn, done) { conn.query('ROLLBACK', done) }
+})
+
+// Proxies to mysql's connection.query
+var q = pool.query('SELECT 1', function (err, res) { })
+```
 
 ## Description
 
