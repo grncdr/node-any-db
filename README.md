@@ -110,12 +110,15 @@ _driver://user:pass@hostname/databasename_ where _driver_ is one of "mysql",
 an error or the established connection: `callback(error, conn)`. See
 [Connection](#connection) below for the connection API.
 
+See also: Driver-specific notes for [Postgres](#postgres).
+
 ### exports.createPool
 
 `require('any-db').createPool(dbUrl, [poolOpts])`
 
-Create a new [ConnectionPool](#connectionpool) and return it immediately.
-`poolOpts` can be an object with any of the following keys (defaults shown):
+Create a new [ConnectionPool](#connectionpool) and return it immediately. See
+the [createConnection](#exportscreateconnection) docs for an explanation of the
+`dbURL` parameter. `poolOpts` may be an object with any of the following keys:
 
  * `min: 2`
    
@@ -347,6 +350,21 @@ back and nobody is flagged or deleted:
 		if (err) console.error(err)
 		else console.log('All done!')
 	}
+
+## Driver-specific notes
+
+### Postgres
+
+If you have issues using the native backend for the pg driver on your platform,
+you can force anyDB to use the pure-JavaScript like so:
+
+```javascript
+var anyDB = require('any-db')
+anyDB.adapters.postgres.forceJS = true
+```
+
+You **must** do the above *before* you create any connections or connection
+pools.
 
 ## License
 
