@@ -32,7 +32,7 @@ function parseDbUrl (dbUrl) {
 }
 
 function getAdapter (protocol) {
-	var name = protocol.replace(':', '')
+	var name = protocol.replace(':', '').split('+').shift()
 	if (!exports.adapters[name]) {
 		throw new Error("Unknown database driver: " + name)
 	}
