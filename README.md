@@ -107,8 +107,9 @@ under 80 characters long if you can help it.
 Create a connection object from a `dbURL` of the form
 _driver://user:pass@hostname/databasename_ where _driver_ is one of "mysql",
 "postgres", or "sqlite3". If a callback is given, it will be called with either
-an error or the established connection: `callback(error, conn)`. See
-[Connection](#connection) below for the connection API.
+an error or the established connection: `callback(error, conn)`. Additional
+connection settings can be included as query parameters in the URL. The returned
+will conform to the [Connection API](#connection) detailed below.
 
 See also: Driver-specific notes for [Postgres](#postgres).
 
@@ -365,6 +366,13 @@ anyDB.adapters.postgres.forceJS = true
 
 You **must** do the above *before* you create any connections or connection
 pools.
+
+### SQLite3
+
+You can include any of the SQLite3 mode flags as query parameters in your database
+URL. So if you wanted to open your database in read-only mode for example, just
+append `?OPEN_READONLY` to the URL. The available flags are documented in this
+[SQLite3 wiki page](https://github.com/developmentseed/node-sqlite3/wiki/API).
 
 ## License
 
