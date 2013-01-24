@@ -314,6 +314,11 @@ Again, the transaction will be unusable after calling this method.
    3. Any of `query`, `commit`, or `rollback` are called after the connection has
       already been committed or rolled back.
 
+   Note that the `'error'` event **may be emitted multiple times!** depending on
+   the callback you are registering, you way want to wrap it using [once][once].
+   
+[once]: http://npm.im/once
+
 #### Transaction Example
 
 Here's an example where we stream all of our user ids, check them against an
