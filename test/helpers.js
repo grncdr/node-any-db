@@ -86,3 +86,14 @@ function testRunner (run) {
 		run(description, opts, callback)
 	}
 }
+
+
+exports.debugIf = function (orig, cond) {
+	return function () {
+		if (cond.apply(this, arguments)) {
+			console.log(Array.prototype.slice.apply(arguments))
+			debugger
+		}
+		return orig.apply(this, arguments)
+	}
+}
