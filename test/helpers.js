@@ -65,11 +65,13 @@ exports.allPools = testRunner(function (description, opts, callback) {
 })
 
 function _testEachDriver (description, opts, callback) {
-	var testOpts = {timeout: opts.timeout || 3000}
+	var testOpts = {
+		timeout: opts.timeout || 3000,
+		drivers: opts.drivers || Object.keys(databaseUrls)
+	}
 	test(description, testOpts, function (t) {
-		var drivers = Object.keys(databaseUrls)
-		t.plan(drivers.length)
-		drivers.forEach(function (driver) {
+		t.plan(testOpts.drivers.length)
+		testOpts.drivers.forEach(function (driver) {
 			t.test(driver, function (t) {
 				callback(databaseUrls[driver], t)
 			})
@@ -86,7 +88,6 @@ function testRunner (run) {
 		run(description, opts, callback)
 	}
 }
-
 
 exports.debugIf = function (orig, cond) {
 	return function () {
