@@ -2,8 +2,6 @@
 require('./helpers').allDrivers("Rollback transaction", {autoEnd: false}, function (conn, t) {
 	t.plan(2)
 
-	conn.query("DROP TABLE transaction_test", function (err) {})
-	conn.query("CREATE TABLE transaction_test (a int)")
 	t.on('end', function dropTable () {
 		conn.query('DROP TABLE transaction_test', function (err) {
 			conn.end()
@@ -11,6 +9,8 @@ require('./helpers').allDrivers("Rollback transaction", {autoEnd: false}, functi
 		})
 	})
 
+	conn.query("DROP TABLE transaction_test", function (err) {})
+	conn.query("CREATE TABLE transaction_test (a int)")
 	var tx = conn.begin()
 
 	tx.query('INSERT INTO transaction_test (a) VALUES (1)')
