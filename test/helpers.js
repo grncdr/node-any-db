@@ -1,11 +1,14 @@
+var fs = require('fs')
 var anyDB = require('../')
 var test = require('tap').test
 require('sqlite3').verbose()
 
+var sqliteFilename =  "/tmp/any-db-test.db"
+
 var databaseUrls = exports.databaseUrls = {
 	mysql: "mysql://root@localhost/any_db_test",
 	postgres: "postgres://postgres@localhost/any_db_test",
-	sqlite3: "sqlite3://:memory:",
+	sqlite3: "sqlite3://" + sqliteFilename,
 }
 
 if (process.env.TEST_DRIVERS) {
@@ -72,6 +75,9 @@ function _testEachDriver (description, opts, callback) {
 	test(description, testOpts, function (t) {
 		t.plan(testOpts.drivers.length)
 		testOpts.drivers.forEach(function (driver) {
+			if (driver == 'sqlite3') {
+				try { fs.unlinkSync(sqliteFilename) } catch (e) {}
+			}
 			t.test(driver, function (t) {
 				callback(databaseUrls[driver], t)
 			})
