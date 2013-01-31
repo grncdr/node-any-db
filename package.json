@@ -21,12 +21,12 @@
   "license": "BSD",
   "dependencies": {
     "generic-pool": "~2.0.0",
-    "any-db-pool": "0.0.0"
+    "any-db-pool": "*"
   },
   "devDependencies": {
-    "sqlite3": "~2.1.5",
-    "pg": ">= 0.10.2",
-    "mysql": "git+https://github.com/felixge/node-mysql.git#master",
-    "tap": "~0.3.0"
+    "sqlite3": "*",
+    "pg": "*",
+    "mysql": "*",
+    "tap": "*"
   }
 }
