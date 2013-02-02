@@ -28,7 +28,9 @@ function ConnectionPool (adapter, connParams, options) {
 		destroy: function (conn) {
 			conn.end()
 			conn._events = {}
-		}
+		},
+
+		log: options.log
 	}
 
 	var resetSteps = [function (conn, next) { conn._events = {}; next() }]
