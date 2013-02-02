@@ -20,7 +20,6 @@
   ],
   "license": "BSD",
   "dependencies": {
-    "generic-pool": "~2.0.0",
     "any-db-pool": "*"
   },
   "devDependencies": {
