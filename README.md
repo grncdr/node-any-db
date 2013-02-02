@@ -11,7 +11,7 @@
     
 Establish a connection
 
-    var conn = anyDB.createConnection(dbURL)
+    var conn = anyDB.createConnection(dbURL)  // Takes an optional callback
     
 Make queries
 
@@ -22,9 +22,12 @@ Make queries
 Use bound parameters
 
     sql += ' WHERE my_column = ?'
-    conn.query(sql, [42])                         // again, evented
-    conn.query(sql, [42], function (err, res) {}) // or callback
-    conn.end()                                    // close a connection
+    conn.query(sql, [42]).on('row', ...)           // again, evented
+    conn.query(sql, [42], function (err, res) {})  // or callback
+
+Close a connection
+
+    conn.end()
     
 Start a transaction
 
