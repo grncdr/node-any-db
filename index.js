@@ -1,6 +1,7 @@
 var inherits     = require('util').inherits
 var EventEmitter = require('events').EventEmitter
 var Pool         = require('generic-pool').Pool
+var once         = require('once')
 var chain        = require('./lib/chain')
 
 module.exports = ConnectionPool
@@ -45,7 +46,7 @@ ConnectionPool.prototype.query = function (statement, params, callback) {
 	this.acquire(function (err, conn) {
 		if (err) return callback ? callback(err) : query.emit('error', err)
 		conn.query(query);
-		var release = self.release.bind(self, conn) 
+		var release = once(self.release.bind(self, conn))
 		query.once('end', release).once('error', release)
 	})
 
