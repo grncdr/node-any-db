@@ -60,7 +60,7 @@ exports.allPools = testRunner(function (description, opts, callback) {
 		var pool = anyDB.createPool(connString, {
 			max: 2,
 			min: 0,
-			idleTimoutMillis: 1000
+			idleTimeoutMillis: 1000
 		})
 		t.on('end', pool.close.bind(pool))
 		callback(pool, t)
