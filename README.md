@@ -364,14 +364,12 @@ back and nobody is flagged or deleted:
 
 ### Postgres
 
-Currently there are issues using the native pg backend with the any-db
-connection pool, so we default to using the pure-JavaScript backend. If you want
-to try using the native backend, set the following flag to `false` and report
-your findings on issue #18.
+If you have issues using the native backend for the pg driver on your platform,
+you can force anyDB to use the pure-JavaScript like so:
 
 ```javascript
 var anyDB = require('any-db')
-anyDB.adapters.postgres.forceJS = false
+anyDB.adapters.postgres.forceJS = true
 ```
 
 You **must** do the above *before* you create any connections or connection
