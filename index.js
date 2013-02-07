@@ -33,7 +33,7 @@ function ConnectionPool (adapter, connParams, options) {
 		log: options.log
 	}
 
-	var resetSteps = [function (conn, next) { conn._events = {}; next() }]
+	var resetSteps = [];
 	if (adapter.reset) resetSteps.unshift(adapter.reset);
 	if (options.reset) resetSteps.unshift(options.reset)
 	this._adapter = adapter
