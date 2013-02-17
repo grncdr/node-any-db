@@ -100,7 +100,7 @@ under 80 characters long if you can help it.
 
 MIT
 
-[API](https://github.com/grncdr/node-any-db/blob/master/API.md)
-[query](https://github.com/grncdr/node-any-db/blob/master/API.md#query)
-[pool](https://github.com/grncdr/node-any-db/blob/master/API.md#exportscreatepool)
-[tx](https://github.com/grncdr/node-any-db/blob/master/API.md#transaction)
+[API]: https://github.com/grncdr/node-any-db/blob/master/API.md
+[query]: https://github.com/grncdr/node-any-db/blob/master/API.md#query
+[pool]: https://github.com/grncdr/node-any-db/blob/master/API.md#exportscreatepool
+[tx]: https://github.com/grncdr/node-any-db/blob/master/API.md#transaction
