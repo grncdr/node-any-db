@@ -134,8 +134,6 @@ drivers themselves and may have more methods and events than are described here.
 
 ConnectionPool instances are created with [createPool](#exportscreatepool).
 
-[any-db-pool](http://npm.im/any-db-pool)
-
 ### ConnectionPool.query
 
 `var query = pool.query(stmt, [params], [callback])`
