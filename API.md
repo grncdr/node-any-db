@@ -170,6 +170,10 @@ they are returned to the pool.
 
 ### ConnectionPool events
 
+ * `'acquire'` - emitted whenever `pool.acquire` is called
+ * `'release'` - emitted whenever `pool.release` is called
+ * `'query', statement, params` - emitted immediately before `.release` is
+	 called on a connection via `pool.query`.
  * `'close'` - emitted when the connection pool has closed all of it
 	 connections after a call to `close()`.
 
