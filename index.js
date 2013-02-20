@@ -44,7 +44,7 @@ function ConnectionPool(adapter, connParams, options) {
 }
 
 ConnectionPool.prototype.query = function (statement, params, callback) {
-    this.emit('query', statement, params)
+	this.emit('query', statement, params)
 	var self = this
 		, query = this._adapter.createQuery(statement, params, callback)
 
@@ -59,12 +59,12 @@ ConnectionPool.prototype.query = function (statement, params, callback) {
 }
 
 ConnectionPool.prototype.acquire = function (callback) {
-    this.emit('acquire')
+	this.emit('acquire')
 	this._pool.acquire(callback);
 }
 
 ConnectionPool.prototype.release = function (connection) {
-    this.emit('release')
+	this.emit('release')
 	var pool = this._pool
 	this._reset(connection, function (err) {
 		if (err) return pool.destroy(connection)
