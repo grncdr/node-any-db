@@ -44,12 +44,12 @@ function ConnectionPool(adapter, connParams, options) {
 }
 
 ConnectionPool.prototype.query = function (statement, params, callback) {
-	this.emit('query', statement, params)
 	var self = this
 		, query = this._adapter.createQuery(statement, params, callback)
 
 	this.acquire(function (err, conn) {
 		if (err) return callback ? callback(err) : query.emit('error', err)
+		this.emit('query', statement, params)
 		conn.query(query);
 		var release = once(self.release.bind(self, conn))
 		query.once('end', release).once('error', release)
