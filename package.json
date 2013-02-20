@@ -20,7 +20,7 @@
   ],
   "license": "BSD",
   "dependencies": {
-    "any-db-pool": "*"
+    "any-db-pool": ">= 0.0.3"
   },
   "devDependencies": {
     "sqlite3": "*",
