@@ -39,18 +39,15 @@ function ConnectionPool (adapter, connParams, options) {
 	this._adapter = adapter
 	this._reset = chain(resetSteps);
 	this._pool = new Pool(poolOpts)
-    
-    // set up our logging function
-    this._queryLogger = (options.queryLogger && typeof options.queryLogger === 'function' ? options.queryLogger : function() {});
 }
 
 ConnectionPool.prototype.query = function (statement, params, callback) {
+    this.emit('query', statement, params)
 	var self = this
 		, query = this._adapter.createQuery(statement, params, callback)
 
 	this.acquire(function (err, conn) {
 		if (err) return callback ? callback(err) : query.emit('error', err)
-        self._queryLogger('executing query "' + statement + '" ' + JSON.stringify(params), 'info');
 		conn.query(query);
 		var release = once(self.release.bind(self, conn))
 		query.once('end', release).once('error', release)
@@ -60,10 +57,12 @@ ConnectionPool.prototype.query = function (statement, params, callback) {
 }
 
 ConnectionPool.prototype.acquire = function (callback) {
+    this.emit('acquire')
 	this._pool.acquire(callback);
 }
 
 ConnectionPool.prototype.release = function (connection) {
+    this.emit('release')
 	var pool = this._pool
 	this._reset(connection, function (err) {
 		if (err) return pool.destroy(connection)
