@@ -8,15 +8,17 @@ module.exports = ConnectionPool
 
 inherits(ConnectionPool, EventEmitter)
 
-function ConnectionPool (adapter, connParams, options) {
-	if (!(this instanceof ConnectionPool)) return new ConnectionPool(adapter, connParams, options)
+function ConnectionPool(adapter, connParams, options) {
+	if (!(this instanceof ConnectionPool)) {
+		return new ConnectionPool(adapter, connParams, options)
+	}
 	EventEmitter.call(this)
 
 	var poolOpts = {
 		min: options.min,
 		max: options.max,
-		create: options.onConnect
-			? function (ready) {
+		create: options.onConnect ?
+			function (ready) {
 				adapter.createConnection(connParams, function (err, conn) {
 					if (err) ready(err);
 					else options.onConnect(conn, ready)
@@ -71,10 +73,11 @@ ConnectionPool.prototype.destroy = function (connection) {
 	this._pool.destroy(connection)
 }
 
-ConnectionPool.prototype.close = function () {
+ConnectionPool.prototype.close = function (callback) {
 	var self = this
 	this._pool.drain(function () {
 		self._pool.destroyAllNow()
 		self.emit('close')
+		if (callback) callback()
 	})
 }
