@@ -2,6 +2,12 @@
 
 [![Build Status](https://secure.travis-ci.org/grncdr/node-any-db.png?branch=master)](http://travis-ci.org/grncdr/node-any-db)
 
+**Heads up!** - v0.4.0 changed transaction event names. If you had listeners for
+'committed' or 'rolled back' events before, they are now called 'commit:complete'
+and 'rollback:complete' respectively. They are emitted **after** the corresponding
+SQL query has completed, if you want the old behaviour (events emitted when the
+`commit`/`rollback` methods are called) use 'commit:start' and 'rollback:start'.
+
 ## Synopsis
 
 (There's also detailed [API][API] documentation available)
