@@ -210,9 +210,11 @@ Again, the transaction will be unusable after calling this method.
 
 ### Transaction events
 
- * `'committed'` - Emitted after the transaction has successfully committed.
- * `'rolled back'` - Emitted after the transaction has rolled back.
- * `'error', err` - Emitted under three conditions:
+ * `'commit:start'`      - Emitted when `.commit()` is called.
+ * `'commit:complete'`   - Emitted after the transaction has committed.
+ * `'rollback:start'`    - Emitted when `.rollback()` is called.
+ * `'rollback:complete'` - Emitted after the transaction has rolled back.
+ * `'error', err`        - Emitted under three conditions:
    1. There was an error acquiring a connection.
    2. Any query performed in this transaction emits an error that would otherwise
       go unhandled.
@@ -241,7 +243,7 @@ back and nobody is flagged or deleted:
 	rather than queueing them all up behind the initial SELECT.
 	*/
 	pool.query('SELECT id FROM users').on('row', function (user) {
-		if (tx.state() == 'rolled back') return
+		if (tx.state().match('rollback')) return
 		abuseService.checkUser(user.id, function (err, result) {
 			if (err) return tx.handleError(err)
 			// Errors from these queries will propagate up to the transaction object
