@@ -1,20 +1,22 @@
 
 require('./helpers').allTransactions("Auto-rollback", function (tx, t) {
-	t.plan(2)
-
 	/**
-	 * For some reason tap plans aren't working correctly in my test helpers, so I
-	 * manage the counting manually for this test.
+	 * For some reason tap plans aren't working correctly in my test helpers.
 	 */
-	var expected = 2
+  t.plan(4)
 
+  tx.log = console.log
 	tx.removeAllListeners('error')
 	tx.query('Not a valid sql statement')
 	tx.on('error', function (err) {
-		t.ok(expected--, 'emitted error')
+		t.ok(err, 'emitted error')
 	})
-	tx.on('rolled back', function () {
-		t.ok(expected--, 'emitted rollback')
+	tx.on('rollback:start', function () {
+		t.ok(1, 'emitted rollback:start')
+    tx.on('rollback:complete', function () {
+      t.ok(1, 'emitted rollback:complete')
+      t.ok(!tx._connection, 'connection is removed on rollback:complete')
+    })
 	})
 })
 
