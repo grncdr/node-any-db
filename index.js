@@ -17,7 +17,7 @@ exports.createPool = function getPool (dbUrl, opts) {
 	var parsed = parseDbUrl(dbUrl);
 	var adapter = getAdapter(parsed.protocol);
 	var pool = new ConnectionPool(adapter, parsed, opts || {})
-	pool.begin = Transaction.createPoolBeginMethod(pool, adapter.createQuery)
+	pool.begin = Transaction.createPoolBeginMethod(adapter.createQuery)
 	return pool
 }
 
