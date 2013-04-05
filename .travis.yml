@@ -1,5 +1,5 @@
 language: node_js
-node_js: [ 0.8 ]
+node_js: [ 0.8, 0.10 ]
 # We don't use this database, but need it to exist for the default connection
 # parameters to work.
 before_script:
