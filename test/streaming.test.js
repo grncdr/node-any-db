@@ -13,7 +13,6 @@ require('./helpers').allTransactions("Streaming results", function (tx, test) {
 		.on('row', function (row) { test.equal(row.a, vals.shift()) })
 		.on('end', function (result) {
 			test.deepEqual(vals, [])
-			// test.ok(!result, "No result")
 			tx.query('DROP TABLE streaming_test', function (err) {
 				if (err) test.emit('error', err)
 				else test.end()
