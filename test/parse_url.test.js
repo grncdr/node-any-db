@@ -12,8 +12,7 @@ test('parseUrl', function (t) {
       password: 'pass',
       host: 'somehost',
       port: 123,
-      database: 'somedb',
-      query: {}
+      database: 'somedb'
     }, 'simple url')
   })
 
