@@ -4,7 +4,12 @@ require('./helpers').allTransactions("Streaming results", function (tx, test) {
   tx.query("DROP TABLE IF EXISTS streaming_test", function (err) { /* swallow errors */ })
 	tx.query("CREATE TABLE streaming_test (a int)")
 
-	var placeHolder = tx.url.match(/postgres/) ? '($1)' : '(?)';
+	var placeHolder
+	if (typeof tx.url === 'string') {
+		placeHolder = tx.url.match(/postgres/) ? '($1)' : '(?)'
+	} else {
+		placeHolder = tx.url.adapter.match(/postgres/) ? '($1)' : '(?)'
+	}
 	var vals = []
 	for (var i = 0; i < 10; i++) {
 		tx.query('INSERT INTO streaming_test (a) VALUES ' + placeHolder, [i])

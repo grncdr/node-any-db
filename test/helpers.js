@@ -11,11 +11,35 @@ var databaseUrls = exports.databaseUrls = {
 	sqlite3: "sqlite3://" + sqliteFilename
 }
 
+var databaseConnObjs = exports.databaseConnObjs = {
+  mysql: {
+		adapter: 'mysql',
+    user: 'root',
+    database: 'any_db_test',
+		host: 'localhost'
+  },
+  postgres: {
+		adapter: 'postgres',
+    user: 'postgres',
+    database: 'any_db_test',
+		host: 'localhost'
+  },
+  sqlite3: {
+		adapter: 'sqlite3',
+    database: sqliteFilename
+  }
+}
+
 if (process.env.TEST_DRIVERS) {
 	Object.keys(databaseUrls).forEach(function (driver) {
 		if (process.env.TEST_DRIVERS.indexOf(driver) == -1) {
 			delete databaseUrls[driver]
 		}
+	})
+	Object.keys(databaseConnObjs).forEach(function (driver) {
+	  if (process.env.TEST_DRIVERS.indexOf(driver) == -1) {
+	    delete databaseConnObjs[driver]
+	  }
 	})
 }
 
@@ -73,13 +97,16 @@ function _testEachDriver(description, opts, callback) {
 		drivers: opts.drivers || Object.keys(databaseUrls)
 	}
 	test(description, testOpts, function (t) {
-		t.plan(testOpts.drivers.length)
+		t.plan(testOpts.drivers.length * 2)
 		testOpts.drivers.forEach(function (driver) {
 			if (driver == 'sqlite3') {
 				try { fs.unlinkSync(sqliteFilename) } catch (e) {}
 			}
 			t.test(driver, function (t) {
 				callback(databaseUrls[driver], t)
+			})
+			t.test(driver, function (t) {
+			  callback(databaseConnObjs[driver], t)
 			})
 		})
 	})
