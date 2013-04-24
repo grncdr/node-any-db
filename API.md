@@ -6,12 +6,14 @@ This document gives a comprehensive overview of the API guaranteed by any-db.
 
 `require('any-db').createConnection(dbURL, [callback])`
 
-Create a connection object from a `dbURL` of the form
-_driver://user:pass@hostname/databasename_ where _driver_ is one of "mysql",
-"postgres", or "sqlite3". If a callback is given, it will be called with either
-an error or the established connection: `callback(error, conn)`. Additional
-connection settings can be included as query parameters in the URL. The returned
-will conform to the [Connection API](#connection) detailed below.
+Create a new connection object. `dbURL` may be a URL string of the form
+_adapter://user:password@host:port/database_ or an adapter-specific config
+object, in which case it must have an "adapter" property. In either case,
+adapter must which must be one of "mysql", "postgres", or "sqlite3". If a
+callback is given, it will be called with either an error or the established
+connection: `callback(error, conn)`. Additional connection settings can be
+included as query parameters in the URL. The returned object will conform to
+the [Connection API](#connection) detailed below.
 
 See also: Driver-specific notes for [Postgres](#postgres) and
 [SQLite3](#sqlite3).
