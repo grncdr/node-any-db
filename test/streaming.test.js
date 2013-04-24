@@ -1,4 +1,7 @@
 require('./helpers').allTransactions("Streaming results", function (tx, test) {
+  test.plan(11)
+
+  tx.query("DROP TABLE IF EXISTS streaming_test", function (err) { /* swallow errors */ })
 	tx.query("CREATE TABLE streaming_test (a int)")
 
 	var placeHolder = tx.url.match(/postgres/) ? '($1)' : '(?)';
@@ -13,9 +16,5 @@ require('./helpers').allTransactions("Streaming results", function (tx, test) {
 		.on('row', function (row) { test.equal(row.a, vals.shift()) })
 		.on('end', function (result) {
 			test.deepEqual(vals, [])
-			tx.query('DROP TABLE streaming_test', function (err) {
-				if (err) test.emit('error', err)
-				else test.end()
-			})
 		})
 })
