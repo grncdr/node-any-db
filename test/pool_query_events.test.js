@@ -8,7 +8,8 @@ require('./helpers').allPools("Pool query events", function (pool, t) {
     'rollback'
   ]
 
-  pool.on('query', function onQuery(stmt) {
+  pool.on('query', function onQuery(query) {
+    var stmt = query.sql || query.text || query.stmt;
     t.equal(stmt, expected.shift())
     if (!expected.length) pool.removeListener('query', onQuery);
   })

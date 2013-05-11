@@ -2,11 +2,13 @@
 
 [![Build Status](https://secure.travis-ci.org/grncdr/node-any-db.png?branch=master)](http://travis-ci.org/grncdr/node-any-db)
 
-**Heads up!** - v0.4.0 changed transaction event names. If you had listeners for
-'committed' or 'rolled back' events before, they are now called 'commit:complete'
-and 'rollback:complete' respectively. They are emitted **after** the corresponding
-SQL query has completed, if you want the old behaviour (events emitted when the
-`commit`/`rollback` methods are called) use 'commit:start' and 'rollback:start'.
+**Heads up!** - v0.5.0 changed the behaviour of 'query' events emitted by the
+connection pool and transaction objects. Whereas this would previously emit the
+SQL statement and an array of parameters, it now emits a single [Query
+object][query]. The query object is emitted *after* the query has been submitted
+to the backend so treat it as *read-only*.
+
+[query]: https://github.com/grncdr/node-any-db/blob/master/API.md
 
 ## Synopsis
 

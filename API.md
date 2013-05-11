@@ -174,8 +174,8 @@ they are returned to the pool.
 
  * `'acquire'` - emitted whenever `pool.acquire` is called
  * `'release'` - emitted whenever `pool.release` is called
- * `'query', statement, params` - emitted immediately before `.query` is
-	 called on a connection via `pool.query`.
+ * `'query', query` - emitted immediately after `.query` is called on a
+   connection via `pool.query`. The argument is a [query](#query) object.
  * `'close'` - emitted when the connection pool has closed all of it
 	 connections after a call to `close()`.
 
@@ -212,8 +212,8 @@ Again, the transaction will be unusable after calling this method.
 
 ### Transaction events
 
- * `'query', statement, params` - emitted immediately before `.query` is
-	 called on a connection via `transaction.query`.
+ * `'query', query` - emitted immediately after `.query` is called on a
+   connection via `tx.query`. The argument is a [query](#query) object.
  * `'commit:start'`      - Emitted when `.commit()` is called.
  * `'commit:complete'`   - Emitted after the transaction has committed.
  * `'rollback:start'`    - Emitted when `.rollback()` is called.
