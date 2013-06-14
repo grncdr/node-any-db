@@ -126,6 +126,13 @@ Query objects are returned by the `.query(...)` methods of
 [transctions](#transaction). Like connections, query objects are created by the
 drivers themselves and may have more methods and events than are described here.
 
+### Query properties
+
+ * `.text` - The string query submitted. If you are using MySQL this will
+   contain interpolated values *after* the query has been enqueued by a
+   connection.
+ * `.values` - The parameter values submitted to the backend.
+
 ### Query Events
 
  * `'error', err` - Emitted if the query results in an error.
