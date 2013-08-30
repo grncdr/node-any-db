@@ -52,7 +52,13 @@ ConnectionPool.prototype.query = function (statement, params, callback) {
 		conn.query(query);
 		self.emit('query', query)
 		var release = once(self.release.bind(self, conn))
-		query.once('end', release).once('error', release)
+		query.once('end', release).once('error', function (err) {
+			release()
+			// If this was the only error listener, re-emit the error.
+			if (!this.listeners('error').length) {
+				this.emit('error', err)
+			}
+		})
 	})
 
 	return query
