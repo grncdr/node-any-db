@@ -64,7 +64,7 @@ library uses `generic-pool` and simply augments it with some added niceties:
 
 ## API
 
-You can find the API documentation for this connection pool inclued in the rest of
+You can find the API documentation for this connection pool included in the rest of
 the any-db API docs
 [here](https://github.com/grncdr/node-any-db/blob/master/API.md#connectionpool).
 
