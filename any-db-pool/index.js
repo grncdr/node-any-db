@@ -1,7 +1,6 @@
 var inherits     = require('util').inherits
 var EventEmitter = require('events').EventEmitter
 var Pool         = require('generic-pool').Pool
-var Transaction  = require('any-db-transaction');
 var once         = require('once')
 var chain        = require('./lib/chain')
 
