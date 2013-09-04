@@ -1,114 +1,73 @@
-# any-db - a less-opinionated database abstraction layer.
+# any-db-pool - database agnostic connection pool
 
-[![Build Status](https://secure.travis-ci.org/grncdr/node-any-db.png?branch=master)](http://travis-ci.org/grncdr/node-any-db)
-
-**Heads up!** - v0.5.0 changed the behaviour of 'query' events emitted by the
-connection pool and transaction objects. Whereas this would previously emit the
-SQL statement and an array of parameters, it now emits a single [Query
-object][query]. The query object is emitted *after* the query has been submitted
-to the backend so treat it as *read-only*.
-
-[query]: https://github.com/grncdr/node-any-db/blob/master/API.md
+[![Build Status](https://secure.travis-ci.org/grncdr/node-any-db.png?branch=master)](http://travis-ci.org/grncdr/node-any-db-pool)
 
 ## Synopsis
 
-(There's also detailed [API][API] documentation available)
+```javascript
+var ConnectionPool = require('any-db-pool')
+var mysql = require('mysql')
 
-    var anyDB = require('any-db')
-    var dbURL = 'driver://user:pass@hostname/database'
-    
-Establish a connection:
+var adapter = {
+  createConnection: function (opts, callback) {
+    var conn = mysql.createConnection(opts, callback)
+    conn.connect(function (err) {
+      if (err) callback(err)
+      else callback(null, conn)
+    })
+    return conn
+  },
+  createQuery: mysql.createQuery
+}
 
-    var conn = anyDB.createConnection(dbURL)  // Takes an optional callback
-    
-Make queries:
+var pool = new ConnectionPool(adapter, {user: 'scott', password: 'tiger'}, {
+  min: 5,
+  max: 15,
+  reset: function (conn, done) { conn.query('ROLLBACK', done) }
+})
 
-    var sql = 'SELECT * FROM my_table'
-    conn.query(sql).on('row', function (row) {})  // evented
-    conn.query(sql, function (error, result) {})  // or callback
-    
-Use bound parameters:
-
-    sql += ' WHERE my_column = ?'
-    conn.query(sql, [42]).on('row', ...)           // again, evented
-    conn.query(sql, [42], function (err, res) {})  // or callback
-
-Close a connection:
-
-    conn.end()
-    
-Start a transaction:
-
-    var tx = conn.begin()             // Can also take a callback
-    tx.on('error', function (err) {}) // Emitted for unhandled query errors
-    tx.query(...)                     // same interface as connections, plus...
-    tx.commit()                       // takes an optional callback for errors
-    tx.rollback()                     // this too
-    
-Create a connection pool that maintains 2-20 connections
-
-    var pool = anyDB.createPool(dbURL, {min: 2, max: 20})
-    
-    pool.query(...)       // perform a single query, same API as connection
-    var tx = pool.begin() // start a transaction, again, same API as connection
-    pool.close()          // close the pool (call when your app should exit)
+// Proxies to mysql's connection.query
+var q = pool.query('SELECT 1', function (err, res) { })
+```
 
 ## Description
 
-The purpose of this library is to provide a consistent API for the commonly used
-functionality of SQL database drivers, while avoiding altering driver behaviour
-as much as possible.
+This module contains a database connection pool that can be used with any
+driver, though it is designed to integrate well with [any-db][any-db], a
+minimal database abstraction layer. If you are writing a library that needs to
+support multiple database backends (e.g. SQLite3 or Postgres or MySQL) then it's
+highly encouraged that you use [any-db][any-db] and **not** this
+module.
 
-The long-term goal of this project is to serve as the testing ground for finding
-a suitable common interface, then (hopefully) convincing driver implementors to
-support it natively. In short, any-db hopes to prove it's usefulness well enough
-that most of it can be obviated by the drivers themselves.
+If, on the other hand, you just need a connection pool for your application this
+should work for you with very little fuss.
 
-### Things it does
+[any-db]: http://npm.im/any-db
 
- * Supports MySQL, Postgres, and SQLite3 as equally as possible. (More driver
-	 support is very much welcomed!)
- * Parses connection parameters from URLs: `driver://user:pass@host/database`
- * Streams results or gets them all at once, using an [api][query] almost
-	 identical to the existing interfaces of the MySQL and Postgres drivers.
- * A simple, solid, [connection pool][pool] with the ability to execute queries
-	 directly on a pool for auto-release behaviour. E.g. - this will never leak
-	 connections: `pool.query("SELECT 1", function (err, results) { ... })`
- * Stateful [transaction objects][tx] for managing database transactions.
+## Why wouldn't I just use `generic-pool`?
 
-### Things it might do (feedback needed!)
+[generic-pool][gpool] is awesome, but it's *very* generic.  This is a Good Thing
+for a library with "generic" in the name, but not so good for the very common
+but slightly more specialized case of pooling stateful database connection. This
+library uses `generic-pool` and simply augments it with some added niceties:
 
- * Provide a common result set API.
+* Hooks for initializing and/or resetting connection state when connections are
+	added to the pool.
+* A `query` method that allows queries to be performed without the user needing
+	a reference to a connection object (and potentially leaking that reference).
 
-### Things it will never do
+[gpool]: http://npm.im/generic-pool
 
- * Add it's own query helper methods like `.first` or `.fetchAll`
- * Include any sort of SQL string building. You might want to try my other library
-	 [gesundheit](https://github.com/BetSmartMedia/gesundheit), or one of the many
-	 [alternatives](https://encrypted.google.com/search?q=sql&q=site:npmjs.org&hl=en)
-	 for that. _(send me pull requests to list your libs here)_
+## Installation
 
-## Install
+`npm install any-db-pool`
 
-    npm install --save any-db
-    npm install --save {pg,mysql,sqlite3}
+## API
 
-## Contributing
-
-For ideas that would change an existing API or behaviour please open an issue to
-propose the change before spending time on implementing it. I know it's hard (I
-code-first-ask-questions-later *way* too frequently :smile:) but I'd really hate
-for anybody to put their time into something that won't be merged.
-
-I'm not terribly picky about code-formatting, but please try and keep lines
-under 80 characters long if you can help it.
-
+You can find the API documentation for this connection pool included in the rest of
+the any-db API docs
+[here](https://github.com/grncdr/node-any-db/blob/master/API.md#connectionpool).
 
 ## License
 
 MIT
-
-[API]: https://github.com/grncdr/node-any-db/blob/master/API.md
-[query]: https://github.com/grncdr/node-any-db/blob/master/API.md#query
-[pool]: https://github.com/grncdr/node-any-db/blob/master/API.md#exportscreatepool
-[tx]: https://github.com/grncdr/node-any-db/blob/master/API.md#transaction
