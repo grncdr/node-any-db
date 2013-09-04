@@ -1,6 +1,6 @@
 {
   "name": "any-db-pool",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "AnyDB connection pool",
   "main": "index.js",
   "scripts": {
@@ -10,6 +10,7 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
+    "any-db-transaction": "*",
     "generic-pool": "~2.0.2",
     "once": "~1.1.1"
   }
