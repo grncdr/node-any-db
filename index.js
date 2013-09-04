@@ -93,21 +93,3 @@ ConnectionPool.prototype.close = function (callback) {
 		if (callback) callback()
 	})
 }
-
-ConnectionPool.prototype.begin = function (stmt, callback) {
-  if (stmt && typeof stmt == 'function') {
-    callback = stmt
-    stmt = undefined
-  }
-  var t = new Transaction(this._adapter.createQuery)
-  // Proxy query events from the transaction to the pool
-  t.on('query', this.emit.bind(this, 'query'))
-  this.acquire(function (err, conn) {
-    if (err) return callback ? callback(err) : t.emit('error', err)
-    t.begin(conn, stmt, callback)
-    var release = this.release.bind(this, conn)
-    t.once('rollback:complete', release)
-    t.once('commit:complete', release)
-  }.bind(this))
-  return t
-}
