@@ -1,6 +1,7 @@
 var inherits     = require('util').inherits
 var EventEmitter = require('events').EventEmitter
 var Pool         = require('generic-pool').Pool
+var Transaction  = require('any-db-transaction');
 var once         = require('once')
 var chain        = require('./lib/chain')
 
@@ -14,14 +15,16 @@ function ConnectionPool(adapter, connParams, options) {
 	}
 	EventEmitter.call(this)
 
+  var onConnect = options.onConnect;
+
 	var poolOpts = {
 		min: options.min,
 		max: options.max,
-		create: options.onConnect ?
+		create: onConnect ?
 			function (ready) {
 				adapter.createConnection(connParams, function (err, conn) {
 					if (err) ready(err);
-					else options.onConnect(conn, ready)
+					else onConnect(conn, ready)
 				})
 			}
 			: function (ready) { adapter.createConnection(connParams, ready) }
@@ -89,4 +92,22 @@ ConnectionPool.prototype.close = function (callback) {
 		self.emit('close')
 		if (callback) callback()
 	})
+}
+
+ConnectionPool.prototype.begin = function (stmt, callback) {
+  if (stmt && typeof stmt == 'function') {
+    callback = stmt
+    stmt = undefined
+  }
+  var t = new Transaction(this._adapter.createQuery)
+  // Proxy query events from the transaction to the pool
+  t.on('query', this.emit.bind(this, 'query'))
+  this.acquire(function (err, conn) {
+    if (err) return callback ? callback(err) : t.emit('error', err)
+    t.begin(conn, stmt, callback)
+    var release = this.release.bind(this, conn)
+    t.once('rollback:complete', release)
+    t.once('commit:complete', release)
+  }.bind(this))
+  return t
 }

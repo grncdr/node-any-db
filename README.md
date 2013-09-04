@@ -90,8 +90,7 @@ that most of it can be obviated by the drivers themselves.
 
 ## Install
 
-    npm install --save any-db
-    npm install --save {pg,mysql,sqlite3}
+    npm install --save any-db-{pg,mysql,sqlite3}
 
 ## Contributing
 

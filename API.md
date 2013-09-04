@@ -280,11 +280,10 @@ back and nobody is flagged or deleted:
 ## Postgres
 
 If you have issues using the native backend for the pg driver on your platform,
-you can force anyDB to use the pure-JavaScript like so:
+you can force anyDB to use the pure-JavaScript client like so:
 
 ```javascript
-var anyDB = require('any-db')
-anyDB.adapters.postgres.forceJS = true
+require('any-db-postgres').forceJS = true
 ```
 
 You **must** do the above *before* you create any connections or connection

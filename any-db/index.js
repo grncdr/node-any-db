@@ -1,8 +1,12 @@
 var ConnectionPool = require('any-db-pool')
-var Transaction = require('./lib/transaction')
-var parseDbUrl = require('./lib/parse-url')
+var parseDbUrl     = require('./lib/parse-url')
 
-exports.adapters = require('./lib/adapters');
+exports.__defineGetter__('adapters', function () {
+  throw new Error(
+    "Change your any-db dependency to any-db-{mysql,postgres,sqlite3} " +
+    "and require the adapter directly if you need to access it"
+  )
+})
 
 exports.createConnection = function connect (dbUrl, callback) {
 	var adapterConfig = parseDbUrl(dbUrl);
@@ -17,15 +21,11 @@ exports.createPool = function getPool (dbUrl, poolConfig) {
 	var adapterConfig = parseDbUrl(dbUrl);
 	var adapter = getAdapter(adapterConfig.adapter);
 	var pool = new ConnectionPool(adapter, adapterConfig, poolConfig)
-	pool.begin = Transaction.createPoolBeginMethod(adapter.createQuery)
 	return pool
 }
 
 
 function getAdapter (protocol) {
 	var name = protocol.replace(':', '').split('+').shift()
-	if (!exports.adapters[name]) {
-		throw new Error("Unknown database driver: " + name)
-	}
-	return exports.adapters[name]
+  return require('any-db-' + name);
 }

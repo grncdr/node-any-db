@@ -58,26 +58,6 @@ Transaction.createBeginMethod = function (createQuery) {
   }
 }
 
-Transaction.createPoolBeginMethod = function (createQuery) {
-  return function (stmt, callback) {
-    if (stmt && typeof stmt == 'function') {
-      callback = stmt
-      stmt = undefined
-    }
-    var t = new Transaction(createQuery)
-    // Proxy query events from the transaction to the pool
-    t.on('query', this.emit.bind(this, 'query'))
-    this.acquire(function (err, conn) {
-      if (err) return callback ? callback(err) : t.emit('error', err)
-      t.begin(conn, stmt, callback)
-      var release = this.release.bind(this, conn)
-      t.once('rollback:complete', release)
-      t.once('commit:complete', release)
-    }.bind(this))
-    return t
-  }
-}
-
 function _handleError(err, callback) {
   var propagate = callback || this.emit.bind(this, 'error')
   var rolledBack = this.state().match('rollback')
