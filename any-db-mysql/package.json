@@ -18,9 +18,10 @@
   ],
   "author": "Stephen Sugden <me@stephensugden.com>",
   "license": "MIT",
-  "peerDependencies": {
-    "any-db": "*",
-    "any-db-transaction": "*",
+  "dependencies": {
     "mysql": "*"
+  },
+  "peerDependencies": {
+    "any-db": "*"
   }
 }

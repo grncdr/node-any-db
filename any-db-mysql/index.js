@@ -1,6 +1,6 @@
 var mysql = require('mysql')
 
-var Transaction = require('any-db/lib/transaction')
+var Transaction = require('any-db').Transaction
 
 var begin = Transaction.createBeginMethod(exports.createQuery)
 

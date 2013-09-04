@@ -1,10 +1,7 @@
-var sqlite3 = null
-
-try { sqlite3 = require('sqlite3') } catch (__e) { }
-
 var EventEmitter = require('events').EventEmitter
-var inherits = require('util').inherits
-var Transaction = require('../transaction')
+var inherits     = require('util').inherits
+var sqlite3      = require('sqlite3')
+var Transaction  = require('any-db').Transaction;
 
 module.exports = SQLite3
 

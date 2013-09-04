@@ -20,11 +20,9 @@
   "author": "Stephen Sugden <me@stephensugden.com>",
   "license": "MIT",
   "dependencies": {
-    "sqlite3": "~2.1.5"
+    "sqlite3": "*"
 	},
   "peerDependencies": {
-    "any-db": "*",
-    "any-db-transaction": "*",
-    "sqlite3": "*"
+    "any-db": "*"
   }
 }

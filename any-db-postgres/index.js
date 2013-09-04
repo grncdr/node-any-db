@@ -1,5 +1,5 @@
 var pg = require('pg')
-  , Transaction = require('any-db-transaction')
+  , Transaction = require('any-db').Transaction
   , pgNative = null
 
 try { pgNative = pg.native } catch (__e) {}
