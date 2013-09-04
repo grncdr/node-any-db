@@ -1,6 +1,6 @@
 {
   "name": "any-db-pool",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "AnyDB connection pool",
   "main": "index.js",
   "scripts": {
