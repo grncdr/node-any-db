@@ -1,7 +1,7 @@
 var fs = require('fs')
-var anyDB = require('../')
+var anyDB = require('any-db')
 var test = require('tap').test
-require('sqlite3').verbose()
+require('any-db-sqlite3').verbose()
 
 var sqliteFilename =  "/tmp/any-db-test.db"
 
