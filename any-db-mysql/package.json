@@ -3,9 +3,6 @@
   "version": "0.0.0",
   "description": "The MySQL adapter for any-db",
   "main": "index.js",
-  "scripts": {
-    "test": "node test.js"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/grncdr/node-any-db.git"
@@ -22,6 +19,6 @@
     "mysql": "*"
   },
   "peerDependencies": {
-    "any-db": "*"
+    "any-db": "~1.0.0"
   }
 }

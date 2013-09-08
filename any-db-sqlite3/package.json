@@ -3,9 +3,6 @@
   "version": "0.0.0",
   "description": "The sqlite3 adapter for any-db",
   "main": "index.js",
-  "scripts": {
-    "test": "node test.js"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/grncdr/node-any-db-sqlite3"
@@ -23,6 +20,6 @@
     "sqlite3": "*"
 	},
   "peerDependencies": {
-    "any-db": "*"
+    "any-db": "~1.0.0"
   }
 }
