@@ -1,12 +1,26 @@
-# any-db - a less-opinionated database abstraction layer.
+# Any-DB - a less-opinionated database abstraction layer.
 
 [![Build Status](https://secure.travis-ci.org/grncdr/node-any-db.png?branch=master)](http://travis-ci.org/grncdr/node-any-db)
 
-**Heads up!** - v0.5.0 changed the behaviour of 'query' events emitted by the
-connection pool and transaction objects. Whereas this would previously emit the
-SQL statement and an array of parameters, it now emits a single [Query
-object][query]. The query object is emitted *after* the query has been submitted
-to the backend so treat it as *read-only*.
+**v1.0.0-alpha1 released**
+
+_Any-DB 1.0.*_  significantly restructures the various `any-db-*` modules and
+you *will* need to update your package.json
+
+**Applications** should replace an `any-db` dependency with one or more
+dependencies on `any-db-<adapter>` where `adapter` can be `mysql`, `postgres`,
+or `sqlite3`. With this change, a direct dependency on an database driver
+package (such as `mysql`) is no longer *required*, though you can continue to
+use one if you like.
+
+All of the adapter libraries have `any-db` as a *peerDependency* which means
+that `any-db` will be pulled in transitively as a dependency on the same level
+as the adapter.
+
+**Libraries** should move their `any-db` dependency to `peerDependencies`,
+even though things will appear to operate correctly without doing so. If your
+library depends on a database connection (e.g. for tests) you should also add
+a peerDependency on the corresponding `any-db-<adapter>` library.
 
 [query]: https://github.com/grncdr/node-any-db/blob/master/API.md
 
