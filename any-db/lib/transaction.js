@@ -5,7 +5,14 @@ module.exports = Transaction
 
 inherits(Transaction, StateMachine)
 function Transaction(createQuery) {
-  this.handleError = _handleError.bind(this)
+  if (typeof createQuery != 'function') {
+    throw new Error('createQuery is not a function!');
+  }
+  this._queue = []
+  this._createQuery = createQuery
+  this.log = false
+
+  this.handleError = forwardOrEmitError.bind(this)
 
   StateMachine.call(this, 'pending', {
     'query': {
@@ -40,9 +47,6 @@ function Transaction(createQuery) {
     'commit:start':   [ 'commit:complete' ]
   }, this.handleError)
 
-  this._queue = []
-  this._createQuery = createQuery
-  this.log = false
 }
 
 // create a .begin method that can be patched on to connection objects
@@ -58,7 +62,7 @@ Transaction.createBeginMethod = function (createQuery) {
   }
 }
 
-function _handleError(err, callback) {
+function forwardOrEmitError(err, callback) {
   var propagate = callback || this.emit.bind(this, 'error')
   var rolledBack = this.state().match('rollback')
   this.state('errored')
@@ -74,19 +78,16 @@ function _handleError(err, callback) {
   else process.nextTick(propagate.bind(this, err))
 }
 
-Transaction.prototype.begin = function (conn, stmt, callback) {
-  if (stmt) {
-    if (typeof stmt == 'function') {
-      callback = stmt
-      stmt = 'begin'
-    }
-  } else {
-    stmt = 'begin'
+Transaction.prototype.begin = function (conn, statement, callback) {
+  if (typeof statement == 'function') {
+    callback = statement
+    statement = 'begin'
   }
+  statement = statement || 'begin';
   if (!this.state('opening', callback)) return this
   var self = this
   if (this.log) this.log('starting transaction')
-  var queryObject = conn.query(stmt, function (err) {
+  var queryObject = conn.query(statement, function (err) {
     if (err) return self.handleError(err, callback)
     this._connection = conn
     conn.on('error', this.handleError)
@@ -145,10 +146,9 @@ Transaction.prototype._runQueue = function (callback) {
 }
 
 var queueQuery = function (stmt, params, callback) {
-  var q = this._createQuery(stmt, params, callback)
-  if (typeof params == 'function') params = undefined
-  this._queue.push(q)
-  return q
+  var query = this._createQuery(stmt, params, callback)
+  this._queue.push(query)
+  return query
 }
 
 var doQuery = function (stmt, params, callback) {

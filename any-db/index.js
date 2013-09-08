@@ -2,29 +2,35 @@ var ConnectionPool = require('any-db-pool')
 var parseDbUrl     = require('./lib/parse-url')
 var Transaction    = require('./lib/transaction')
 
-exports.__defineGetter__('adapters', function () {
-  throw new Error(
-    "Change your any-db dependency to any-db-{mysql,postgres,sqlite3} " +
-    "and require the adapter directly if you need to access it."
-  )
+Object.defineProperty(exports, 'adapters', {
+  get: function () {
+    throw new Error(
+      "Replace require('any-db').adapters.<blah> with require('any-db-<blah>')"
+    )
+  }
 })
 
 // Re-export Transaction for adapters
 exports.Transaction = Transaction
 
 exports.createConnection = function connect (dbUrl, callback) {
-	var adapterConfig = parseDbUrl(dbUrl);
-	return getAdapter(adapterConfig.adapter).createConnection(adapterConfig, callback)
+  var adapterConfig = parseDbUrl(dbUrl)
+  var adapter = getAdapter(adapterConfig.adapter)
+  return adapter.createConnection(adapterConfig, callback)
 }
 
 exports.createPool = function getPool (dbUrl, poolConfig) {
-	poolConfig = poolConfig || {}
-	if (poolConfig.create || poolConfig.destroy) {
-		throw new Error("Cannot override the create/destroy pool options. Try onConnect/reset instead.")
-	}
-	var adapterConfig = parseDbUrl(dbUrl);
-	var adapter = getAdapter(adapterConfig.adapter);
-	var pool = new ConnectionPool(adapter, adapterConfig, poolConfig)
+  poolConfig = poolConfig || {}
+  if (poolConfig.create || poolConfig.destroy) {
+    throw new Error(
+      "Use onConnect/reset options instead of create/destroy."
+    )
+  }
+  var adapterConfig = parseDbUrl(dbUrl);
+  var adapter = getAdapter(adapterConfig.adapter);
+
+  var pool = new ConnectionPool(adapter, adapterConfig, poolConfig)
+
   pool.begin = function (stmt, callback) {
     if (stmt && typeof stmt == 'function') {
       callback = stmt
@@ -32,20 +38,21 @@ exports.createPool = function getPool (dbUrl, poolConfig) {
     }
     var t = new Transaction(adapter.createQuery)
     // Proxy query events from the transaction to the pool
-    t.on('query', this.emit.bind(this, 'query'))
-    this.acquire(function (err, conn) {
+    t.on('query', pool.emit.bind(this, 'query'))
+
+    pool.acquire(function (err, conn) {
       if (err) return callback ? callback(err) : t.emit('error', err)
       t.begin(conn, stmt, callback)
-      var release = this.release.bind(this, conn)
+      var release = pool.release.bind(pool, conn)
       t.once('rollback:complete', release)
       t.once('commit:complete', release)
-    }.bind(this))
+    }.bind(pool))
     return t
   }
-	return pool
+  return pool
 }
 
 function getAdapter (protocol) {
-	var name = protocol.replace(':', '').split('+').shift()
+  var name = protocol.replace(':', '').split('+').shift()
   return require('any-db-' + name);
 }
