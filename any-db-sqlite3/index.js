@@ -5,6 +5,8 @@ var Transaction  = require('any-db').Transaction;
 
 module.exports = SQLite3
 
+SQLite3.verbose = sqlite3.verbose;
+
 inherits(SQLite3, EventEmitter)
 function SQLite3(db) {
 	EventEmitter.call(this)
