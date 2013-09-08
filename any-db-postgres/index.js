@@ -10,7 +10,7 @@ exports.createConnection = function (opts, callback) {
 	var backend = chooseBackend()
 		, conn = new backend.Client(opts)
 
-	conn.begin = Transaction.createBeginMethod(exports.createQuery)
+	conn.begin = begin
 
 	if (callback) {
 		conn.connect(function (err) {
@@ -33,3 +33,8 @@ exports.createQuery = function (stmt, params, callback) {
 function chooseBackend () {
   return (exports.forceJS || !pgNative) ? pg : pgNative
 }
+
+var Transaction = require('any-db').Transaction
+
+var begin = Transaction.createBeginMethod(exports.createQuery)
+
