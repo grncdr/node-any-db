@@ -2,7 +2,7 @@ var mysql = require('mysql')
 
 var Transaction = require('any-db').Transaction
 
-var begin = Transaction.createBeginMethod(exports.createQuery)
+var begin = Transaction.createBeginMethod(mysql.createQuery)
 
 exports.createQuery = mysql.createQuery
 

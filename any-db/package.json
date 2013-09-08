@@ -22,5 +22,10 @@
   "license": "MIT",
   "dependencies": {
     "any-db-pool": ">= 0.0.6"
+  },
+  "devDependencies": {
+    "any-db-sqlite3": "*",
+    "any-db-postgres": "*",
+    "any-db-mysql": "*"
   }
 }

@@ -10,6 +10,7 @@
   "author": "Stephen Sugden",
   "license": "MIT",
   "devDependencies": {
+    "any-db": "*",
     "any-db-sqlite3": "*",
     "any-db-postgres": "*",
     "any-db-mysql": "*",
