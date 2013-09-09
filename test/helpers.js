@@ -6,14 +6,14 @@ require('any-db-sqlite3').verbose()
 var sqliteFilename =  "/tmp/any-db-test.db"
 
 var databaseUrls = exports.databaseUrls = {
-	mysql: "mysql://root@localhost/any_db_test",
-	postgres: "postgres://postgres@localhost/any_db_test",
-	sqlite3: "sqlite3://" + sqliteFilename
+	mysql: process.env.any_db_mysql_test_url || "mysql://root@localhost/any_db_test",
+	postgres: process.env.any_db_postgres_test_url || "postgres://postgres@localhost/any_db_test",
+	sqlite3: process.env.any_db_sqlite3_test_url || "sqlite3://" + sqliteFilename
 }
 
-if (process.env.TEST_DRIVERS) {
+if (process.env.any_db_test_drivers) {
 	Object.keys(databaseUrls).forEach(function (driver) {
-		if (process.env.TEST_DRIVERS.indexOf(driver) == -1) {
+		if (process.env.any_db_test_drivers.indexOf(driver) == -1) {
 			delete databaseUrls[driver]
 		}
 	})

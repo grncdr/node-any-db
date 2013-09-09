@@ -1,11 +1,13 @@
-# Any-DB - a less-opinionated database abstraction layer.
+# Any-DB Project
 
 [![Build Status](https://secure.travis-ci.org/grncdr/node-any-db.png?branch=master)](http://travis-ci.org/grncdr/node-any-db)
 
-**v1.0.0-alpha1 released**
+_The less-opinionated Node.js database abstraction layer_
 
-_Any-DB 1.0.*_  significantly restructures the various `any-db-*` modules and
-you *will* need to update your package.json
+## [ANN] v1.0.0-alpha1 released
+
+Any-DB 1.0 significantly restructures the various `any-db-*` modules. If you
+are updating from a previous version you *will* need to update `package.json`.
 
 **Applications** should replace an `any-db` dependency with one or more
 dependencies on `any-db-<adapter>` where `adapter` can be `mysql`, `postgres`,
@@ -18,11 +20,9 @@ that `any-db` will be pulled in transitively as a dependency on the same level
 as the adapter.
 
 **Libraries** should move their `any-db` dependency to `peerDependencies`,
-even though things will appear to operate correctly without doing so. If your
+even though things may appear to operate correctly without doing so. If your
 library depends on a database connection (e.g. for tests) you should also add
 a peerDependency on the corresponding `any-db-<adapter>` library.
-
-[query]: https://github.com/grncdr/node-any-db/blob/master/API.md
 
 ## Synopsis
 
@@ -73,11 +73,6 @@ The purpose of this library is to provide a consistent API for the commonly used
 functionality of SQL database drivers, while avoiding altering driver behaviour
 as much as possible.
 
-The long-term goal of this project is to serve as the testing ground for finding
-a suitable common interface, then (hopefully) convincing driver implementors to
-support it natively. In short, any-db hopes to prove it's usefulness well enough
-that most of it can be obviated by the drivers themselves.
-
 ### Things it does
 
  * Supports MySQL, Postgres, and SQLite3 as equally as possible. (More driver
@@ -102,20 +97,9 @@ that most of it can be obviated by the drivers themselves.
 	 [alternatives](https://encrypted.google.com/search?q=sql&q=site:npmjs.org&hl=en)
 	 for that. _(send me pull requests to list your libs here)_
 
-## Install
+## Installation
 
     npm install --save any-db-{pg,mysql,sqlite3}
-
-## Contributing
-
-For ideas that would change an existing API or behaviour please open an issue to
-propose the change before spending time on implementing it. I know it's hard (I
-code-first-ask-questions-later *way* too frequently :smile:) but I'd really hate
-for anybody to put their time into something that won't be merged.
-
-I'm not terribly picky about code-formatting, but please try and keep lines
-under 80 characters long if you can help it.
-
 
 ## License
 
