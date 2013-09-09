@@ -22,7 +22,7 @@ as the adapter.
 **Libraries** should move their `any-db` dependency to `peerDependencies`,
 even though things may appear to operate correctly without doing so. If your
 library depends on a database connection (e.g. for tests) you should also add
-a peerDependency on the corresponding `any-db-<adapter>` library.
+a *devDependency* on the corresponding `any-db-<adapter>` library.
 
 ## Synopsis
 
