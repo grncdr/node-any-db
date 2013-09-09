@@ -1,6 +1,6 @@
 var test = require('tap').test
 
-var parseUrl = require('../lib/parse-url')
+var parseUrl = require('any-db/lib/parse-url')
 
 test('parseUrl', function (t) {
   t.plan(2)

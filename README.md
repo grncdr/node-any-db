@@ -1,14 +1,28 @@
-# any-db - a less-opinionated database abstraction layer.
+# Any-DB Project
 
 [![Build Status](https://secure.travis-ci.org/grncdr/node-any-db.png?branch=master)](http://travis-ci.org/grncdr/node-any-db)
 
-**Heads up!** - v0.5.0 changed the behaviour of 'query' events emitted by the
-connection pool and transaction objects. Whereas this would previously emit the
-SQL statement and an array of parameters, it now emits a single [Query
-object][query]. The query object is emitted *after* the query has been submitted
-to the backend so treat it as *read-only*.
+_The less-opinionated Node.js database abstraction layer_
 
-[query]: https://github.com/grncdr/node-any-db/blob/master/API.md
+## [ANN] v1.0.0-alpha1 released
+
+Any-DB 1.0 significantly restructures the various `any-db-*` modules. If you
+are updating from a previous version you *will* need to update `package.json`.
+
+**Applications** should replace an `any-db` dependency with one or more
+dependencies on `any-db-<adapter>` where `adapter` can be `mysql`, `postgres`,
+or `sqlite3`. With this change, a direct dependency on an database driver
+package (such as `mysql`) is no longer *required*, though you can continue to
+use one if you like.
+
+All of the adapter libraries have `any-db` as a *peerDependency* which means
+that `any-db` will be pulled in transitively as a dependency on the same level
+as the adapter.
+
+**Libraries** should move their `any-db` dependency to `peerDependencies`,
+even though things may appear to operate correctly without doing so. If your
+library depends on a database connection (e.g. for tests) you should also add
+a *devDependency* on the corresponding `any-db-<adapter>` library.
 
 ## Synopsis
 
@@ -59,11 +73,6 @@ The purpose of this library is to provide a consistent API for the commonly used
 functionality of SQL database drivers, while avoiding altering driver behaviour
 as much as possible.
 
-The long-term goal of this project is to serve as the testing ground for finding
-a suitable common interface, then (hopefully) convincing driver implementors to
-support it natively. In short, any-db hopes to prove it's usefulness well enough
-that most of it can be obviated by the drivers themselves.
-
 ### Things it does
 
  * Supports MySQL, Postgres, and SQLite3 as equally as possible. (More driver
@@ -88,27 +97,15 @@ that most of it can be obviated by the drivers themselves.
 	 [alternatives](https://encrypted.google.com/search?q=sql&q=site:npmjs.org&hl=en)
 	 for that. _(send me pull requests to list your libs here)_
 
-## Install
+## Installation
 
-    npm install --save any-db
-    npm install --save {pg,mysql,sqlite3}
-
-## Contributing
-
-For ideas that would change an existing API or behaviour please open an issue to
-propose the change before spending time on implementing it. I know it's hard (I
-code-first-ask-questions-later *way* too frequently :smile:) but I'd really hate
-for anybody to put their time into something that won't be merged.
-
-I'm not terribly picky about code-formatting, but please try and keep lines
-under 80 characters long if you can help it.
-
+    npm install --save any-db-{pg,mysql,sqlite3}
 
 ## License
 
 MIT
 
-[API]: https://github.com/grncdr/node-any-db/blob/master/API.md
-[query]: https://github.com/grncdr/node-any-db/blob/master/API.md#query
-[pool]: https://github.com/grncdr/node-any-db/blob/master/API.md#exportscreatepool
-[tx]: https://github.com/grncdr/node-any-db/blob/master/API.md#transaction
+[API]:   any-db/API.md
+[query]: any-db/API.md#query
+[pool]:  any-db/API.md#exportscreatepool
+[tx]:    any-db/API.md#transaction

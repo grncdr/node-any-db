@@ -1,9 +1,10 @@
 {
   "name": "any-db",
-  "version": "0.6.0",
+  "version": "1.0.0-alpha1",
   "description": "Database-agnostic connection pooling, querying, and result sets",
   "main": "index.js",
   "scripts": {
+    "prepublish": "cp ../*.md .",
     "test": "tap test/*.test.js"
   },
   "repository": {
@@ -18,14 +19,13 @@
     "sqlite",
     "sqlite3"
   ],
-  "license": "BSD",
+  "license": "MIT",
   "dependencies": {
     "any-db-pool": ">= 0.0.6"
   },
   "devDependencies": {
-    "sqlite3": "*",
-    "pg": "*",
-    "mysql": "*",
-    "tap": "*"
+    "any-db-sqlite3": "*",
+    "any-db-postgres": "*",
+    "any-db-mysql": "*"
   }
 }

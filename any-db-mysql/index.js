@@ -1,17 +1,10 @@
-try {
-	var mysql = require('mysql')
-} catch (__e) {
-	exports.create = exports.createQuery = function () {
-		throw new Exception("mysql driver failed to load, please `npm install mysql`")
-	}
-	return
-}
+var mysql = require('mysql')
 
-var Transaction = require('../transaction')
+var Transaction = require('any-db').Transaction
+
+var begin = Transaction.createBeginMethod(mysql.createQuery)
 
 exports.createQuery = mysql.createQuery
-
-var begin = Transaction.createBeginMethod(exports.createQuery)
 
 exports.createConnection = function createConnection(opts, callback) {
 	var conn = mysql.createConnection(opts)

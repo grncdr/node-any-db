@@ -1,6 +1,6 @@
 var test = require('tap').test
 var urls = require('./helpers').databaseUrls
-var createPool = require('../').createPool
+var createPool = require('any-db').createPool
 
 test('ConnectionPool onConnect/reset hooks', function (t) {
 	var names = Object.keys(urls)
