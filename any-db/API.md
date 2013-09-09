@@ -16,9 +16,9 @@ included as query parameters in the URL. The returned object will conform to
 the [Connection API](#connection) detailed below.
 
 See also: README notes for your chosen adapter
-([MySQL](any-db-mysql/README.md#api-extensions),
- [Postgres](any-db-postgres/README.md#api-extensions), and
- [SQLite3](any-db-sqlite3/README.md#api-extensions))
+([MySQL](../any-db-mysql/README.md#api-extensions),
+ [Postgres](../any-db-postgres/README.md#api-extensions), and
+ [SQLite3](../any-db-sqlite3/README.md#api-extensions))
 
 ## exports.createPool
 
