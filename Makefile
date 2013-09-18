@@ -17,3 +17,6 @@ any-db*:
 
 local_deps:
 	node link_local_deps.js
+
+version:
+	sed -i.bak 's/"version": ".*",/"version": "'$(new_version)'",/' any-db*/package.json;
