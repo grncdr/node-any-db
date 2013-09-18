@@ -1,6 +1,6 @@
 {
   "name": "any-db-postgres",
-  "version": "1.0.0-alpha1",
+  "version": "1.0.0-alpha2",
   "description": "The postgres adapter for any-db",
   "main": "index.js",
   "repository": {
