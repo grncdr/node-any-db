@@ -16,6 +16,7 @@ function Transaction(createQuery) {
 
   StateMachine.call(this, 'pending', {
     'query': {
+      null:             rejectQuery,
       'pending':        queueQuery,
       'opening':        queueQuery,
       'dequeueing':     queueQuery,
