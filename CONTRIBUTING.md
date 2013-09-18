@@ -32,8 +32,9 @@ really hate for anybody to put their time into something that won't be merged.
 
 ## Code style
 
-I'm not terribly picky about code-formatting, but please try to avoid mixing
-tabs and spaces, and keep lines under 80 characters long if you can help it.
+I'm not terribly picky about code-formatting, but please try to match the style
+of the code around your change. In particular, use two-space tabs, and keep
+lines under 80 characters long if you can help it.
 
 If a patch you're working on is getting hairy, don't be afraid to refactor
 existing code.
