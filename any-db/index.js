@@ -27,6 +27,18 @@ exports.createPool = function getPool (dbUrl, poolConfig) {
     )
   }
   var adapterConfig = parseDbUrl(dbUrl);
+  
+  if (adapterConfig.adapter === 'sqlite3' && /:memory:$/i.test(adapterConfig.database)) {
+    if (poolConfig.min > 1 || poolConfig.max > 1) {
+      console.warn(
+        "Pools of more than 1 connection do not work for in-memory SQLite3 databases\n" +
+        "The specified minimum (%d) and maximum (%d) connections have been overridden"
+      )
+    }
+    if (poolConfig.min) poolConfig.min = 1;
+    poolConfig.max = 1;
+  }
+  
   var adapter = getAdapter(adapterConfig.adapter);
 
   var pool = new ConnectionPool(adapter, adapterConfig, poolConfig)
