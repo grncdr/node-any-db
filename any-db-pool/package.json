@@ -1,6 +1,6 @@
 {
   "name": "any-db-pool",
-  "version": "1.0.0-alpha2",
+  "version": "1.0.0-rc1",
   "description": "Any-DB connection pool",
   "main": "index.js",
   "repository": "",
