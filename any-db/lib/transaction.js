@@ -113,13 +113,18 @@ Transaction.prototype.savepoint = function(callback) {
 
   if (callback)
     childTx.once('open', function(){ callback(childTx) });
-  this.once('open', function(){
+  var onOpen = function(){
     this.state('blocked');
     childTx.state('opening');
     doQuery.call(this, "SAVEPOINT sp_" + (this._nestingLevel + 1), function(){
       childTx._runQueue()
     })
-  })
+  }
+  if (this.state() == 'open') {
+    onOpen.bind(this)()
+  } else {
+    this.once('open', onOpen.bind(this))
+  }
   return childTx;
 }
 
