@@ -107,7 +107,9 @@ Transaction.prototype.begin = function (conn, statement, callback) {
 Transaction.prototype.savepoint = function(callback) {
   var childTx = new Transaction(this._createQuery, this._nestingLevel + 1);
   childTx._connection = this._connection
-  childTx._parentTransaction = this
+
+  var childFinished = function(){this.state('open')}.bind(this)
+  childTx.once('commit:complete', childFinished).once('rollback:complete', childFinished)
 
   if (callback)
     childTx.once('open', function(){ callback(childTx) });
@@ -209,24 +211,20 @@ var rejectQuery = function (stmt, params, callback) {
 
 function sqlTransition(stmt) {
   return function (callback) {
-    if (this._nestingLevel == 0) {
-      if (this.state(stmt + ':start', callback)) {
-        var queryObject = this._connection.query(stmt, function (err) {
-          if (err) return this.handleError(err, callback)
-          if (this.state(stmt + ':complete', callback)) {
-            if (callback) callback()
-          }
-        }.bind(this))
-        this.emit('query', queryObject)
-      }
-    } else {
-      stmt = stmt == "commit" ?
+    var query = stmt;
+    if (this._nestingLevel > 0) {
+      query = stmt == "commit" ?
         "release savepoint sp_"+this._nestingLevel :
         "rollback to savepoint sp_"+this._nestingLevel;
-      return this.query(stmt, function(){
-        this._parentTransaction.state('open')
-        if (callback) callback()
+    }
+    if (this.state(stmt + ':start', callback)) {
+      var queryObject = this._connection.query(query, function (err) {
+        if (err) return this.handleError(err, callback)
+        if (this.state(stmt + ':complete', callback)) {
+          if (callback) callback()
+        }
       }.bind(this))
+      this.emit('query', queryObject)
     }
     return this
   }
