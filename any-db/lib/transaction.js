@@ -113,6 +113,11 @@ Transaction.prototype.savepoint = function(callback) {
 
   if (callback)
     childTx.once('open', function(){ callback(childTx) });
+
+  childTx.on('query', function(q){
+    this.emit('query', q)
+  }.bind(this))
+
   var onOpen = function(){
     this.state('blocked');
     childTx.state('opening');
