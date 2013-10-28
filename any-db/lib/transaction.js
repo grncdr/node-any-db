@@ -45,7 +45,7 @@ function Transaction(createQuery, nestingLevel) {
     'opening':        [ 'dequeueing' ],
     'dequeueing':     [ 'open', 'rollback:start', 'commit:start' ],
     'open':           [ 'open', 'blocked', 'rollback:start', 'commit:start' ],
-    'blocked':        [ 'open' ],
+    'blocked':        [ 'dequeueing' ],
     'errored':        [ 'rollback:start' ],
     'rollback:start': [ 'rollback:complete' ],
     'commit:start':   [ 'commit:complete' ]
@@ -108,7 +108,10 @@ Transaction.prototype.savepoint = function(callback) {
   var childTx = new Transaction(this._createQuery, this._nestingLevel + 1);
   childTx._connection = this._connection
 
-  var childFinished = function(){this.state('open')}.bind(this)
+  var childFinished = function(){
+    if (this.state() == "blocked")
+      this._runQueue()
+  }.bind(this)
   childTx.once('commit:complete', childFinished).once('rollback:complete', childFinished)
 
   if (callback)
@@ -120,15 +123,16 @@ Transaction.prototype.savepoint = function(callback) {
 
   var onOpen = function(){
     this.state('blocked');
-    childTx.state('opening');
+    this._queue = []
     doQuery.call(this, "SAVEPOINT sp_" + (this._nestingLevel + 1), function(){
+      childTx.state('opening');
       childTx._runQueue()
     })
-  }
+  }.bind(this)
   if (this.state() == 'open') {
-    onOpen.bind(this)()
+    onOpen()
   } else {
-    this.once('open', onOpen.bind(this))
+    this.once('open', onOpen)
   }
   return childTx;
 }
