@@ -6,7 +6,8 @@ require('./helpers').allDrivers("Nested transactions", function (conn, t) {
   var tx1 = conn.begin()
   tx1.query('INSERT INTO transaction_test (a) VALUES (1)')
 
-  tx1.savepoint(function(tx2){
+  tx1.begin(function(err, tx2){
+    if (err) throw err
     tx2.query('INSERT INTO transaction_test (a) VALUES (2)')
 
     tx2.query('SELECT * FROM transaction_test', function (err, res) {

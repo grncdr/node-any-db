@@ -219,6 +219,30 @@ object itself will be unusable after calling `commit()`.
 The same as [Transaction.commit](#transactioncommit) but issues a `ROLLBACK`.
 Again, the transaction will be unusable after calling this method.
 
+### Transaction.begin
+
+`tx.begin([callback])`
+
+Starts a nested transaction (by creating a savepoint) within this transaction
+and returns a new transaction object. Unlike [Connection.begin](#connectionbegin),
+there is no option to replace the statement used to begin the transaction, this
+is because the statement must use a known savepoint name.
+
+While the child transaction is in progress the parent transaction will queue any
+queries it receives until the child transaction either commits or rolls back, at
+which point it will process the queue. Be careful: it's quite possible to write
+code that deadlocks by waiting for a query in the parent transaction before
+committing the child transaction. For example:
+
+    // Do not do this! it won't work!
+
+    var parent = conn.begin();  // starts the transaction
+    var child = parent.begin(); // creates a savepoint
+
+    parent.query('SELECT 1', function (err) {
+      child.commit();
+    });
+
 ### Transaction events
 
  * `'query', query` - emitted immediately after `.query` is called on a

@@ -9,7 +9,7 @@ inherits(StateMachine, EventEmitter)
 function StateMachine (initialState, methods, transitions, onError) {
   EventEmitter.call(this)
 
-  var currentState = initialState;
+  var currentState = null;
 
   var self = this;
 
@@ -19,7 +19,7 @@ function StateMachine (initialState, methods, transitions, onError) {
     if (to === currentState) return true;
 
     var extra = Array.prototype.slice.call(arguments, 1)
-      , legal = transitions[currentState]
+      , legal = currentState ? transitions[currentState] : [initialState]
 
     if (to === 'errored' || legal && legal.indexOf(to) > -1) {
       if (this.log) {
@@ -36,6 +36,8 @@ function StateMachine (initialState, methods, transitions, onError) {
       return false
     }
   }
+
+  this.state(initialState);
 
   function assignMethods () {
     for (var methodName in methods) {
