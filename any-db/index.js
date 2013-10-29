@@ -43,7 +43,9 @@ exports.createPool = function getPool (dbUrl, poolConfig) {
 
   var pool = new ConnectionPool(adapter, adapterConfig, poolConfig)
 
-  var begin = Transaction.createBeginMethod(adapter.createQuery, true);
+  var begin = Transaction.createBeginMethod(
+    adapter.createQuery, pool.acquire.bind(pool)
+  );
   pool.begin = function (beginStatement, callback) {
     var tx = begin(beginStatement, callback);
     // Proxy query events from the transaction to the pool
@@ -52,7 +54,7 @@ exports.createPool = function getPool (dbUrl, poolConfig) {
     pool.acquire(function (err, conn) {
       if (err) return callback ? callback(err) : tx.emit('error', err)
       var release = pool.release.bind(pool, conn)
-      tx._setConnection(conn)
+      tx.setConnection(conn)
         .once('rollback:complete', release)
         .once('commit:complete', release)
     })
