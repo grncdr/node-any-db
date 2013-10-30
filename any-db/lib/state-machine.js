@@ -4,66 +4,45 @@ var inherits = require('util').inherits
 module.exports = StateMachine
 module.exports.IllegalTransitionError = IllegalTransitionError;
 module.exports.UndefinedMethodError = UndefinedMethodError;
+module.exports.nullImplementation = nullImplementation;
 
 inherits(StateMachine, EventEmitter)
-function StateMachine (initialState, methods, transitions, onError) {
+function StateMachine (initialState, prototypes, transitions) {
   EventEmitter.call(this)
 
-  var currentState = initialState;
-
-  var self = this;
+  var currentState = null;
 
   this.state = function (to) {
     if (!to) return currentState;
 
     if (to === currentState) return true;
 
-    var extra = Array.prototype.slice.call(arguments, 1)
-      , legal = transitions[currentState]
+    if (typeof prototypes[to] !== 'function') {
 
-    if (to === 'errored' || legal && legal.indexOf(to) > -1) {
+    }
+
+    var extra = Array.prototype.slice.call(arguments, 1)
+      , legal = currentState ? transitions[currentState] : [initialState]
+
+    if (legal && legal.indexOf(to) > -1) {
       if (this.log) {
         this.log("Transition from:'" + currentState + "' to:'" + to + "'");
       }
-      removeMethods();
       currentState = to;
-      assignMethods();
+      if (!prototypes[to]) {
+        throw new Error('unknown state:' + to);
+      }
+      this.__proto__ = prototypes[to].prototype
       this.emit(currentState)
       return true
     } else {
       extra.unshift(new IllegalTransitionError(currentState, to))
-      onError.apply(this, extra)
+      this.handleError.apply(this, extra)
       return false
     }
   }
 
-  function assignMethods () {
-    for (var methodName in methods) {
-      if (currentState in methods[methodName]) {
-        self[methodName] = methods[methodName][currentState]
-      }
-    }
-  }
-
-  function removeMethods () {
-    for (var methodName in methods) {
-      if (currentState in methods[methodName]) {
-        self[methodName] = methods[methodName][null] || nullImpl(methodName);
-      }
-    }
-  }
-
-  function nullImpl (methodName) {
-    return function () {
-      var lastArg = [].slice.call(arguments).pop();
-      var error = new UndefinedMethodError(methodName, currentState)
-      if (typeof lastArg == 'function') {
-        lastArg(error);
-      } else {
-        this.emit('error', error);
-      }
-    }
-  }
+  this.state(initialState);
 }
 
 inherits(UndefinedMethodError, Error);
@@ -78,4 +57,17 @@ function IllegalTransitionError(from, to) {
   Error.captureStackTrace(this, IllegalTransitionError);
   this.name = 'Illegal Transition';
   this.message = "Transition from '" + from + "' to '" + to + "' not allowed";
+}
+
+function nullImplementation (methodName) {
+  return function () {
+    var lastArg = [].slice.call(arguments).pop();
+    var error = new StateMachine.UndefinedMethodError(methodName, this.state())
+    if (typeof lastArg == 'function') {
+      debugger
+      lastArg(error);
+    } else {
+      this.emit('error', error);
+    }
+  }
 }

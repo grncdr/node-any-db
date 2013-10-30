@@ -3,9 +3,9 @@ require('./helpers').allPools("Pool query events", function (pool, t) {
 
   var expected = [
     'SELECT 1',
-    'begin',
+    'BEGIN',
     'SELECT 1 AS txval',
-    'rollback'
+    'ROLLBACK'
   ]
 
   pool.on('query', function onQuery(query) {

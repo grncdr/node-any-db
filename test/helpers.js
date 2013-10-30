@@ -43,8 +43,13 @@ exports.allTransactions = testRunner(function (description, opts, callback) {
       if (err) throw err
       var tx = conn.begin()
       tx.url = connString
-      t.on('end', function () { tx.rollback(conn.end.bind(conn)) })
-      tx.on('error', function (err) { t.emit('error', err) })
+      t.on('end', function () {
+        if (tx.state() != 'closed') {
+          tx.rollback(conn.end.bind(conn))
+        } else {
+          conn.end()
+        }
+      })
       callback(tx, t)
     })
   })
