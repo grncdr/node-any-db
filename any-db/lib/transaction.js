@@ -80,13 +80,13 @@ Transaction.prototype._createChildTransaction = function (callback) {
     createQuery: this._createQuery,
     nestingLevel: nestingLevel,
     begin:        'SAVEPOINT ' + savepointName,
-    commit:       'RELEASE ' + savepointName,
+    commit:       'RELEASE SAVEPOINT ' + savepointName,
     rollback:     'ROLLBACK TO ' + savepointName
   })
 
   tx.on('query', this.emit.bind(this, 'query'))
     .once('connected', this.state.bind(this, 'connected'))
-    .once('close',  this._runQueue.bind(this))
+    .once('close',  ConnectedTransaction.prototype._runQueue.bind(this));
 
   if (callback) {
     tx.once('error', callback)
@@ -289,7 +289,7 @@ ClosedTransaction.prototype._close = function (err, action, callback) {
 
 inherits(CloseFailedError, Error);
 function CloseFailedError(err, action, previous) {
-  Error.captureStackTrace(this, RollbackFailedError);
+  Error.captureStackTrace(this, CloseFailedError);
   this.name = action + ' failed';
-  this.message = rollbackErr + "\nError causing rollback: " + previous;
+  this.message = err + "\nError causing rollback: " + previous;
 }
