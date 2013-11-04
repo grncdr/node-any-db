@@ -1,6 +1,6 @@
 {
   "name": "any-db",
-  "version": "1.0.0-rc2",
+  "version": "1.0.0-rc3",
   "description": "Database-agnostic connection pooling, querying, and result sets",
   "main": "index.js",
   "scripts": {
