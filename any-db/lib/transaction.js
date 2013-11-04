@@ -22,7 +22,7 @@ function Transaction(opts) {
 
   StateMachine.call(this, 'disconnected', {
     'disconnected': DisconnectedTransaction,
-    'connected':    ConnectedTransaction,
+    'connected':     ConnectedTransaction,
     'open':         OpenTransaction,
     'closed':       ClosedTransaction
   },
@@ -30,7 +30,7 @@ function Transaction(opts) {
   // A transition to 'errored' is *always* allowed.
   {
     'disconnected': [ 'connected' ],
-    'connected':    [ 'open', 'closed' ],
+    'connected':     [ 'open', 'closed' ],
     'open':         [ 'connected', 'closed' ]
   })
 }
@@ -60,7 +60,7 @@ Transaction.createBeginMethod = function (createQuery, asyncConnection) {
 
 Transaction.prototype.handleError = function (err, callback) {
   var propagate = callback || this.emit.bind(this, 'error')
-  var ended = this.state() == 'closed';
+  var ended = /^clos/.test(this.state())
   if (!ended && this._connection) {
     OpenTransaction.prototype.rollback.call(this, function (rollbackErr) {
       if (rollbackErr) {
@@ -151,6 +151,10 @@ ConnectedTransaction.prototype._runQueue = function () {
   return next();
 
   function next (err) {
+    if (/^clos/.test(self.state())) {
+      debugger;
+      return
+    }
     if (err) {
       self._queue.splice(0, self._queue.length);
       return self.handleError(err);
