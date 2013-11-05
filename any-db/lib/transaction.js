@@ -196,7 +196,7 @@ Transaction.prototype._runQueuedMethod = function (task, next) {
 
 Transaction.prototype._runQueuedTransaction = function (childTx) {
   if (!childTx.listeners('error').length) {
-    childTx.on('error', this.handleError)
+    childTx.on('error', this.handleError.bind(this))
   }
   childTx.setConnection(this._connection)
 }

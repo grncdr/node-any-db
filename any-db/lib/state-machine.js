@@ -17,7 +17,8 @@ function StateMachine (initialState, transitions) {
     if (to === currentState) return;
 
     var extra = Array.prototype.slice.call(arguments, 1)
-      , legal = currentState ? transitions[currentState] : [initialState]
+      , legal = transitions[currentState]
+      ;
 
     if (legal && legal.indexOf(to) > -1) {
       this.emit('transition', currentState, to);
