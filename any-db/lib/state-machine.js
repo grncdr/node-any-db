@@ -7,43 +7,59 @@ module.exports.UndefinedMethodError = UndefinedMethodError;
 module.exports.nullImplementation = nullImplementation;
 
 inherits(StateMachine, EventEmitter)
-function StateMachine (initialState, prototypes, transitions) {
+function StateMachine (initialState, transitions) {
   EventEmitter.call(this)
 
-  var currentState = null;
+  var currentState = initialState;
 
   this.state = function (to) {
     if (!to) return currentState;
 
-    if (to === currentState) return true;
-
-    if (typeof prototypes[to] !== 'function') {
-
-    }
+    if (to === currentState) return;
 
     var extra = Array.prototype.slice.call(arguments, 1)
       , legal = currentState ? transitions[currentState] : [initialState]
 
     if (legal && legal.indexOf(to) > -1) {
-      if (this.log) {
-        this.log("Transition from:'" + currentState + "' to:'" + to + "'");
-      }
+      this.emit('transition', currentState, to);
       currentState = to;
-      if (!prototypes[to]) {
-        throw new Error('unknown state:' + to);
-      }
-      this.__proto__ = prototypes[to].prototype
       this.emit(currentState)
-      return true
     } else {
-      extra.unshift(new IllegalTransitionError(currentState, to))
-      this.handleError.apply(this, extra)
-      return false
+      return new IllegalTransitionError(currentState, to);
     }
   }
-
-  this.state(initialState);
 }
+
+StateMachine.method = function (name, implementations) {
+  dispatch.implementations = {};
+  for (var key in implementations) {
+    var states = key.split('|');
+    while (states.length) {
+      var state = states.shift();
+      dispatch.implementations[state] = implementations[key];
+    }
+  }
+  return dispatch;
+
+  function dispatch () {
+    var implementation = dispatch.implementations[this.state()];
+    if (typeof implementation !== 'function') {
+      var error = new StateMachine.UndefinedMethodError(name, this.state());
+      var lastArg = [].slice.call(arguments).pop();
+      if (typeof lastArg === 'function') {
+        lastArg.call(this, error);
+      } else {
+        var self = this;
+        process.nextTick(function () {
+          self.emit('error', error);
+        })
+      }
+      return;
+    }
+    return implementation.apply(this, arguments);
+  }
+}
+
 
 inherits(UndefinedMethodError, Error);
 function UndefinedMethodError(method, state) {
@@ -64,7 +80,6 @@ function nullImplementation (methodName) {
     var lastArg = [].slice.call(arguments).pop();
     var error = new StateMachine.UndefinedMethodError(methodName, this.state())
     if (typeof lastArg == 'function') {
-      debugger
       lastArg(error);
     } else {
       this.emit('error', error);

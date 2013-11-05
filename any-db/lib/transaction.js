@@ -11,32 +11,37 @@ function Transaction(opts) {
   }
   this._createQuery = opts.createQuery
   this._statements = {
-    begin:    opts.begin || 'BEGIN',
-    commit:   opts.commit || 'COMMIT',
+    begin:    opts.begin    || 'BEGIN',
+    commit:   opts.commit   || 'COMMIT',
     rollback: opts.rollback || 'ROLLBACK'
   }
   this._queue = []
   this._nestingLevel = opts.nestingLevel || 0
 
-  this.handleError = this.handleError.bind(this);
-
   StateMachine.call(this, 'disconnected', {
-    'disconnected': DisconnectedTransaction,
-    'connected':     ConnectedTransaction,
-    'open':         OpenTransaction,
-    'closed':       ClosedTransaction
-  },
-  // The valid state transitions.
-  // A transition to 'errored' is *always* allowed.
-  {
     'disconnected': [ 'connected' ],
-    'connected':     [ 'open', 'closed' ],
+    'connected':    [ 'open', 'closed' ],
     'open':         [ 'connected', 'closed' ]
   })
+
+  if (opts.callback) {
+    var callback = opts.callback;
+    this
+      .once('error', callback)
+      .once('begin:complete', function () {
+        this.removeListener('error', callback);
+        callback(null, this);
+      })
+  }
 }
 
-// create a .begin method that can be patched on to connection objects
-Transaction.createBeginMethod = function (createQuery, asyncConnection) {
+Transaction.createBeginMethod = function (createQuery, setConnection) {
+  // default setConnection implementation just assumes that begin is called
+  // on a connection object.
+  if (typeof setConnection == 'undefined') {
+    setConnection = function (tx) { tx.setConnection(this) };
+  }
+
   return function (beginStatement, callback) {
     if (beginStatement && typeof beginStatement == 'function') {
       callback = beginStatement;
@@ -44,32 +49,63 @@ Transaction.createBeginMethod = function (createQuery, asyncConnection) {
     }
     var tx = new Transaction({
       createQuery: createQuery,
-      begin: beginStatement
+      begin: beginStatement,
+      callback: callback
     })
-    if (callback) {
-      tx.once('error', callback)
-        .once('open', function () {
-          tx.removeListener('error', callback);
-          callback(null, tx);
-        })
-    }
-    if (asyncConnection) return tx;
-    return tx.setConnection(this)
+    setConnection.call(this, tx);
+    return tx;
   }
 }
 
 Transaction.prototype.handleError = function (err, callback) {
-  var propagate = callback || this.emit.bind(this, 'error')
-  var ended = /^clos/.test(this.state())
-  if (!ended && this._connection) {
-    OpenTransaction.prototype.rollback.call(this, function (rollbackErr) {
-      if (rollbackErr) {
-        err = new RollbackFailedError(rollbackErr, err);
-      }
+  var self = this;
+  var propagate = callback || function (err) { self.emit('error', err) };
+  if (this.state() !== 'closed' && this._connection) {
+    Transaction.prototype.rollback.implementations.open.call(this, function (rollbackErr) {
       propagate(err)
     })
   }
-  else process.nextTick(propagate.bind(this, err))
+  else propagate(err);
+}
+
+Transaction.prototype.query = StateMachine.method('query', {
+  'connected|disconnected': function (text, params, callback) {
+    return this._queueTask(this._createQuery(text, params, callback));
+  },
+  'open': function (stmt, params, callback) {
+    if (typeof params == 'function') {
+      callback = params
+      params = undefined
+    }
+    var queryObject = this._connection.query(stmt, params, callback)
+    this.emit('query', queryObject)
+    if (!callback) queryObject.on('error', this.handleError)
+    return queryObject
+  }
+})
+
+Transaction.prototype.begin = StateMachine.method('begin', {
+  'open': function (callback) {
+    return this._createChildTransaction(callback).setConnection(this._connection);
+  },
+  'connected|disconnected': function (callback) {
+    return this._queueTask(this._createChildTransaction(callback));
+  }
+});
+
+['commit', 'rollback'].forEach(function (methodName) {
+  Transaction.prototype[methodName] = StateMachine.method(methodName, {
+    'open': closeVia(methodName),
+    'connected|disconnected': function (callback) {
+      this._queue.push([methodName, [callback]]);
+      return this;
+    }
+  });
+});
+
+Transaction.prototype._queueTask = function (task) {
+  this._queue.push(task);
+  return task;
 }
 
 Transaction.prototype._createChildTransaction = function (callback) {
@@ -77,10 +113,11 @@ Transaction.prototype._createChildTransaction = function (callback) {
   var savepointName = 'sp_' + nestingLevel;
 
   var tx = new Transaction({
-    createQuery: this._createQuery,
+    createQuery:  this._createQuery,
     nestingLevel: nestingLevel,
+    callback:     callback,
     begin:        'SAVEPOINT ' + savepointName,
-    commit:       'RELEASE ' + savepointName,
+    commit:       'RELEASE SAVEPOINT ' + savepointName,
     rollback:     'ROLLBACK TO ' + savepointName
   })
 
@@ -88,80 +125,45 @@ Transaction.prototype._createChildTransaction = function (callback) {
     .once('connected', this.state.bind(this, 'connected'))
     .once('close',  this._runQueue.bind(this))
 
-  if (callback) {
-    tx.once('error', callback)
-      .once('open', function () {
-        tx.removeListener('error', callback)
-        callback(null, tx)
-      })
-  }
   return tx
 }
 
-inherits(ConnectedTransaction, Transaction)
-function ConnectedTransaction () {}
+Transaction.prototype.setConnection = StateMachine.method('setConnection', {
+  'disconnected': function (connection) {
+    var self = this;
+    self.state('connected');
 
-ConnectedTransaction.prototype.query = function (stmt, params, callback) {
-  return this._queueTask(this._createQuery(stmt, params, callback))
-}
+    self._onConnectionError = self.handleError.bind(self);
+    connection.on('error', self._onConnectionError);
 
-ConnectedTransaction.prototype.begin = function (callback) {
-  return this._queueTask(this._createChildTransaction(callback));
-}
+    self._connection = connection
 
-ConnectedTransaction.prototype.commit = queueMethodCall('commit');
-ConnectedTransaction.prototype.rollback = queueMethodCall('rollback');
+    self.emit('begin:start');
+    var beginQuery = connection.query(self._statements.begin, function (err) {
+      if (err) return self.handleError(err);
+      self.emit('begin:complete'); // removes error listener
+      self._runQueue()
+    })
 
-ConnectedTransaction.prototype._queueTask = function (task) {
-  this._queue.push(task);
-  return task;
-}
-
-function queueMethodCall (method) {
-  return function () {
-    this._queue.push([method, [].slice.call(arguments)])
+    self.emit('query', beginQuery)
+    return self
   }
-}
+});
 
-/**
- * Transactions start in the Disconnected state, this is identical to the
- * Connected state *except* there is an additional setConnection method
- * available.
- */
-inherits(DisconnectedTransaction, ConnectedTransaction)
-function DisconnectedTransaction () {}
-
-DisconnectedTransaction.prototype.setConnection = function (connection) {
-  if (!this.state('connected')) return this
-
-  connection.on('error', this.handleError)
-  this._connection = connection
-
-  var queryObject = connection.query(this._statements.begin, function (err) {
-    if (err) return this.handleError(err)
-    this._runQueue()
-  }.bind(this))
-
-  this.emit('query', queryObject)
-  return this
-}
-
-ConnectedTransaction.prototype._runQueue = function () {
+Transaction.prototype._runQueue = function () {
   var self = this
   return next();
 
+  var counter = 0;
   function next (err) {
-    if (/^clos/.test(self.state())) {
-      debugger;
-      return
-    }
     if (err) {
       self._queue.splice(0, self._queue.length);
       return self.handleError(err);
     }
     if (!self._queue.length) {
-      // The queue is empty, transition to fully open state
-      self.state('open');
+      if (self.state() !== 'closed' && (err = self.state('open'))) {
+        self.handleError(err);
+      }
       return
     }
 
@@ -173,7 +175,7 @@ ConnectedTransaction.prototype._runQueue = function () {
   }
 }
 
-ConnectedTransaction.prototype._runQueuedMethod = function (task, next) {
+Transaction.prototype._runQueuedMethod = function (task, next) {
   var method = task.shift()
     , args = task.shift()
     , last = args[args.length - 1]
@@ -189,17 +191,17 @@ ConnectedTransaction.prototype._runQueuedMethod = function (task, next) {
     args.push(next)
   }
 
-  OpenTransaction.prototype[method].apply(this, args);
+  this[method].implementations.open.apply(this, args);
 }
 
-ConnectedTransaction.prototype._runQueuedTransaction = function (childTx) {
+Transaction.prototype._runQueuedTransaction = function (childTx) {
   if (!childTx.listeners('error').length) {
     childTx.on('error', this.handleError)
   }
   childTx.setConnection(this._connection)
 }
 
-ConnectedTransaction.prototype._runQueuedQuery = function (query, callback) {
+Transaction.prototype._runQueuedQuery = function (query, callback) {
   var self = this;
   var cbName  = query._callback ? '_callback' : 'callback'
   var queryCb = query[cbName]
@@ -218,7 +220,7 @@ ConnectedTransaction.prototype._runQueuedQuery = function (query, callback) {
 
     // Node 0.10 changed the behaviour of EventEmitter.listeners, so we need
     // to do a little poking at internals here.
-    query.on('end', callback.bind(null, null))
+    query.on('end', function () { callback() })
     if (query.listeners('end').length > 1) {
       var listeners = query._events.end
       listeners.unshift(listeners.pop())
@@ -228,68 +230,37 @@ ConnectedTransaction.prototype._runQueuedQuery = function (query, callback) {
   self._connection.query(query)
 }
 
-
-/**
- * A transaction transitions to 'open' when it has completed all queued tasks.
- */
-inherits(OpenTransaction, Transaction)
-function OpenTransaction () {}
-
-OpenTransaction.prototype.begin = function (callback) {
-  return this._createChildTransaction(callback).setConnection(this._connection);
-}
-
-OpenTransaction.prototype.query = function (stmt, params, callback) {
-  if (typeof params == 'function') {
-    callback = params
-    params = undefined
-  }
-  var queryObject = this._connection.query(stmt, params, callback)
-  this.emit('query', queryObject)
-  if (!callback) queryObject.on('error', this.handleError)
-  return queryObject
-};
-
-OpenTransaction.prototype.commit   = closeVia('commit')
-OpenTransaction.prototype.rollback = closeVia('rollback')
-
 function closeVia (action) {
   return function (callback) {
-    if (this.state('closed', callback)) {
-      this.emit(action + ':start');
-      var q = this._createQuery(this._statements[action], function (err) {
-        this._close(err, action, callback)
-      }.bind(this))
-      this.emit('query', q);
-      this._connection.query(q);
+    var self = this;
+    var err = self.state('closed');
+    if (err) {
+      return self.handleError(err, callback);
     }
-    return this
+    self.emit(action + ':start');
+    var q = self._connection.query(self._statements[action], function (err) {
+      self._close(err, action, callback)
+      self._connection.removeListener('error', self._onConnectionError);
+      delete self._connection
+      if (err) {
+        self.handleError(new CloseFailedError(action, err), callback)
+      } else {
+        self.emit(action + ':complete');
+        self.emit('close');
+        if (callback) callback()
+      }
+    })
+    self.emit('query', q);
+    return self;
   }
 }
 
-inherits(ClosedTransaction, Transaction)
-function ClosedTransaction () {}
-
-['query', 'begin', 'rollback', 'commit'].forEach(function (name) {
-  ClosedTransaction.prototype[name] = StateMachine.nullImplementation(name);
-})
-
-ClosedTransaction.prototype._close = function (err, action, callback) {
-  this.state('closed')
-  this._connection.removeListener('error', this.handleError)
-  delete this._connection
-  if (err) {
-    this.handleError(new CloseFailedError(action, err), callback)
-  } else {
-    this.emit(action + ':complete');
-    this.emit('close');
-    if (callback) callback()
-  }
+Transaction.prototype._close = function (err, action, callback) {
 }
 
 inherits(CloseFailedError, Error);
 function CloseFailedError(err, action, previous) {
-  Error.captureStackTrace(this, RollbackFailedError);
+  Error.captureStackTrace(this, CloseFailedError);
   this.name = action + ' failed';
-  this.message = rollbackErr + "\nError causing rollback: " + previous;
+  this.message = err + "\nError causing rollback: " + previous;
 }
