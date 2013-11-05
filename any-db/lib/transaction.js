@@ -121,6 +121,9 @@ Transaction.prototype._createChildTransaction = function (callback) {
     rollback:     'ROLLBACK TO ' + savepointName
   })
 
+  if (this.state() == 'open')
+    this.state('connected')
+
   tx.on('query', this.emit.bind(this, 'query'))
     .once('connected', this.state.bind(this, 'connected'))
     .once('close',  this._runQueue.bind(this))
