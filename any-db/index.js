@@ -47,7 +47,6 @@ exports.createPool = function createPool (dbUrl, poolConfig) {
     tx.on('query', this.emit.bind(this, 'query'))
 
     this.acquire(function (err, connection) {
-      debugger
       if (err) return tx.emit('error', err);
       var release = pool.release.bind(pool, connection)
       tx.once('rollback:complete', release)
