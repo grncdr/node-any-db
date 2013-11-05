@@ -4,7 +4,6 @@ var inherits = require('util').inherits
 module.exports = StateMachine
 module.exports.IllegalTransitionError = IllegalTransitionError;
 module.exports.UndefinedMethodError = UndefinedMethodError;
-module.exports.nullImplementation = nullImplementation;
 
 inherits(StateMachine, EventEmitter)
 function StateMachine (initialState, transitions) {
@@ -73,16 +72,4 @@ function IllegalTransitionError(from, to) {
   Error.captureStackTrace(this, IllegalTransitionError);
   this.name = 'Illegal Transition';
   this.message = "Transition from '" + from + "' to '" + to + "' not allowed";
-}
-
-function nullImplementation (methodName) {
-  return function () {
-    var lastArg = [].slice.call(arguments).pop();
-    var error = new StateMachine.UndefinedMethodError(methodName, this.state())
-    if (typeof lastArg == 'function') {
-      lastArg(error);
-    } else {
-      this.emit('error', error);
-    }
-  }
 }
