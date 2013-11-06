@@ -4,26 +4,6 @@
 
 _The less-opinionated Node.js database abstraction layer_
 
-## [ANN] v1.0.0-alpha1 released
-
-Any-DB 1.0 significantly restructures the various `any-db-*` modules. If you
-are updating from a previous version you *will* need to update `package.json`.
-
-**Applications** should replace an `any-db` dependency with one or more
-dependencies on `any-db-<adapter>` where `adapter` can be `mysql`, `postgres`,
-or `sqlite3`. With this change, a direct dependency on an database driver
-package (such as `mysql`) is no longer *required*, though you can continue to
-use one if you like.
-
-All of the adapter libraries have `any-db` as a *peerDependency* which means
-that `any-db` will be pulled in transitively as a dependency on the same level
-as the adapter.
-
-**Libraries** should move their `any-db` dependency to `peerDependencies`,
-even though things may appear to operate correctly without doing so. If your
-library depends on a database connection (e.g. for tests) you should also add
-a *devDependency* on the corresponding `any-db-<adapter>` library.
-
 ## Synopsis
 
 (There's also detailed [API][API] documentation available)
@@ -94,12 +74,26 @@ as much as possible.
  * Add it's own query helper methods like `.first` or `.fetchAll`
  * Include any sort of SQL string building. You might want to try my other library
 	 [gesundheit](https://github.com/BetSmartMedia/gesundheit), or one of the many
-	 [alternatives](https://encrypted.google.com/search?q=sql&q=site:npmjs.org&hl=en)
-	 for that. _(send me pull requests to list your libs here)_
+	 [alternatives](https://npmjs.org/search?q=sql) for that.
 
 ## Installation
 
-    npm install --save any-db-{pg,mysql,sqlite3}
+### For Applications
+
+   npm install --save any-db-{postgres,mysql,sqlite3}
+
+All of the adapter libraries have `any-db` as a *peerDependency*, which means
+that `require('any-db')` will work even though you don't install it directly or
+add it to your package.json.
+
+### For Libraries
+
+Add `any-db` to `peerDependencies` in package.json. This allows users of your
+library to satisfy the any-db dependency by installing the adapter of their
+choice.
+
+If your library depends on a database connection for tests you should also add
+a *devDependency* on the corresponding `any-db-<adapter>` library.
 
 ## License
 
