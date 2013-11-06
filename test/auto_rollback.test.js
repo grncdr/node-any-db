@@ -1,6 +1,6 @@
 
 require('./helpers').allTransactions("Auto-rollback", function (tx, t) {
-  t.plan(4)
+  t.plan(5)
 
   tx.removeAllListeners('error')
   tx.query('Not a valid sql statement')
