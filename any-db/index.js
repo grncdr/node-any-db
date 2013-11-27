@@ -16,7 +16,9 @@ exports.Transaction = Transaction
 exports.createConnection = function connect (dbUrl, callback) {
   var adapterConfig = parseDbUrl(dbUrl)
   var adapter = getAdapter(adapterConfig.adapter)
-  return adapter.createConnection(adapterConfig, callback)
+  var conn = adapter.createConnection(adapterConfig, callback);
+  conn.adapter = adapterConfig.adapter;
+  return conn;
 }
 
 exports.createPool = function createPool (dbUrl, poolConfig) {
