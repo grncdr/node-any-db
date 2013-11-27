@@ -42,7 +42,8 @@ exports.createPool = function createPool (dbUrl, poolConfig) {
   }
   
   var adapter = getAdapter(adapterConfig.adapter);
-  var pool = new ConnectionPool(adapter, adapterConfig, poolConfig)
+  var pool = new ConnectionPool(adapter, adapterConfig, poolConfig);
+  pool.adapter = adapterConfig.adapter;
 
   pool.begin = Transaction.createBeginMethod(adapter.createQuery, function (tx) {
     // Proxy query events from the transaction to the pool
