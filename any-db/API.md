@@ -187,6 +187,12 @@ continue to use the connection after releasing it.
 Stop giving out new connections, and close all existing database connections as
 they are returned to the pool.
 
+### ConnectionPool.adapter
+
+`pool.adapter`
+
+Contains the adapter name used for this connection pool, e.g. `'sqlite3'`, etc.
+
 ### ConnectionPool events
 
  * `'acquire'` - emitted whenever `pool.acquire` is called
@@ -211,11 +217,11 @@ a query has no callback, the transaction will also handle (and re-emit)
 `'error'` events for that query. This enables handling errors for an entire
 transaction in a single place.
 
-### ConnectionPool.adapter
+### Transaction.adapter
 
-`pool.adapter`
+`tx.adapter`
 
-Contains the adapter name used for this connection pool, e.g. `'sqlite3'`, etc.
+Contains the adapter name used for the transaction, e.g. `'sqlite3'`, etc.
 
 ### Transaction states
 
