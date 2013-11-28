@@ -122,6 +122,12 @@ transaction.on('error', console.error)
 Close the database connection. If `callback` is given it will be called after
 the connection has closed.
 
+### Connection.adapter
+
+`conn.adapter`
+
+Contains the adapter name used for this connection, e.g. `'sqlite3'`, etc.
+
 
 ## Query
 
@@ -204,6 +210,12 @@ Any queries that error during a transaction will cause an automatic rollback. If
 a query has no callback, the transaction will also handle (and re-emit)
 `'error'` events for that query. This enables handling errors for an entire
 transaction in a single place.
+
+### ConnectionPool.adapter
+
+`pool.adapter`
+
+Contains the adapter name used for this connection pool, e.g. `'sqlite3'`, etc.
 
 ### Transaction states
 
@@ -289,6 +301,12 @@ committing the child transaction. For example:
     parent.query('SELECT 1', function (err) {
       child.commit();
     });
+
+### Transaction.adapter
+
+`tx.adapter`
+
+Contains the adapter name used for this transaction, e.g. `'sqlite3'`, etc.
 
 ### Transaction events
 

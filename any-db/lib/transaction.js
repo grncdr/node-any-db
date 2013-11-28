@@ -137,6 +137,7 @@ Transaction.prototype.setConnection = StateMachine.method('setConnection', {
     connection.on('error', self._onConnectionError);
 
     self._connection = connection
+    self.adapter = self._connection.adapter;
 
     self.emit('begin:start');
     var beginQuery = connection.query(self._statements.begin, function (err) {
