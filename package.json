@@ -3,9 +3,15 @@
   "version": "1.0.1",
   "description": "Any-DB connection pool",
   "main": "index.js",
-  "repository": "",
-  "author": "",
-  "license": "BSD",
+  "author": "Stephen Sugden <me@stephensugden.com>",
+  "license": "BSD-2-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grncdr/node-any-db-pool.git"
+  },
+  "bugs": {
+    "url": "https://github.com/grncdr/node-any-db-pool/issues"
+  },
   "dependencies": {
     "generic-pool": "~2.0.2",
     "once": "~1.1.1"
