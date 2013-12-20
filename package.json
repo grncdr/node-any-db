@@ -1,0 +1,27 @@
+{
+  "name": "any-db-transaction",
+  "version": "0.0.0",
+  "description": "Transaction object for Any-DB adapters",
+  "main": "transaction.js",
+  "dependencies": {
+    "inherits": "~2.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/grncdr/node-any-db-transaction.git"
+  },
+  "keywords": [
+    "any-db",
+    "transaction",
+    "sql"
+  ],
+  "author": "Stephen Sugden <me@stephensugden.com>",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/grncdr/node-any-db-transaction/issues"
+  }
+}
