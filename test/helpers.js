@@ -11,10 +11,20 @@ var databaseUrls = exports.databaseUrls = {
   sqlite3: process.env.any_db_sqlite3_test_url || "sqlite3://" + sqliteFilename
 }
 
+var invalidDatabaseUrls = {
+  mysql: "mysql://root@localhost/no_db_with_this_name_should_exist",
+  postgres: "postgres://postgres@localhost/no_db_with_this_name_should_exist"
+}
+
 if (process.env.any_db_test_drivers) {
   Object.keys(databaseUrls).forEach(function (driver) {
     if (process.env.any_db_test_drivers.indexOf(driver) == -1) {
       delete databaseUrls[driver]
+    }
+  });
+  Object.keys(invalidDatabaseUrls).forEach(function (driver) {
+    if (process.env.any_db_test_drivers.indexOf(driver) == -1) {
+      delete invalidDatabaseUrls[driver]
     }
   })
 }
@@ -72,6 +82,18 @@ exports.allPools = testRunner(function (description, opts, callback) {
   })
 })
 
+exports.allErrorPools = testRunner(function (description, opts, callback) {
+  _testEachInvalidDriver(description, opts, function (connString, t) {
+    var pool = anyDB.createPool(connString, {
+      max: 2,
+      min: 0,
+      idleTimeoutMillis: 1000
+    })
+    if (!opts.keepOpen) t.on('end', pool.close.bind(pool))
+    callback(pool, t)
+  })
+})
+
 function _testEachDriver(description, opts, callback) {
   var testOpts = {
     timeout: opts.timeout || 3000,
@@ -85,6 +107,24 @@ function _testEachDriver(description, opts, callback) {
       }
       t.test(driver, function (t) {
         callback(databaseUrls[driver], t)
+      })
+    })
+  })
+}
+
+function _testEachInvalidDriver(description, opts, callback) {
+  var testOpts = {
+    timeout: opts.timeout || 3000,
+    drivers: opts.drivers || Object.keys(invalidDatabaseUrls)
+  }
+  test(description, testOpts, function (t) {
+    t.plan(testOpts.drivers.length)
+    testOpts.drivers.forEach(function (driver) {
+      if (driver == 'sqlite3') {
+        try { fs.unlinkSync(sqliteFilename) } catch (e) {}
+      }
+      t.test(driver, function (t) {
+        callback(invalidDatabaseUrls[driver], t)
       })
     })
   })
