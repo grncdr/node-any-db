@@ -1,11 +1,8 @@
 {
   "name": "any-db-pool",
-  "version": "0.1.0",
-  "description": "AnyDB connection pool",
+  "version": "1.0.1",
+  "description": "Any-DB connection pool",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": "",
   "author": "",
   "license": "BSD",
