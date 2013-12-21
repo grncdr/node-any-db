@@ -103,19 +103,19 @@ ConnectionPool.prototype.close = function (callback) {
 }
 
 ConnectionPool.prototype.begin = function (beginStatement, callback) {
+  if (typeof beginStatement == 'function') {
+    callback = beginStatement
+    beginStatement = null
+  }
+
   if (typeof this._adapter.createTransaction != 'function') {
     var err = new Error("Adapter does not support transactions")
-    if (typeof beginStatement == 'function') {
-      beginStatement(err)
-    }
-    else if (typeof callback == 'function') {
-      callback(err)
-    }
-    else this.emit('error', err)
+    return callback ? callback(err) : this.emit('error', err)
   }
 
   var tx = this._adapter.createTransaction(beginStatement, callback)
 
+  var pool = this
   this.acquire(function (err, connection) {
     if (err) return tx.emit('error', err);
     var release = pool.release.bind(pool, connection)
