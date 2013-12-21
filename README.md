@@ -51,7 +51,7 @@ added niceties:
 ```ocaml
 module.exports := (Adapter, adapterConfig: Object, PoolConfig) => ConnectionPool
 
-ConnectionPool := {
+ConnectionPool := EventEmitter & {
   adapter: String,
   query:   (String, Array?, Continuation<ResultSet>?) => Query,
   begin:   (Continuation<Transaction>?) => Transaction,
