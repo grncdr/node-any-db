@@ -150,6 +150,16 @@ The array of parameter values.
  * `'row', row` - Emitted for each row in the queries result set.
  * `'end', [res]` - Emitted when the query completes.
 
+## Adapter
+
+```ocaml
+Adapter: {
+  createConnection:   (Object, Continuation<Connection>?) => Connection,
+  createQuery:        (String, Array?, Continuation<Results>?) => Query,
+  createTransaction?: (String?, Continuation<Transaction>?) => Transaction
+}
+```
+
 ### Adapter.createConnection
 
 `(config: Object, Continuation<Connection>?) => Connection`
@@ -167,9 +177,9 @@ in the URL. The returned object must conform to the [Connection API](#connection
 detailed below.
 
 See also: README notes for your chosen adapter
-([MySQL](../any-db-mysql/README.md#api-extensions),
- [Postgres](../any-db-postgres/README.md#api-extensions), and
- [SQLite3](../any-db-sqlite3/README.md#api-extensions))
+([MySQL](https://github.com/grncdr/node-any-db-mysql),
+ [Postgres](https://github.com/grncdr/node-any-db-postgres), and
+ [SQLite3](https://github.com/grncdr/node-any-db-sqlite3))
 
 ### Adapter.createQuery
 
