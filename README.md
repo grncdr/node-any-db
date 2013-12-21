@@ -13,7 +13,7 @@ implement.
 
  - [Connection](#connection)
  - [Query](#query)
- - [Transaction][] (optional, external link)
+ - [Transaction][] (external link)
 
 ## Connection
 
@@ -76,10 +76,13 @@ conn.query('SELECT * FROM my_table')
 (statement: String?, Continuation<Transaction>?) => Transaction
 ```
 
-Start a new database transaction and return a [Transaction][] to manage it.
-If a `statement` is given it will be used in place of the default
-statement (`BEGIN`). If a `Continuation` is given it will be called after
-the database transaction has successfully started (or failed to do so).
+Start a new database transaction and return a [Transaction][] to manage it. If
+`statement` is given it will be used in place of the default statement
+(`BEGIN`). If a `Continuation` is given it will be called after the database
+transaction has successfully started (or failed to do so).
+
+*Note for adapter authors*: This method is trivially implemented by delegating
+to [Transaction.begin][] from [any-db-transaction][] .
 
 *Callback-style*
 ```javascript
@@ -156,30 +159,23 @@ The array of parameter values.
 Adapter: {
   createConnection:   (Object, Continuation<Connection>?) => Connection,
   createQuery:        (String, Array?, Continuation<Results>?) => Query,
-  createTransaction?: (String?, Continuation<Transaction>?) => Transaction
 }
 ```
+
+This section is mostly intended for adapter authors, other users should rarely
+need to interact with this API directly.
 
 ### Adapter.createConnection
 
 `(config: Object, Continuation<Connection>?) => Connection`
 
 Create a new connection object. In common usage, `config` will be created by
-[parse-db-url][] and passed to your adapter by [any-db][].
+[parse-db-url][] and passed to the adapter by [any-db][].
 
-may be a URL string of the form
-_adapter://user:password@host:port/database_ or an adapter-specific config
-object.
+If a continuation is given, it **must** be called, either with an error or the
+established connection.
 
-If a continuation is given, it will be called with an error or the established
-connection. Additional connection settings can be included as query parameters
-in the URL. The returned object must conform to the [Connection API](#connection)
-detailed below.
-
-See also: README notes for your chosen adapter
-([MySQL](https://github.com/grncdr/node-any-db-mysql),
- [Postgres](https://github.com/grncdr/node-any-db-postgres), and
- [SQLite3](https://github.com/grncdr/node-any-db-sqlite3))
+See also: the [Connection API](#connection)
 
 ### Adapter.createQuery
 
@@ -189,16 +185,15 @@ See also: README notes for your chosen adapter
 
 Create a [Query](#query) that may be executed later on by a [Connection][].
 While this function is rarely needed by user code, it makes it possible for
-[ConnectionPool.query][] and [Transaction.query][] to return a [Query][] object synchronously in the same style as a [Connection.query][]. 
+[ConnectionPool.query][] and [Transaction.query][] to return a [Query][] object
+synchronously in the same style as a [Connection.query][]. 
 
-### Adapter.createTransaction
+# License
 
-*Optional*: If the database backend supports transactions, the adapter *should*
-implement `createTransaction`. All current/known database adapters support
-transactions by utilizing the [any-db-transaction][] package, so if you plan to
-write a new adapter you'll probably want to use that too.
+2-clause BSD
 
 [jsig]: https://github.com/jden/jsig
+[once]: http://npm.im/once
 
 [test suite]: tests
 [any-db]: https://github.com/grncdr/node-any-db
@@ -211,6 +206,6 @@ write a new adapter you'll probably want to use that too.
 [ConnectionPool.acquire]: https://github.com/grncdr/node-any-db-pool#connectionpoolacquire
 [ConnectionPool]: https://github.com/grncdr/node-any-db-pool#api
 [Transaction]: https://github.com/grncdr/node-any-db-transaction
+[any-db-transaction]: https://github.com/grncdr/node-any-db-transaction
+[Transaction.begin]: https://github.com/grncdr/node-any-db-transaction#transactionquery
 [Transaction.query]: https://github.com/grncdr/node-any-db-transaction#transactionquery
-
-[once]: http://npm.im/once
