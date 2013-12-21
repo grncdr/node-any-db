@@ -101,16 +101,6 @@ ConnectionPool.prototype.close = function (callback) {
 }
 
 ConnectionPool.prototype.begin = function (beginStatement, callback) {
-  if (typeof beginStatement == 'function') {
-    callback = beginStatement
-    beginStatement = null
-  }
-
-  if (typeof this._adapter.createTransaction != 'function') {
-    var err = new Error("Adapter does not support transactions")
-    return callback ? callback(err) : this.emit('error', err)
-  }
-
   var tx = Transaction.begin(this._adapter.createQuery, beginStatement, callback)
 
   var pool = this
