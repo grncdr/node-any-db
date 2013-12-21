@@ -1,0 +1,35 @@
+{
+  "name": "any-db-mysql",
+  "version": "1.0.0",
+  "description": "The MySQL adapter for any-db",
+  "main": "index.js",
+  "scripts": {
+    "test": "test-any-db-adapter"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grncdr/node-any-db-mysql.git"
+  },
+  "bugs": {
+    "url": "https://github.com/grncdr/node-any-db-mysql/issues"
+  },
+  "keywords": [
+    "any-db",
+    "anydb",
+    "mysql",
+    "adapter"
+  ],
+  "author": "Stephen Sugden <me@stephensugden.com>",
+  "license": "MIT",
+  "dependencies": {
+    "mysql": "*",
+    "any-db-transaction": "git://github.com/grncdr/node-any-db-transaction.git"
+  },
+  "peerDependencies": {
+    "any-db": "~1.0.0"
+  },
+  "devDependencies": {
+    "test-any-db-adapter": "git://github.com/grncdr/node-any-db-adapter-spec.git",
+    "any-db-adapter-spec": "0.0.0"
+  }
+}
