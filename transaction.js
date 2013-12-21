@@ -1,9 +1,9 @@
 var inherits = require('inherits')
-var StateMachine = require('yafsm')
+var FSM = require('yafsm')
 
 module.exports = Transaction
 
-inherits(Transaction, StateMachine)
+inherits(Transaction, FSM)
 function Transaction(opts) {
   opts = opts || {};
   if (typeof opts.createQuery != 'function') {
@@ -18,7 +18,7 @@ function Transaction(opts) {
   this._queue = []
   this._nestingLevel = opts.nestingLevel || 0
 
-  StateMachine.call(this, 'disconnected', {
+  FSM.call(this, 'disconnected', {
     'disconnected': [ 'connected' ],
     'connected':    [ 'open', 'closed' ],
     'open':         [ 'connected', 'closed' ]
@@ -35,7 +35,7 @@ function Transaction(opts) {
   }
 }
 
-Transaction.createFromArgs = function (createQuery, beginStatement, callback) {
+Transaction.begin = function (createQuery, beginStatement, callback) {
   if (typeof beginStatement == 'function') {
     callback = beginStatement
     beginStatement = undefined
@@ -58,7 +58,7 @@ Transaction.prototype.handleError = function (err, callback) {
   else propagate(err);
 }
 
-Transaction.prototype.query = StateMachine.method('query', {
+Transaction.prototype.query = FSM.method('query', {
   'connected|disconnected': function (text, params, callback) {
     return this._queueTask(this._createQuery(text, params, callback));
   },
@@ -74,7 +74,7 @@ Transaction.prototype.query = StateMachine.method('query', {
   }
 })
 
-Transaction.prototype.begin = StateMachine.method('begin', {
+Transaction.prototype.begin = FSM.method('begin', {
   'open': function (callback) {
     return this._createChildTransaction(callback).setConnection(this._connection);
   },
@@ -84,7 +84,7 @@ Transaction.prototype.begin = StateMachine.method('begin', {
 });
 
 ['commit', 'rollback'].forEach(function (methodName) {
-  Transaction.prototype[methodName] = StateMachine.method(methodName, {
+  Transaction.prototype[methodName] = FSM.method(methodName, {
     'open': closeVia(methodName),
     'connected|disconnected': function (callback) {
       this._queue.push([methodName, [callback]]);
@@ -118,7 +118,7 @@ Transaction.prototype._createChildTransaction = function (callback) {
   return tx
 }
 
-Transaction.prototype.setConnection = StateMachine.method('setConnection', {
+Transaction.prototype.setConnection = FSM.method('setConnection', {
   'disconnected': function (connection) {
     var self = this;
     self.state('connected');
