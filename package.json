@@ -9,6 +9,13 @@
   "directories": {
     "test": "tests"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grncdr/node-any-db-adapter-spec.git"
+  },
+  "bugs": {
+    "url": "https://github.com/grncdr/node-any-db-adapter-spec/issues"
+  },
   "dependencies": {
     "any-db-pool": "~1.0.1",
     "any-db-transaction": "~0.0.0",
