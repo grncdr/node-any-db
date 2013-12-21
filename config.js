@@ -6,7 +6,7 @@ var argv = require('optimist').argv
 
 var config = cc(camelize(argv),
                 camelize(cc.env('any_db_test_')),
-                {adapterPath: process.cwd()})
+                { adapterPath: process.cwd() })
 
 var adapterPath = path.resolve(config.get('adapterPath'))
 config.set('adapterPath', adapterPath)

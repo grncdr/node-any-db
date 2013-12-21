@@ -5,14 +5,14 @@ var test = module.exports = tape.bind(null)
 
 test.withAdapter = function (description, callback) {
   test(description, function (t) {
-    var config = require('./config')
+    var config = require('../config')
     callback(config, t)
   })
 }
 
 test.withConnection = maybeOpts(function (description, opts, callback) {
   tape(description, function (t) {
-    var config = require('./config')
+    var config = require('../config')
     config.adapter.createConnection(config.url, function (err, conn) {
       if (err) throw err
       if (opts.autoEnd !== false) t.on('end', conn.end.bind(conn))
@@ -23,7 +23,7 @@ test.withConnection = maybeOpts(function (description, opts, callback) {
 
 test.withTransaction = maybeOpts(function (description, opts, callback) {
   test(description, function (t) {
-    var config = require('./config')
+    var config = require('../config')
     config.adapter.createConnection(config.url, function (err, conn) {
       if (err) throw err
       var tx = conn.begin()
@@ -41,7 +41,7 @@ test.withTransaction = maybeOpts(function (description, opts, callback) {
 
 test.withPool = maybeOpts(function (description, opts, callback) {
   test(description, function (t) {
-    var config = require('./config')
+    var config = require('../config')
     var pool = new ConnectionPool(config.adapter, config.url, {
       max: 2,
       min: 0,
