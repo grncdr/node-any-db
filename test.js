@@ -1,9 +1,10 @@
 var tape = require('tape')
+var ConnectionPool = require('any-db-pool')
 
 var test = module.exports = tape.bind(null)
 
 test.withAdapter = function (description, callback) {
-  tape(description, function (t) {
+  test(description, function (t) {
     var config = require('./config')
     callback(config, t)
   })
@@ -21,7 +22,7 @@ test.withConnection = maybeOpts(function (description, opts, callback) {
 })
 
 test.withTransaction = maybeOpts(function (description, opts, callback) {
-  tape(description, function (t) {
+  test(description, function (t) {
     var config = require('./config')
     config.adapter.createConnection(config.url, function (err, conn) {
       if (err) throw err
@@ -39,7 +40,7 @@ test.withTransaction = maybeOpts(function (description, opts, callback) {
 })
 
 test.withPool = maybeOpts(function (description, opts, callback) {
-  tape(description, function (t) {
+  test(description, function (t) {
     var config = require('./config')
     var pool = new ConnectionPool(config.adapter, config.url, {
       max: 2,
