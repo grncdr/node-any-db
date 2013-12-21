@@ -29,7 +29,6 @@
     "any-db": "~1.0.0"
   },
   "devDependencies": {
-    "test-any-db-adapter": "git://github.com/grncdr/node-any-db-adapter-spec.git",
     "any-db-adapter-spec": "0.0.0"
   }
 }
