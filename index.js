@@ -38,10 +38,11 @@ function ConnectionPool(adapter, connParams, options) {
   }
 
   var resetSteps = [];
-  if (adapter.reset) resetSteps.unshift(adapter.reset);
+  if (adapter.reset) resetSteps.unshift(adapter.reset)
   if (options.reset) resetSteps.unshift(options.reset)
+  this.adapter = adapter.name
   this._adapter = adapter
-  this._reset = chain(resetSteps);
+  this._reset = chain(resetSteps)
   this._pool = new Pool(poolOpts)
 }
 
@@ -99,4 +100,29 @@ ConnectionPool.prototype.close = function (callback) {
     self.emit('close')
     if (callback) callback()
   })
+}
+
+ConnectionPool.prototype.begin = function (beginStatement, callback) {
+  if (typeof this._adapter.createTransaction != 'function') {
+    var err = new Error("Adapter does not support transactions")
+    if (typeof beginStatement == 'function') {
+      beginStatement(err)
+    }
+    else if (typeof callback == 'function') {
+      callback(err)
+    }
+    else this.emit('error', err)
+  }
+
+  var tx = this._adapter.createTransaction(beginStatement, callback)
+
+  this.acquire(function (err, connection) {
+    if (err) return tx.emit('error', err);
+    var release = pool.release.bind(pool, connection)
+    tx.once('rollback:complete', release)
+      .once('commit:complete', release)
+      .setConnection(connection)
+  })
+
+  return tx;
 }
