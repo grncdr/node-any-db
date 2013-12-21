@@ -2,15 +2,13 @@ var test = require('tape')
 var ConnectionPool = require('../')
 
 test('Connection errors in a pool are forwarded to query callbacks', function (t) {
-  // This user/database should *not* exist
-  var pool = new ConnectionPool({
-    createQuery: function () {
-      return {}
-    },
-    createConnection: function (_, callback) {
-      callback(new Error("Blammo"))
-    }
-  }, "no-url", {min: 0})
+  // A stub adapter that errors on connect
+  var adapter = {
+    createQuery: function () { },
+    createConnection: function (_, callback) { callback(new Error("Blammo")) }
+  }
+
+  var pool = new ConnectionPool(adapter, "no-url", {min: 0})
 
   t.plan(4);
 

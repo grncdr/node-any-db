@@ -17,9 +17,11 @@
   },
   "dependencies": {
     "generic-pool": "~2.0.2",
+    "any-db-transaction": "0.0.0",
     "once": "~1.1.1"
   },
   "devDependencies": {
-    "tape": "~2.3.2"
+    "tape": "~2.3.2",
+    "any-db-fake": "latest"
   }
 }
