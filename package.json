@@ -1,8 +1,11 @@
 {
-  "name": "test-any-db-adapter",
+  "name": "any-db-adapter-spec",
   "version": "0.0.0",
-  "description": "Test suite & runner for any-db adapters",
+  "description": "Specification and test suite for any-db adapters",
   "main": "test-any-db-adapter.js",
+  "bin": {
+    "test-any-db-adapter": "bin/test-any-db-adapter"
+  },
   "directories": {
     "test": "tests"
   },
