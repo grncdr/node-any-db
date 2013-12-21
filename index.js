@@ -1,12 +1,11 @@
 var mysql = require('mysql')
-
-var createTransaction = require('any-db-transaction').createFromArgs
+var Transaction = require('any-db-transaction')
 
 exports.name = 'mysql'
 
 exports.createQuery = mysql.createQuery
 
-exports.createTransaction = createTransaction.bind(null, mysql.createQuery)
+exports.createTransaction = Transaction.begin.bind(null, mysql.createQuery)
 
 exports.createConnection = function createConnection(opts, callback) {
   var conn = mysql.createConnection(opts)
