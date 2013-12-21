@@ -4,7 +4,8 @@
   "description": "Transaction object for Any-DB adapters",
   "main": "transaction.js",
   "dependencies": {
-    "inherits": "~2.0.1"
+    "inherits": "~2.0.1",
+    "yafsm": "0.0.0"
   },
   "devDependencies": {},
   "scripts": {

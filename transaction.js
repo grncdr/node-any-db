@@ -1,5 +1,5 @@
-var inherits = require('util').inherits
-var StateMachine = require('./state-machine')
+var inherits = require('inherits')
+var StateMachine = require('yafsm')
 
 module.exports = Transaction
 
