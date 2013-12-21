@@ -26,8 +26,10 @@ Connection := EventEmitter & {
 }
 ```
 
-Connection objects are obtained using [anyDB.createConnection][] or
-[ConnectionPool.acquire], both of which delegate to the a specific adapters [createConnection](#adaptercreateconnection) implementation.
+Connection objects are obtained using [createConnection][] from [Any-DB][] or
+[ConnectionPool.acquire][], both of which delegate to the
+[createConnection](#adaptercreateconnection) implementation of the specified
+adapter.
 
 `Connection` instances are guaranteed to have the methods and events listed
 here, but drivers (and their adapters) may have additional methods or emit
@@ -128,7 +130,7 @@ Query := EventEmitter & {
 }
 ```
 
-Query objects are returned by the `query` methods of [connections][Connection],
+Query objects are returned by the `query` methods of [connections][Connection.query],
 [pools][ConnectionPool.query], and [transactions][Transaction.query]. Like
 connections, query objects are created by an adapter and may have more methods
 and events than are described here.
@@ -187,13 +189,18 @@ transactions by utilizing the [any-db-transaction][] package, so if you plan to
 write a new adapter you'll probably want to use that too.
 
 [jsig]: https://github.com/jden/jsig
+
 [test suite]: tests
-[once]: http://npm.im/once
+[any-db]: https://github.com/grncdr/node-any-db
+[createConnection]: https://github.com/grncdr/node-any-db#exportscreateconnection
 [parse-db-url]: https://github.com/grncdr/parse-db-url#api
 [Connection]: #connection
-[Query]: #query
 [Connection.query]: #connectionquery
+[Query]: #query
 [ConnectionPool.query]: https://github.com/grncdr/node-any-db-pool#connectionpoolquery
+[ConnectionPool.acquire]: https://github.com/grncdr/node-any-db-pool#connectionpoolacquire
 [ConnectionPool]: https://github.com/grncdr/node-any-db-pool#api
 [Transaction]: https://github.com/grncdr/node-any-db-transaction
 [Transaction.query]: https://github.com/grncdr/node-any-db-transaction#transactionquery
+
+[once]: http://npm.im/once
