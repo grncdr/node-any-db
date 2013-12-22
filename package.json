@@ -23,7 +23,8 @@
     "camelize": "~0.1.2",
     "for-each": "~0.1.0",
     "arrayify": "~1.0.0",
-    "tape": "~2.3.2"
+    "tape": "~2.3.2",
+    "parse-db-url": "0.0.0"
   },
   "devDependencies": {},
   "scripts": {
