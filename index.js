@@ -15,7 +15,8 @@ function ConnectionPool(adapter, connParams, options) {
   }
   EventEmitter.call(this)
 
-  options = options || {}
+  options    = options    || {}
+  connParams = connParams || {}
 
   if (options.create || options.destroy) {
     throw new Error("Use onConnect/reset options instead of create/destroy.")
