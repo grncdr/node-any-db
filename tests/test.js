@@ -39,19 +39,6 @@ test.withTransaction = maybeOpts(function (description, opts, callback) {
   })
 })
 
-test.withPool = maybeOpts(function (description, opts, callback) {
-  test(description, function (t) {
-    var config = require('../config')
-    var pool = new ConnectionPool(config.adapter, config.url, {
-      max: 2,
-      min: 0,
-      idleTimeoutMillis: 1000
-    })
-    if (!opts.keepOpen) t.on('end', pool.close.bind(pool))
-    callback(pool, t)
-  })
-})
-
 function maybeOpts(f) {
   return function (description, opts, callback) {
     if (!callback) {

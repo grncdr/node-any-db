@@ -17,8 +17,6 @@
     "url": "https://github.com/grncdr/node-any-db-adapter-spec/issues"
   },
   "dependencies": {
-    "any-db-pool": "~1.0.1",
-    "any-db-transaction": "0.0.1",
     "config-chain": "~1.1.8",
     "optimist": "~0.6.0",
     "require-all": "0.0.8",
