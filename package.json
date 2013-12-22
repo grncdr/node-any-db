@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "generic-pool": "~2.0.2",
-    "any-db-transaction": "0.0.1",
+    "any-db-transaction": "~0.0.1",
     "once": "~1.1.1"
   },
   "devDependencies": {
