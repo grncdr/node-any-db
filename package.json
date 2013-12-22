@@ -23,7 +23,7 @@
   "license": "MIT",
   "dependencies": {
     "mysql": "*",
-    "any-db-transaction": "any-db-transaction"
+    "any-db-transaction": "~0.0.1"
   },
   "peerDependencies": {
     "any-db": "~1.0.0"
