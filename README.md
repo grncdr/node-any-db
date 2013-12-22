@@ -78,8 +78,9 @@ and releasing it when the query completes.
 (Continuation<Transaction>?) => Transaction
 ```
 
-Acts exactly like [Connection.begin][], but the underlying
-connection is returned to the pool when the transaction commits or rolls back.
+Creates a [Transaction][] exactly like [Connection.begin][], but the underlying
+connection is automatically returned to the pool when the transaction commits or
+rolls back.
 
 ### ConnectionPool.acquire
 
@@ -165,4 +166,5 @@ MIT
 [createPool]: https://github.com/grncdr/node-any-db#exportscreatepool
 [Connection.query]: https://github.com/grncdr/node-any-db-adapter-spec#connectionquery
 [Connection.begin]: https://github.com/grncdr/node-any-db-adapter-spec#connectionbegin
+[Transaction]: https://github.com/grncdr/node-any-db/transaction#api
 [Query]: https://github.com/grncdr/node-any-db-adapter-spec#query
