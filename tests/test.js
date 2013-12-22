@@ -1,5 +1,4 @@
 var tape = require('tape')
-var ConnectionPool = require('any-db-pool')
 
 var test = module.exports = tape.bind(null)
 
