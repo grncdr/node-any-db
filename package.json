@@ -3,9 +3,6 @@
   "version": "0.0.0",
   "description": "Fake adapter factory for testing any-db related libraries",
   "main": "mock-adapter.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/grncdr/node-any-db-fake.git"

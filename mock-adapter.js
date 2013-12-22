@@ -34,8 +34,10 @@ module.exports = extend(createMockAdapter, {
   },
 
   createConnection: function (_, cb) {
-    var connection = extend(new EventEmitter, this.connection)
-    connection._adapter = this
+    var connection = extend(new EventEmitter, this.connection, {
+      adapter: 'fake',
+      _adapter: this
+    })
     process.nextTick(cb.bind(null, null, connection))
     return connection
   }
