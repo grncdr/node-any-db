@@ -5,23 +5,24 @@ intended to simplify writing an Any-DB adapter that supports transactions.
 
 ## Description
 
-Transaction objects are created by [Connection.begin][] and [Pool.begin][]. They
-are simple wrappers around a [Connection][] that implement the same API, but
-ensure that all queries take place within a single database transaction.
+Transaction objects are created by [Connection.begin][] and
+[ConnectionPool.begin][]. They are simple wrappers around a [Connection][]
+that implement the same API, but ensure that all queries take place within
+a single database transaction.
 
 Any queries that error during a transaction will cause an automatic rollback. If
 a query has no callback, the transaction will also handle (and re-emit)
 `'error'` events for that query. This enables handling errors for an entire
 transaction in a single place.
 
-Transactions also implement their own [begin method][] for creating nested
-transactions using savepoints. Nested transaction can safely error and rollback
-without rolling back their parent transaction.
+Transactions also implement their own [begin method][Transaction.begin] for
+creating nested transactions using savepoints. Nested transaction can safely
+error and rollback without rolling back their parent transaction.
 
 ## API
 
 ```ocaml
-Transaction := StateMachine & {
+Transaction := FSM & {
   adapter:  String
   query:    (String, Array?, Continuation<ResultSet>) => Query
   begin:    (String?, Continuation<Transaction>) => Transaction
@@ -30,13 +31,9 @@ Transaction := StateMachine & {
 }
 ```
 
-### Transaction.adapter
-
-Contains the adapter name used for the transaction, e.g. `'sqlite3'`, etc.
-
 ### Transaction states
 
-Transactions are finite state machines with 4 states: `disconnected`,
+Transactions are [FSM][] instances with 4 states: `disconnected`,
 `connected`, `open`, and `closed`:
 
     [disconnected]
@@ -73,15 +70,20 @@ it's own internal queue.
 *\ * - Transactions started from [Connection.begin][] transition
 to `connected` before the transaction is returned from `.begin`.*
 
+### Transaction.adapter
+
+Contains the adapter name used for the transaction, e.g. `'sqlite3'`, etc.
+
 ### Transaction.query
 
 ```ocaml
 (text: String, params: Array?, Continuation<Result>?) => Query
 ```
 
-Acts exactly like [Connection.query][] except queries are
-guaranteed to be performed within the transaction. If the transaction has been
-committed or rolled back further calls to `query` will fail.
+Delegates to the [query method][Connection.query] of the underlying [Connection][]
+but guarantees that the query will be performed within this transaction (and not
+any of it's child transactions). If the transaction has been committed or rolled
+back further calls to `query` will fail.
 
 ### Transaction.commit
 
@@ -148,46 +150,89 @@ Contains the adapter name used for this transaction, e.g. `'sqlite3'`, etc.
       connection has already been committed or rolled back.
 
    Note that the `'error'` event **may be emitted multiple times!** depending on
-   the callback you are registering, you way want to wrap it using [once][once].
+   the callback you are registering, you way want to wrap it using [once][].
 
-### Transaction Example
+## Examples
+
+### Unit-of-work middleware
+
+A common pattern in web applications is start a transaction for each request and
+commit it before sending a response. Here is a simplified [connect][] middleware
+that encapsulates this pattern:
+
+```javascript
+module.exports = function unitOfWorkMiddleware (pool, errorHandler) {
+  return function (req, res, next) {
+    req.tx = pool.begin()
+    // intercept writeHead to ensure we have completed our transaction before
+    // responding to the user
+    var writeHead = res.writeHead
+    res.writeHead = function () {
+       if (req.tx.state() != 'closed') {
+         req.tx.commit(function (err) {
+           if (err) {
+             errorHandler(req, res, err)
+           } else {
+             writeHead.apply(res, arguments)
+           }
+         })
+       } else {
+         writeHead.apply(res, arguments)
+       }
+    }
+    next()
+  }
+}
+```
+
+### Rolling back
 
 Here's an example where we stream all of our user ids, check them against an
 external abuse-monitoring service, and flag or delete users as necessary, if
 for any reason we only get part way through, the entire transaction is rolled
 back and nobody is flagged or deleted:
 
-	var tx = pool.begin()
+```javascript
+var tx = pool.begin()
 
-	tx.on('error', finished)
+tx.on('error', finished)
 
-	/*
-	Why query with the pool and not the transaction?
-	Because it allows the transaction queries to begin executing immediately,
-	rather than queueing them all up behind the initial SELECT.
-	*/
-	pool.query('SELECT id FROM users').on('row', function (user) {
-		if (tx.state().match('rollback')) return
-		abuseService.checkUser(user.id, function (err, result) {
-			if (err) return tx.handleError(err)
-			// Errors from these queries will propagate up to the transaction object
-			if (result.flag) {
-				tx.query('UPDATE users SET abuse_flag = 1 WHERE id = $1', [user.id])
-			} else if (result.destroy) {
-				tx.query('DELETE FROM users WHERE id = $1', [user.id])
-			}
-		})
-	}).on('error', function (err) {
-		tx.handleError(err)
-	}).on('end', function () {
-		tx.commit(finished)
+/*
+Why query with the pool and not the transaction?
+Because it allows the transaction queries to begin executing immediately,
+rather than queueing them all up behind the initial SELECT.
+*/
+pool.query('SELECT id FROM users').on('row', function (user) {
+	if (tx.state().match('rollback')) return
+	abuseService.checkUser(user.id, function (err, result) {
+		if (err) return tx.handleError(err)
+		// Errors from these queries will propagate up to the transaction object
+		if (result.flag) {
+			tx.query('UPDATE users SET abuse_flag = 1 WHERE id = $1', [user.id])
+		} else if (result.destroy) {
+			tx.query('DELETE FROM users WHERE id = $1', [user.id])
+		}
 	})
+}).on('error', function (err) {
+	tx.handleError(err)
+}).on('end', function () {
+	tx.commit(finished)
+})
 
-	function finished (err) {
-		if (err) console.error(err)
-		else console.log('All done!')
-	}
+function finished (err) {
+	if (err) console.error(err)
+	else console.log('All done!')
+}
+```
 
 # License
 
 2-clause BSD
+
+[Connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
+[Connection.begin]: https://github.com/grncdr/node-any-db-adapter-spec#connectionbegin
+[Connection.query]: https://github.com/grncdr/node-any-db-adpater-spec#connectionquery
+[ConnectionPool.begin]: https://github.com/grncdr/node-any-db-pool#poolbegin
+[Transaction.begin]: #transactionbegin
+[FSM]: https://github.com/grncdr/yafsm#readme
+[once]: http://npm.im/once
