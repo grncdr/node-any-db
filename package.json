@@ -4,8 +4,7 @@
   "description": "Database-agnostic connection pooling, querying, and result sets",
   "main": "index.js",
   "scripts": {
-    "prepublish": "cp ../*.md .",
-    "test": "tap test/*.test.js"
+    "test": "node test.js"
   },
   "repository": {
     "type": "git",
@@ -21,13 +20,11 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "any-db-pool": ">= 0.0.6",
+    "any-db-pool": "~1.0.1",
     "parse-db-url": "0.0.0"
   },
   "devDependencies": {
-    "any-db-sqlite3": "*",
-    "any-db-postgres": "*",
-    "any-db-mysql": "*",
-    "tape": "~2.3.2"
+    "tape": "~2.3.2",
+    "any-db-fake": "0.0.1"
   }
 }
