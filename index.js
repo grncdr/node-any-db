@@ -17,6 +17,23 @@ function ConnectionPool(adapter, connParams, options) {
 
   options = options || {}
 
+  if (options.create || options.destroy) {
+    throw new Error("Use onConnect/reset options instead of create/destroy.")
+  }
+
+  if (connParams.adapter == 'sqlite3'
+      && /:memory:$/i.test(connParams.database)
+      && (options.min > 1 || options.max > 1))
+  {
+    console.warn(
+      "Pools of more than 1 connection do not work for in-memory SQLite3 databases\n" +
+      "The specified minimum (%d) and maximum (%d) connections have been overridden",
+      options.min, options.max
+    )
+    if (options.min) options.min = 1
+    options.max = 1
+  }
+  
   var poolOpts = {
     min: options.min || 0,
     max: options.max || 10,
