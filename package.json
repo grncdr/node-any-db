@@ -24,7 +24,7 @@
   "license": "MIT",
   "dependencies": {
     "pg": "*",
-    "any-db-transaction": "0.0.0"
+    "any-db-transaction": "~0.0.1"
   },
   "peerDependencies": {
     "any-db": "~1.0.0"
