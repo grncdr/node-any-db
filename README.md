@@ -166,5 +166,5 @@ MIT
 [createPool]: https://github.com/grncdr/node-any-db#exportscreatepool
 [Connection.query]: https://github.com/grncdr/node-any-db-adapter-spec#connectionquery
 [Connection.begin]: https://github.com/grncdr/node-any-db-adapter-spec#connectionbegin
-[Transaction]: https://github.com/grncdr/node-any-db/transaction#api
+[Transaction]: https://github.com/grncdr/node-any-db-transaction#api
 [Query]: https://github.com/grncdr/node-any-db-adapter-spec#query
