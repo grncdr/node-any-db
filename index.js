@@ -32,13 +32,12 @@ exports.createQuery = function (stmt, params, callback) {
   return new backend.Query(stmt, params, callback)
 }
 
-exports.createTransaction = Transaction.createFromArgs.bind(null,
-                                                            exports.createQuery)
-
 function chooseBackend () {
   return (exports.forceJS || !pgNative) ? pg : pgNative
 }
 
 function begin (beginStatement, callback) {
-  return exports.createTransaction(beginStatement, callback).setConnection(this)
+  return Transaction
+    .begin(exports.createQuery, beginStatement, callback)
+    .setConnection(this)
 }
