@@ -5,8 +5,6 @@ exports.name = 'mysql'
 
 exports.createQuery = mysql.createQuery
 
-exports.createTransaction = Transaction.begin.bind(null, mysql.createQuery)
-
 exports.createConnection = function createConnection(opts, callback) {
   var conn = mysql.createConnection(opts)
 
@@ -55,5 +53,7 @@ function wrapQueryCallback(callback) {
 }
 
 function beginTransaction (beginStatement, callback) {
-  return exports.createTransaction(beginStatement, callback).setConnection(this)
+  return Transaction
+    .begin(exports.createQuery, beginStatement, callback)
+    .setConnection(this)
 }
