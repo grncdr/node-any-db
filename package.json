@@ -6,7 +6,7 @@
   "author": "Stephen Sugden <me@stephensugden.com>",
   "license": "BSD-2-Clause",
   "scripts": {
-    "test": "tape tests/*.js"
+    "test": "covert tests/*.js"
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "tape": "~2.3.2",
-    "any-db-fake": "0.0.0"
+    "any-db-fake": "0.0.0",
+    "covert": "git://github.com/grncdr/covert.git#master"
   }
 }

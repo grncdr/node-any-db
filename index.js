@@ -18,8 +18,11 @@ function ConnectionPool(adapter, connParams, options) {
   options    = options    || {}
   connParams = connParams || {}
 
-  if (options.create || options.destroy) {
-    throw new Error("Use onConnect/reset options instead of create/destroy.")
+  if (options.create) {
+    console.warn("PoolConfig.create ignored, use PoolConfig.onConnect instead")
+  }
+  if (options.destroy) {
+    console.warn("PoolConfig.destroy ignored, use PoolConfig.onConnect instead")
   }
 
   if (connParams.adapter == 'sqlite3'
@@ -73,6 +76,7 @@ ConnectionPool.prototype.query = function (statement, params, callback) {
       } else if (callback) {
         return callback(err);
       } else {
+        debugger
         return query.emit('error', err);
       }
     }
@@ -81,9 +85,9 @@ ConnectionPool.prototype.query = function (statement, params, callback) {
     var release = once(self.release.bind(self, conn))
     query.once('end', release).once('error', function (err) {
       release()
-      // If this was the only error listener, re-emit the error.
+      // If this was the only error listener, re-emit the error from the pool.
       if (!this.listeners('error').length) {
-        this.emit('error', err)
+        self.emit('error', err)
       }
     })
   })
@@ -98,10 +102,10 @@ ConnectionPool.prototype.acquire = function (callback) {
 
 ConnectionPool.prototype.release = function (connection) {
   this.emit('release')
-  var pool = this._pool
+  var self = this
   this._reset(connection, function (err) {
-    if (err) return pool.destroy(connection)
-    pool.release(connection)
+    if (err) return self.destroy(connection)
+    self._pool.release(connection)
   })
 }
 

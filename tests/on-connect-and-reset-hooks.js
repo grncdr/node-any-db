@@ -1,5 +1,6 @@
 var test = require('tape')
 var ConnectionPool = require('../')
+var mockAdapter = require('any-db-fake')
 
 test('ConnectionPool onConnect/reset hooks', function (t) {
   // Create a pool with 2 connections maximum.
@@ -7,11 +8,7 @@ test('ConnectionPool onConnect/reset hooks', function (t) {
   t.plan(6)
   var connectCount = 2, resetCount = 4
 
-  var adapter = {
-    createConnection: function (_, cb) { cb(null, {end: function () {}}) }
-  }
-
-  var pool = new ConnectionPool(adapter, "", {
+  var pool = ConnectionPool(mockAdapter(), "", {
     max: 2,
     onConnect: function (conn, ready) {
       t.ok(connectCount-- > 0, 'onConnect called')

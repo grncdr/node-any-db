@@ -1,26 +1,47 @@
 var test = require('tape')
+var mockAdapter = require('any-db-fake')
 var ConnectionPool = require('../')
 
-test('Connection errors in a pool are forwarded to query callbacks', function (t) {
-  // A stub adapter that errors on connect
-  var adapter = {
-    createQuery: function () { },
-    createConnection: function (_, callback) { callback(new Error("Blammo")) }
-  }
+test('Connection error forwarding', function (t) {
+  // A stub adapter errors on connect
+  var pool = ConnectionPool(mockAdapter({
+    createConnection: function (_, callback) {
+      process.nextTick(function () { callback(new Error("Blammo")) })
+    }
+  }))
 
-  var pool = new ConnectionPool(adapter, "no-url", {min: 0})
-
-  t.plan(4);
-
-  pool.query('This is not valid SQL', function(err) {
-    t.assert(err, "Error should be passed to callback when there are no params")
-    t.equal('Blammo', err.message, "Got expected error")
-  });
-
-  pool.query('This is not valid SQL', [], function(err) {
-    t.assert(err, "Error should be passed to callback when there are params")
-    t.equal('Blammo', err.message, "Got expected error")
-  });
-
+  t.plan(2)
   t.on('end', pool.close.bind(pool))
-});
+
+  t.test('Connection errors in pool.query', function (t) {
+    t.plan(6);
+
+    pool.query('This is not valid SQL', function(err) {
+      t.assert(err, "Error should be passed to callback when there are no params")
+      t.equal('Blammo', err.message, "Got expected error")
+    });
+
+    pool.query('This is not valid SQL', [], function(err) {
+      t.assert(err, "Error should be passed to callback when there are params")
+      t.equal('Blammo', err.message, "Got expected error")
+    });
+
+    pool.query('Still invalid SQL').on('error', function (err) {
+      t.assert(err, "Error should be emitted when there is no callback")
+      t.equal('Blammo', err.message, "Got expected error")
+    })
+
+  });
+
+  t.test('Connection errors in pool.begin', function (t) {
+    t.plan(4)
+    pool.begin(function (err) {
+      t.assert(err, "Error is forwarded to callback")
+      t.equal('Blammo', err.message, "Got expected error")
+    })
+    pool.begin().on('error', function (err) {
+      t.assert(err, "Error is emitted if there is no callback")
+      t.equal('Blammo', err.message, "Got expected error")
+    })
+  })
+})
