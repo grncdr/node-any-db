@@ -2,11 +2,7 @@ var EventEmitter = require('events').EventEmitter
 var extend       = require('extend')
 var Transaction  = require('any-db-transaction')
 
-module.exports = function mockAdapter (overrides) {
-  return extend(true, {}, stubAdapter, overrides)
-}
-
-var stubAdapter = {
+module.exports = extend(createMockAdapter, {
   connection: {
     query: function (text, params, callback) {
       var q = this._adapter.createQuery(text, params, callback)
@@ -40,6 +36,12 @@ var stubAdapter = {
   createConnection: function (_, cb) {
     var connection = extend(new EventEmitter, this.connection)
     connection._adapter = this
-    cb(null, connection)
+    process.nextTick(cb.bind(null, null, connection))
+    return connection
   }
+})
+
+function createMockAdapter (overrides) {
+  return extend(true, {}, createMockAdapter, overrides)
 }
+
