@@ -5,48 +5,34 @@
 ## Synopsis
 
 ```javascript
-var ConnectionPool = require('any-db-pool')
-var adapter = require('any-db-mysql')
+var anyDB = require('any-db')
 
-var pool = new ConnectionPool(
-  adapter,
-  { user: 'scott', password: 'tiger' },
-  { min: 5,
-    max: 15,
-    reset: function (conn, done) {
-      conn.query('ROLLBACK', done)
-    }
-  })
+var pool = anyDB.createPool('postgres://user:pass@localhost/dbname', {
+  min: 5, max: 15,
+  reset: function (conn, done) {
+    conn.query('ROLLBACK', done)
+  }
+})
 
 // Proxies to mysql's connection.query
 var q = pool.query('SELECT 1', function (err, res) { })
 ```
 
+*Note:* As shown above, [ConnectionPool](#api) instances are usually created
+with [anyDB.createPool][createPool]. The [any-db][] package will be installed
+alongside any adapters (e.g. [any-db-postgres][]), so most users should depend
+on their adapter and **not** on `any-db` or `any-db-pool`.
+
 ## Description
 
-This module contains a database connection pool that can be used with any
-driver, though it is designed to work well with [any-db compliant
-adapters][any-db-adapter-spec]. If you are writing a library that needs to support multiple database
-backends (e.g. SQLite3 or Postgres or MySQL) then it's highly encouraged that
-you add [any-db][any-db] to your `peerDependencies` and **not** this module
-directly.
-
-[any-db-adapter-spec]: https://github.com/grncdr/node-any-db-adapter-spec
-
-## Why wouldn't I just use `generic-pool`?
-
-[generic-pool][gpool] is awesome, but it's *very* generic.  This is a Good
-Thing for a library with "generic" in the name, but not so good for the very
-common but slightly more specialized case of pooling stateful SQL database
-connections.  This library uses `generic-pool` and simply augments it with some
-added niceties:
-
-* Hooks for initializing and/or resetting connection state when connections are added or returned to the pool.
-* A `query` method that allows queries to be performed without the user needing a reference to a connection object (and potentially leaking that reference).
+This package contains a database connection pool that can be used with any
+driver, but it requires an [any-db compliant adapter][Adapter]. If you are
+writing a library that needs to support multiple database backends (e.g.
+SQLite3 or Postgres or MySQL) then it's strongly recommended that you add
+[any-db][] toyour `peerDependencies` and rely on [createPool][] instead of
+depending on this package directly.
 
 ## API
-
-*Note:* ConnectionPool instances are usually created with the [createPool][] function from [any-db], which automatically selects an [Adapter][] for a given database URL.
 
 ```ocaml
 module.exports := (Adapter, adapterConfig: Object, PoolConfig) => ConnectionPool
@@ -102,7 +88,7 @@ connection is returned to the pool when the transaction commits or rolls back.
 ```
 
 Remove a connection from the pool. If you use this method you **must** return
-the connection back to the pool using [ConnectionPool.release][]
+the connection back to the pool using [ConnectionPool.release](#connectionpoolrelease)
 
 ### ConnectionPool.release
 
@@ -136,9 +122,37 @@ The string name of the adapter used for this connection pool, e.g. `'sqlite3'`.
  * `'close'` - emitted when the connection pool has closed all of it
    connections after a call to `close()`.
 
-## Installation
+## Why wouldn't I just use `generic-pool`?
 
-`npm install any-db-pool`
+[generic-pool][gpool] is awesome, but it's *very* generic.  This is a Good
+Thing for a library with "generic" in the name, but not so good for the very
+common but slightly more specialized case of pooling stateful SQL database
+connections.  This library uses `generic-pool` and simply augments it with some
+added niceties:
+
+* Hooks for initializing and/or resetting connection state when connections are added or returned to the pool.
+* A `query` method that allows queries to be performed without the user needing a reference to a connection object (and potentially leaking that reference).
+
+## Stop telling me not to use this directly
+
+Ok, if you really want to use this package without using the [any-db][]
+frontend you should provide a compliant [Adapter][] implementation:
+
+```javascript
+var ConnectionPool = require('any-db-pool')
+var adapter = require('my-custom-adapter')
+var connectionParams = { user: 'scott', password: 'tiger' }
+var poolParams = {
+  min: 5, max: 15,
+  reset: function (conn, done) {
+    conn.query('ROLLBACK', done)
+  }
+}
+var pool = new ConnectionPool(adapter, connectionParams, poolParams)
+```
+
+However, it would be awesome if you just published your adapter as a
+package named `any-db-$name` so that everybody could use it :+1:
 
 ## License
 
@@ -146,7 +160,9 @@ MIT
 
 [gpool]: http://npm.im/generic-pool
 [any-db]: https://github.com/grncdr/node-any-db
+[any-db-postgres]: https://github.com/grncdr/node-any-db-postgres
 [Adapter]: https://github.com/grncdr/node-any-db-adapter-spec#adapter
 [createPool]: https://github.com/grncdr/node-any-db#exportscreatepool
 [Connection.query]: https://github.com/grncdr/node-any-db-adapter-spec#connectionquery
+[Connection.begin]: https://github.com/grncdr/node-any-db-adapter-spec#connectionbegin
 [Query]: https://github.com/grncdr/node-any-db-adapter-spec#query
