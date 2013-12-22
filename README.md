@@ -1,5 +1,7 @@
 # any-db-postgres
 
+[![Build Status](https://secure.travis-ci.org/grncdr/node-any-db-postgres.png)](http://travis-ci.org/grncdr/node-any-db-postgres)
+
 This is the postgres adapter for Any-DB. It relies on the [pg][] database
 driver to create [Connection][] and [Query][] objects that conform to the
 [Any-DB API][]. The API is practically identical to that of `require('pg')` but
