@@ -1,5 +1,6 @@
 var url = require('url');
-module.exports = function (dbUrl) {
+
+module.exports = function parseDbUrl (dbUrl) {
   if (typeof dbUrl === 'object') {
     if (dbUrl.adapter != null) return dbUrl
     else throw new Error("'adapter' is required in config objects")

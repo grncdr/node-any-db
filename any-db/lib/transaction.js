@@ -35,26 +35,16 @@ function Transaction(opts) {
   }
 }
 
-Transaction.createBeginMethod = function (createQuery, setConnection) {
-  // default setConnection implementation just assumes that begin is called
-  // on a connection object.
-  if (typeof setConnection == 'undefined') {
-    setConnection = function (tx) { tx.setConnection(this) };
+Transaction.createFromArgs = function (createQuery, beginStatement, callback) {
+  if (typeof beginStatement == 'function') {
+    callback = beginStatement
+    beginStatement = undefined
   }
-
-  return function (beginStatement, callback) {
-    if (beginStatement && typeof beginStatement == 'function') {
-      callback = beginStatement;
-      beginStatement = undefined;
-    }
-    var tx = new Transaction({
-      createQuery: createQuery,
-      begin: beginStatement,
-      callback: callback
-    })
-    setConnection.call(this, tx);
-    return tx;
-  }
+  return new Transaction({
+    createQuery: createQuery,
+    begin: beginStatement,
+    callback: callback
+  })
 }
 
 Transaction.prototype.handleError = function (err, callback) {
