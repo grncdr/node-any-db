@@ -232,7 +232,7 @@ function finished (err) {
 [Connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
 [Connection.begin]: https://github.com/grncdr/node-any-db-adapter-spec#connectionbegin
 [Connection.query]: https://github.com/grncdr/node-any-db-adpater-spec#connectionquery
-[ConnectionPool.begin]: https://github.com/grncdr/node-any-db-pool#poolbegin
+[ConnectionPool.begin]: https://github.com/grncdr/node-any-db-pool#connectionpoolbegin
 [Transaction.begin]: #transactionbegin
 [FSM]: https://github.com/grncdr/yafsm#readme
 [once]: http://npm.im/once
