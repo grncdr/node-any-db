@@ -1,0 +1,27 @@
+{
+  "name": "any-db-fake",
+  "version": "0.0.0",
+  "description": "Fake adapter factory for testing any-db related libraries",
+  "main": "mock-adapter.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/grncdr/node-any-db-fake.git"
+  },
+  "keywords": [
+    "any-db",
+    "mock",
+    "fake"
+  ],
+  "author": "Stephen Sugden <me@stephensugden.com>",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/grncdr/node-any-db-fake/issues"
+  },
+  "dependencies": {
+    "extend": "~1.2.1",
+    "any-db-transaction": "0.0.1"
+  }
+}
