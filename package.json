@@ -1,6 +1,6 @@
 {
   "name": "any-db-fake",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Fake adapter factory for testing any-db related libraries",
   "main": "mock-adapter.js",
   "repository": {
