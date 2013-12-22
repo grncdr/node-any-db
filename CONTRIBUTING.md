@@ -1,28 +1,37 @@
 # Contributing to Any-DB development
 
-Want to help improve Any-DB? You're in the right place.
+Want to help improve Any-DB? You're in the *wrong* place :wink:. The individual
+parts of the "Any-DB ecosystem" all live in their own repos, so the right place
+to be depends on what you want to do:
 
-## Setting up
+## I want to write a new adapter
 
-To get started, clone this git repo and run `make dev_deps`. This will symlink
-all of the sub-packages into place in your local directory and then install any
-remaining dependencies from npm. This is important because it means that you can
-be sure that tests will be run against the code in source-control, and not
-packages installed from the npm registry.
+Awesome! You'll probably want to review [the spec][], and maybe some of the
+existing adapters. When it's time to write some code, you can add the spec to
+your devDependencies and use it to test your adapter for compliance:
 
-## Running tests
+    npm install --save-dev any-db-adapter-spec
+    node_modules/.bin/test-any-db-adapter --url "my-adapter://user@host/database"
 
-After you've run `make dev_deps` you can run `make test` to run the tests. The
-tests require that *both* a MySQL and Postgres server are available and
-accessible at the Any-DB URLs defined by the environment variable
-`any_db_mysql_test_url` and `any_db_postgres_test_url`. If these env variables
-are undefined or empty, the default values of
-`mysql://root@localhost/any_db_test` and
-`postgres://postgres@localhost/any_db_test` will be used.
+## I want to improve an existing adapter
 
-If you wish to disable testing of a particular backend for a test run, you can
-define the environment variable `any_db_test_drivers` to a comma separated list
-of driver names.
+Cool, then you will probably want one of these repos:
+
+ * [any-db-mysql](https://github.som/grncdr/node-any-db-mysql)
+ * [any-db-postgres](https://github.som/grncdr/node-any-db-postgres)
+ * [any-db-sqlite3](https://github.som/grncdr/node-any-db-sqlite3)
+
+## I want to improve the connection pool
+
+It lives over here: [any-db-pool][]
+
+## I want to improve the transaction object
+
+It's over in this repo: [any-db-transaction][]. Testing it is a bit weird
+because it's mostly tested transitively via the adapters that depend on it.
+This is something I'd like to improve but for now you should clone one of the
+adapter repos and `npm link` your dev copy of the transaction in place, then
+run the tests for the adapter to check your changes.
 
 ## Creating a pull-request
 
@@ -38,3 +47,6 @@ lines under 80 characters long if you can help it.
 
 If a patch you're working on is getting hairy, don't be afraid to refactor
 existing code.
+
+[any-db-pool]: https://github.com/grncdr/node-any-db-pool
+[any-db-transaction]: https://github.com/grncdr/node-any-db-transaction
