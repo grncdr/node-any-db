@@ -1,4 +1,4 @@
-# Any-DB - a less-opinionated database abstraction layer.
+# Any-DB
 
 [![Build Status](https://secure.travis-ci.org/grncdr/node-any-db.png?branch=master)](http://travis-ci.org/grncdr/node-any-db)
 
