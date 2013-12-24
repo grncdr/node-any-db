@@ -1,5 +1,4 @@
 var mysql = require('mysql')
-var Transaction = require('any-db-transaction')
 
 exports.name = 'mysql'
 
@@ -9,7 +8,7 @@ exports.createConnection = function createConnection(opts, callback) {
   var conn = mysql.createConnection(opts)
 
   conn.adapter = 'mysql'
-  conn.begin = beginTransaction
+  conn.createQuery = exports.createQuery
 
   if (callback) {
     conn.connect(function (err) {
@@ -50,10 +49,4 @@ function wrapQueryCallback(callback) {
       })
     }
   }
-}
-
-function beginTransaction (beginStatement, callback) {
-  return Transaction
-    .begin(exports.createQuery, beginStatement, callback)
-    .setConnection(this)
 }
