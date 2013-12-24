@@ -20,4 +20,4 @@ require('../test')("Last insert id", function (conn, t) {
       t.equal(res.lastInsertId, 2)
     })
   })
-}
+})
