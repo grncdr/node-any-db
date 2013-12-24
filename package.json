@@ -23,7 +23,10 @@
   "author": "Stephen Sugden <me@stephensugden.com>",
   "license": "MIT",
   "dependencies": {
-    "sqlite3": "*"
+    "sqlite3": "*",
+    "concat-stream": "~1.2.1",
+    "readable-stream": "~1.1.9",
+    "inherits": "~2.0.1"
   },
   "peerDependencies": {
     "any-db": "~1.0.0"

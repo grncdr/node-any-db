@@ -1,25 +1,19 @@
 var EventEmitter = require('events').EventEmitter
-var inherits     = require('util').inherits
 var sqlite3      = require('sqlite3')
+var inherits     = require('inherits')
+var Readable     = require('readable-stream')
+var concat       = require('concat-stream')
 
-module.exports = SQLite3
+exports.name = 'sqlite3'
 
-SQLite3.verbose = sqlite3.verbose;
-SQLite3.name = 'sqlite3'
+exports.verbose = sqlite3.verbose;
 
-inherits(SQLite3, EventEmitter)
-function SQLite3(db) {
-  EventEmitter.call(this)
-  this._db = db
-  var self = this
-  this._db.on('open',  function ()    { self.emit('open', self) })
-  this._db.on('close', function ()    { self.emit('end') })
-  this._db.on('error', function (err) { self.emit('error', err) })
-}
+exports.createQuery = function (text, values, callback) {
+  if (text instanceof Query) return text
+  return new Query(text, values, callback)
+} 
 
-SQLite3.prototype.adapter = 'sqlite3'
-
-SQLite3.createConnection = function (opts, callback) {
+exports.createConnection = function (opts, callback) {
   var filename;
   
   if (opts.host) {
@@ -39,96 +33,98 @@ SQLite3.createConnection = function (opts, callback) {
   if (!mode) mode = (sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE)
 
   var db = new sqlite3.Database(filename, mode)
-    , adapter = new SQLite3(db)
+    , conn = new Connection(db)
 
   if (callback) {
-    db.on('open', function () { callback(null, adapter) })
+    db.on('open', function () { callback(null, conn) })
   }
 
   db.serialize()
 
-  return adapter
+  return conn
 }
 
-SQLite3.createQuery = function (text, values, callback) {
-  if (text instanceof Query) return text
-  return new Query(text, values, callback)
+inherits(Connection, EventEmitter)
+function Connection(db) {
+  EventEmitter.call(this)
+  this._db = db
+  var self = this
+  this._db.on('open',  function ()    { self.emit('open', self) })
+  this._db.on('close', function ()    { self.emit('end') })
+  this._db.on('error', function (err) { self.emit('error', err) })
 }
 
-SQLite3.prototype.createQuery = SQLite3.createQuery
+Connection.prototype.adapter = 'sqlite3'
 
-SQLite3.prototype.query = function (text, values, callback) {
+Connection.prototype.createQuery = exports.createQuery
+
+Connection.prototype.query = function (text, values, callback) {
   var query = text
     , rowError = false
     ;
 
   if (!(query instanceof Query)) {
-    query = SQLite3.createQuery(text, values, callback);
+    query = this.createQuery(text,
+                             values,
+                             callback);
   }
   
-  if (query.text.match(/^\s*insert\s+/i)) {
-    this._db.run(
-      query.text,
-      query.values,
-      function onComplete(err) {
-        if (err) return query.handleError(err)
-        var result = { rows: [], rowCount: 0, lastInsertId: this.lastID }
-        if (query._callback) query._callback(null, result)
-        query.emit('end', result)
-      }
-    )
-  }
-  else {
-    this._db.each(
-      query.text,
-      query.values,
-      function onRow(err, row) {
-        if (rowError) return
-        rowError = err
-        query.handleRow(row)
-      },
-      function onComplete(err, count) {
-        if (err || rowError) return query.handleError(err || rowError)
-        var result = {
-          rows: query._rows,
-          rowCount: count,
-          lastInsertId: this.lastID
-        }
-        if (query._callback) query._callback(null, result)
-        query.emit('end', result)
-      }
-    )
-  }
+  if (query.text.match(/^\s*insert\s+/i))
+    this._db.run(query.text,
+                 query.values,
+                 onComplete)
+  else
+    this._db.each(query.text,
+                  query.values,
+                  query.onRow.bind(query),
+                  onComplete)
 
   return query
+
+  function onComplete(err, count) {
+    if (err || rowError) return query.emit('error', err || rowError)
+    query.complete(count, this.lastID)
+  }
 }
 
-SQLite3.prototype.end = function (callback) {
+Connection.prototype.end = function (callback) {
   if (callback) this.on('end', callback)
   this._db.close()
 }
 
-inherits(Query, EventEmitter)
+inherits(Query, Readable)
 function Query(text, values, callback) {
-  EventEmitter.call(this)
-  this._rows = []
-  this._buffer = true
+  Readable.call(this, {objectMode: true})
   this.text = text
+  this._result = {}
+  this._error = null
   if (typeof values == 'function') {
-    this._callback = values
-    this.values = []
-  } else {
-    this.values = values
-    this._callback = callback
+    callback = values
+    values = []
+  }
+  this.values = values || []
+  if (this.callback = callback) {
+    var self = this
+    this.pipe(concat(function (rows) {
+      debugger
+      self._result.rows = rows
+      callback(null, self._result)
+    }))
+    this.on('error', callback)
   }
 }
 
-Query.prototype.handleRow = function (row) {
-  if (this._callback) this._rows.push(row)
-  this.emit('row', row)
+Query.prototype.onRow = function (err, row) {
+  if (this._error || (this._error = err)) return
+  this.emit('data', row)
 }
 
-Query.prototype.handleError = function (err) {
-  if (this._callback) this._callback(err)
-  else this.emit('error', err)
+Query.prototype.complete = function (count, lastId) {
+  if (this._error) this.emit('error', this._error)
+  this._result.rowCount = count
+  this._result.lastInsertId = lastId
+  this.emit('end')
 }
+
+Query.prototype.pause = function () {}
+Query.prototype.resume = function () {}
