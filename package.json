@@ -17,8 +17,7 @@
   },
   "dependencies": {
     "generic-pool": "~2.0.2",
-    "once": "~1.1.1",
-    "covert": "~0.1.1"
+    "once": "~1.1.1"
   },
   "devDependencies": {
     "tape": "~2.3.2",
