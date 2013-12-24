@@ -1,17 +1,18 @@
-var pg = require('pg')
-  , pgNative = null
+var pg = require('pg.js')
+  , QueryStream = require('pg-query-stream')
+  , inherits = require('inherits')
+  , concat = require('concat-stream')
 
-try { pgNative = pg.native } catch (e) {}
-
-exports.forceJS = false
 exports.name = 'postgres'
 
-exports.createConnection = function (opts, callback) {
-  var backend = chooseBackend()
-    , conn = new backend.Client(opts)
+exports.createQuery = function (text, params, callback) {
+  if (text instanceof PostgresQuery)
+    return text
+  return new PostgresQuery(text, params, callback)
+}
 
-  conn.adapter = 'postgres'
-  conn.createQuery = exports.createQuery
+exports.createConnection = function (opts, callback) {
+  var conn = new PostgresConnection(opts)
 
   if (callback) {
     conn.connect(function (err) {
@@ -21,16 +22,37 @@ exports.createConnection = function (opts, callback) {
   } else {
     conn.connect()
   }
-
   return conn
 }
 
-// Create a Query object that conforms to the Any-DB interface
-exports.createQuery = function (stmt, params, callback) {
-  var backend = chooseBackend()
-  return new backend.Query(stmt, params, callback)
+inherits(PostgresConnection, pg.Client)
+function PostgresConnection (opts) {
+  pg.Client.call(this, opts)
 }
 
-function chooseBackend () {
-  return (exports.forceJS || !pgNative) ? pg : pgNative
+PostgresConnection.prototype.adapter = 'postgres'
+
+PostgresConnection.prototype.query = function (text, params, callback) {
+  var query = this.createQuery(text, params, callback)
+  return pg.Client.prototype.query.call(this, query);
+}
+
+PostgresConnection.prototype.createQuery = function (text, params, callback) {
+  return exports.createQuery(text, params, callback)
+}
+
+inherits(PostgresQuery, QueryStream)
+function PostgresQuery (text, params, callback) {
+  if (typeof params == 'function') {
+    callback = params
+    params = []
+  }
+  if (!params) params = [];
+  QueryStream.call(this, text, params)
+  if (this.callback = callback) {
+    this.pipe(concat(function (rows) {
+      callback(null, { rowCount: rows.length, rows: rows })
+    }))
+    this.on('error', callback)
+  }
 }

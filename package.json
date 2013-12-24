@@ -23,7 +23,10 @@
   "author": "Stephen Sugden <me@stephensugden.com>",
   "license": "MIT",
   "dependencies": {
-    "pg": "*"
+    "pg.js": "*",
+    "pg-query-stream": "~0.2.0",
+    "inherits": "~2.0.1",
+    "concat-stream": "~1.2.1"
   },
   "peerDependencies": {
     "any-db": "~1.0.0"
