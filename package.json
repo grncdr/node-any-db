@@ -18,7 +18,6 @@
     "url": "https://github.com/grncdr/node-any-db-fake/issues"
   },
   "dependencies": {
-    "extend": "~1.2.1",
-    "any-db-transaction": "0.0.1"
+    "extend": "~1.2.1"
   }
 }

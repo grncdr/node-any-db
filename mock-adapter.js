@@ -1,6 +1,5 @@
 var EventEmitter = require('events').EventEmitter
 var extend       = require('extend')
-var Transaction  = require('any-db-transaction')
 
 module.exports = extend(createMockAdapter, {
   connection: {
