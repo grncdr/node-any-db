@@ -20,24 +20,6 @@ test.withConnection = maybeOpts(function (description, opts, callback) {
   })
 })
 
-test.withTransaction = maybeOpts(function (description, opts, callback) {
-  test(description, function (t) {
-    var config = require('../config')
-    config.adapter.createConnection(config.url, function (err, conn) {
-      if (err) throw err
-      var tx = conn.begin()
-      t.on('end', function () {
-        if (tx.state() != 'closed') {
-          tx.rollback(conn.end.bind(conn))
-        } else {
-          conn.end()
-        }
-      })
-      callback(tx, t)
-    })
-  })
-})
-
 function maybeOpts(f) {
   return function (description, opts, callback) {
     if (!callback) {

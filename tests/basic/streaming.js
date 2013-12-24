@@ -1,4 +1,4 @@
-require('../test').withTransaction("Streaming results", function (tx, test) {
+require('../test').withConnection("Streaming results", function (tx, test) {
   test.plan(11)
 
   tx.query("DROP TABLE IF EXISTS streaming_test", function (err) { /* swallow errors */ })
