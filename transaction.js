@@ -33,7 +33,9 @@ function begin (queryable, beginStatement, callback) {
   if (typeof queryable.acquire == 'function') {
     // it's a pool
     queryable.acquire(function (err, conn) {
-      if (err) return tx.emit('error', err)
+      if (err) return process.nextTick(function () {
+        tx.emit('error', err)
+      })
       var release = pool.release.bind(pool, connection)
       tx.on('query', pool.emit.bind(pool, 'query'))
       tx.once('rollback:complete', release)
