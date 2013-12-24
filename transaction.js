@@ -1,14 +1,59 @@
 var inherits = require('inherits')
 var FSM = require('yafsm')
 
-module.exports = Transaction
+module.exports = begin
+begin.Transaction = Transaction
+
+function begin (queryable, beginStatement, callback) {
+  if (typeof beginStatement == 'function') {
+    callback = beginStatement
+    beginStatement = undefined
+  }
+
+  if (queryable instanceof Transaction) {
+    return beginChildTransaction.call(queryable, callback)
+  }
+
+  var tx = new Transaction({
+    createQuery: queryable.createQuery,
+    begin: beginStatement,
+    callback: callback
+  })
+
+  if (!(typeof queryable.createQuery == 'function'
+        && typeof queryable.query == 'function')) {
+    var error = new TypeError(queryable + ' is not a queryable!')
+    if (callback) {
+      callback(error)
+    } else {
+      throw error
+    }
+  }
+
+  if (typeof queryable.acquire == 'function') {
+    // it's a pool
+    queryable.acquire(function (err, conn) {
+      if (err) tx.emit('error', err)
+      else tx.setConnection(conn)
+    })
+  }
+  else if (typeof queryable.query == 'function') {
+    // assume it's a connection
+    tx.setConnection(queryable)
+  }
+  else {
+    // blow up
+    process.nextTick(function () {
+      tx.emit('error', new TypeError(queryable + " is not queryable!"))
+    })
+  }
+
+  return tx
+}
 
 inherits(Transaction, FSM)
 function Transaction(opts) {
   opts = opts || {}
-  if (typeof opts.createQuery != 'function') {
-    throw new Error('opts.createQuery is not a function!')
-  }
   this._createQuery = opts.createQuery
   this._statements = {
     begin:    opts.begin    || 'BEGIN',
@@ -35,23 +80,12 @@ function Transaction(opts) {
   }
 }
 
-Transaction.begin = function (createQuery, beginStatement, callback) {
-  if (typeof beginStatement == 'function') {
-    callback = beginStatement
-    beginStatement = undefined
-  }
-  return new Transaction({
-    createQuery: createQuery,
-    begin: beginStatement,
-    callback: callback
-  })
-}
-
 Transaction.prototype.handleError = function (err, callback) {
   var self = this
   var propagate = callback || function (err) { self.emit('error', err) }
+  var rollback = Transaction.prototype.rollback.implementations.open
   if (this.state() !== 'closed' && this._connection) {
-    Transaction.prototype.rollback.implementations.open.call(this, function (rollbackErr) {
+    rollback.call(this, function (rollbackErr) {
       propagate(err)
     })
   }
@@ -74,7 +108,7 @@ Transaction.prototype.query = FSM.method('query', {
   }
 })
 
-Transaction.prototype.begin = FSM.method('begin', {
+var beginChildTransaction = FSM.method('begin', {
   'open': function (callback) {
     return this._createChildTransaction(callback).setConnection(this._connection)
   },
@@ -229,7 +263,6 @@ function closeVia (action) {
     }
     self.emit(action + ':start')
     var q = self._connection.query(self._statements[action], function (err) {
-      self._close(err, action, callback)
       self._connection.removeListener('error', self._onConnectionError)
       delete self._connection
       if (err) {
@@ -243,9 +276,6 @@ function closeVia (action) {
     self.emit('query', q)
     return self
   }
-}
-
-Transaction.prototype._close = function (err, action, callback) {
 }
 
 inherits(CloseFailedError, Error)
