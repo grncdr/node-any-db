@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "generic-pool": "~2.0.2",
-    "any-db-transaction": "~0.0.1",
     "once": "~1.1.1",
     "covert": "~0.1.1"
   },

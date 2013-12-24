@@ -65,9 +65,13 @@ function ConnectionPool(adapter, connParams, options) {
   this._pool = new Pool(poolOpts)
 }
 
+ConnectionPool.prototype.createQuery = function (statement, params, callback) {
+  return this._adapter.createQuery(statement, params, callback)
+}
+
 ConnectionPool.prototype.query = function (statement, params, callback) {
   var self = this
-    , query = this._adapter.createQuery(statement, params, callback)
+    , query = this.createQuery(statement, params, callback)
 
   this.acquire(function (err, conn) {
     if (err) {
@@ -120,20 +124,4 @@ ConnectionPool.prototype.close = function (callback) {
     self.emit('close')
     if (callback) callback()
   })
-}
-
-ConnectionPool.prototype.begin = function (beginStatement, callback) {
-  var tx = Transaction.begin(this._adapter.createQuery, beginStatement, callback)
-
-  var pool = this
-  this.acquire(function (err, connection) {
-    if (err) return tx.emit('error', err);
-    var release = pool.release.bind(pool, connection)
-    tx.on('query', pool.emit.bind(pool, 'query'))
-    tx.once('rollback:complete', release)
-      .once('commit:complete', release)
-      .setConnection(connection)
-  })
-
-  return tx;
 }
