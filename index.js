@@ -56,6 +56,8 @@ SQLite3.createQuery = function (text, values, callback) {
   return new Query(text, values, callback)
 }
 
+SQLite3.prototype.createQuery = SQLite3.createQuery
+
 SQLite3.prototype.query = function (text, values, callback) {
   var query = text
     , rowError = false

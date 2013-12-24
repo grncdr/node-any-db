@@ -23,13 +23,13 @@
   "author": "Stephen Sugden <me@stephensugden.com>",
   "license": "MIT",
   "dependencies": {
-    "sqlite3": "*",
-    "any-db-transaction": "~0.0.1"
+    "sqlite3": "*"
   },
   "peerDependencies": {
     "any-db": "~1.0.0"
   },
   "devDependencies": {
-    "any-db-adapter-spec": "~0.0.1"
+    "any-db-adapter-spec": "~0.0.1",
+    "covert": "~0.1.0"
   }
 }
