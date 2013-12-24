@@ -1,5 +1,4 @@
 var pg = require('pg')
-  , Transaction = require('any-db-transaction')
   , pgNative = null
 
 try { pgNative = pg.native } catch (e) {}
@@ -12,7 +11,7 @@ exports.createConnection = function (opts, callback) {
     , conn = new backend.Client(opts)
 
   conn.adapter = 'postgres'
-  conn.begin = begin
+  conn.createQuery = exports.createQuery
 
   if (callback) {
     conn.connect(function (err) {
@@ -34,10 +33,4 @@ exports.createQuery = function (stmt, params, callback) {
 
 function chooseBackend () {
   return (exports.forceJS || !pgNative) ? pg : pgNative
-}
-
-function begin (beginStatement, callback) {
-  return Transaction
-    .begin(exports.createQuery, beginStatement, callback)
-    .setConnection(this)
 }
