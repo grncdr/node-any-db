@@ -11,23 +11,25 @@ implement.
 
 ## Interfaces
 
- - [Queryable](#queryable) which must be implemented by connections
- - [Connection](#connection)
- - [Query](#query)
+ - [Queryable][] - a common interface implemented by connections, pools, and
+   transactions.
+ - [Connection][] - the "transport" responsible for getting SQL queries to a
+   database, and streaming results back through a `Query` instance.
+ - [Query][] - a [Readable][] stream that emits result rows 
 
 ## External Objects
 
 These come from external packages and addons that build on the core adapter API:
 
- - [ConnectionPool][]
+ - [ConnectionPool][] - A [Queryable][]
  - [Transaction][]
 
 ## Queryable
 
 ```ocaml
 Queryable := EventEmitter & {
-  adapter: String,
-  query: (text: String, params: Array?, Continuation<Results>?) => Query,
+  adapter: String
+  query: (text: String, params: Array?, Continuation<Results>?) => Query
   query: (Query) => Query
   createQuery: (text: String, params: Array?, Continuation<Results>?) => Query
 }
@@ -44,9 +46,8 @@ documentation for the database driver.
 
 ### Queryable.adapter
 
-`conn.adapter`
-
-Contains the adapter name used for this connection, e.g. `'sqlite3'`, etc.
+The string name of the adapter that will be used to perform queries, e.g.
+`'sqlite3'`.
 
 ### Queryable.query
 
@@ -56,9 +57,10 @@ Contains the adapter name used for this connection, e.g. `'sqlite3'`, etc.
 ```
 
 Execute a SQL statement using bound parameters (if they are provided) and
-return a [Query](#query) object for the in-progress query. If a
-`Continuation<Results>` is provided it will be passed a [ResultSet](#resultset)
-object after the query has completed.
+return a [Query][] object that is a [Readable][] stream of the resulting
+rows. If a `Continuation<Results>` is provided the rows returned by the
+database will be aggregated into a [ResultSet][] which will be passed to the
+continuation after the query has completed.
 
 The second form is not needed for normal use, but must be implemented by
 adapters to work correctly with [ConnectionPool][] and [Transaction][]. See
@@ -109,16 +111,22 @@ the connection has closed.
 ## Query
 
 ```ocaml
-Query := EventEmitter & {
+Query := Readable & {
   text: String,
   values: Array
 }
 ```
 
-Query objects are returned by the `query` methods of [connections][Connection.query],
-[pools][ConnectionPool.query], and [transactions][Transaction.query]. Like
-connections, query objects are created by an adapter and may have more methods
-and events than are described here.
+`Query` objects are returned by the [Queryable.query][Queryable.query] method,
+available on [connections][Connection], [pools][ConnectionPool.query], and
+[transactions][Transaction.query]. Queries are instances of [Readable][] and as
+such can be [piped][Readable.pipe] through transforms and support backpressure
+for more efficient memory-usage on very large results sets. (Note: at this time
+the `sqlite3` driver does not support backpressure)
+
+Internally, `Query` instances are
+[created by a database Adapter][Adapter.createQuery] and may have more methods,
+properties, and events than are described here.
 
 ### Query.text
 
@@ -132,7 +140,7 @@ The array of parameter values.
 ### Query Events
 
  * `'error', err` - Emitted if the query results in an error.
- * `'row', row` - Emitted for each row in the queries result set.
+ * `'data', row` - Emitted for each row in the query result set.
  * `'end', [res]` - Emitted when the query completes.
 
 ## Adapter
@@ -176,11 +184,16 @@ synchronously in the same style as a [Connection.query][].
 
 [jsig]: https://github.com/jden/jsig
 [once]: http://npm.im/once
+[Readable]: http://nodejs.org/api/stream.html#stream_class_stream_readable
 
-[test suite]: tests
+[parse-db-url]: https://github.com/grncdr/parse-db-url#api
+
 [any-db]: https://github.com/grncdr/node-any-db
 [createConnection]: https://github.com/grncdr/node-any-db#exportscreateconnection
-[parse-db-url]: https://github.com/grncdr/parse-db-url#api
+
+[test suite]: tests
+[Queryable]: #queryable
+[Queryable.query]: #queryablequery
 [Connection]: #connection
 [Connection.query]: #connectionquery
 [Query]: #query
