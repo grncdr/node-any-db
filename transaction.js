@@ -33,19 +33,16 @@ function begin (queryable, beginStatement, callback) {
   if (typeof queryable.acquire == 'function') {
     // it's a pool
     queryable.acquire(function (err, conn) {
-      if (err) tx.emit('error', err)
-      else tx.setConnection(conn)
+      if (err) return tx.emit('error', err)
+      var release = pool.release.bind(pool, connection)
+      tx.on('query', pool.emit.bind(pool, 'query'))
+      tx.once('rollback:complete', release)
+        .once('commit:complete', release)
+        .setConnection(connection)
     })
-  }
-  else if (typeof queryable.query == 'function') {
-    // assume it's a connection
-    tx.setConnection(queryable)
   }
   else {
-    // blow up
-    process.nextTick(function () {
-      tx.emit('error', new TypeError(queryable + " is not queryable!"))
-    })
+    tx.setConnection(queryable)
   }
 
   return tx
