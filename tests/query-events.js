@@ -18,26 +18,3 @@ test("Pool query events", function (t) {
 
   pool.close()
 })
-
-test('queries from transactions are also emitted', function (t) {
-  var pool = new ConnectionPool(mockAdapter(), "")
-
-  var expected = [
-    'BEGIN',
-    'transaction query',
-    'ROLLBACK'
-  ]
-
-  t.plan(expected.length)
-
-  pool.on('query', function (q) {
-    var e = expected.shift()
-    t.equal(q.text, e, e)
-    debugger
-  })
-
-  var tx = pool.begin()
-  tx.query('transaction query')
-  tx.rollback()
-  pool.close()
-})

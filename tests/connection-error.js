@@ -33,14 +33,10 @@ test('Connection error forwarding', function (t) {
 
   });
 
-  t.test('Connection errors in pool.begin', function (t) {
-    t.plan(4)
-    pool.begin(function (err) {
+  t.test('Connection errors in pool.acquire', function (t) {
+    t.plan(2)
+    pool.acquire(function (err, conn) {
       t.assert(err, "Error is forwarded to callback")
-      t.equal('Blammo', err.message, "Got expected error")
-    })
-    pool.begin().on('error', function (err) {
-      t.assert(err, "Error is emitted if there is no callback")
       t.equal('Blammo', err.message, "Got expected error")
     })
   })
