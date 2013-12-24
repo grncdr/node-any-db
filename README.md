@@ -1,5 +1,9 @@
 # any-db-transaction
 
+[![Build Status](https://travis-ci.org/grncdr/node-any-db-transaction.png)](https://travis-ci.org/grncdr/node-any-db-transaction)
+
+A simple transaction helper for [any-db][] compliant database adapters.
+
 ## Synopsis
 
 ```javascript
