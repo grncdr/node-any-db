@@ -9,35 +9,46 @@ begins by describing the objects an adapter must create. The final section
 describes the exact API for creating these objects that an adapter must
 implement.
 
-## Objects
+## Interfaces
 
+ - [Queryable](#queryable) which must be implemented by connections
  - [Connection](#connection)
  - [Query](#query)
- - [Transaction][] (external link)
 
-## Connection
+## External Objects
+
+These come from external packages and addons that build on the core adapter API:
+
+ - [ConnectionPool][]
+ - [Transaction][]
+
+## Queryable
 
 ```ocaml
-Connection := EventEmitter & {
+Queryable := EventEmitter & {
   adapter: String,
   query: (text: String, params: Array?, Continuation<Results>?) => Query,
-  begin: (statement: String?, Continuation<Transaction>?) => Transaction,
-  end: (Continuation<void>?) => void
+  query: (Query) => Query
+  createQuery: (text: String, params: Array?, Continuation<Results>?) => Query
 }
 ```
 
-Connection objects are obtained using [createConnection][] from [Any-DB][] or
-[ConnectionPool.acquire][], both of which delegate to the
-[createConnection](#adaptercreateconnection) implementation of the specified
-adapter.
+[Connections][Connection] [ConnectionPools][ConnectionPool] and
+[Transactions][Transaction] all implement the `Queryable` interface.
 
-`Connection` instances are guaranteed to have the methods and events listed
-here, but drivers (and their adapters) may have additional methods or emit
+`Queryable` instances are guaranteed to have the methods and events listed
+here, but drivers (and their adapters) may add additional methods or emit
 additional events. If you need to access a feature of your database that is not
 described here (such as Postgres' server-side prepared statements), consult the
 documentation for the database driver.
 
-### Connection.query
+### Queryable.adapter
+
+`conn.adapter`
+
+Contains the adapter name used for this connection, e.g. `'sqlite3'`, etc.
+
+### Queryable.query
 
 ```ocaml
 (text: String, params: Array?, Continuation<ResultSet>?) => Query
@@ -70,41 +81,18 @@ conn.query('SELECT * FROM my_table')
   .on('end', function () { console.log('All done!') })
 ```
 
-### Connection.begin
+## Connection
 
 ```ocaml
-(statement: String?, Continuation<Transaction>?) => Transaction
+Connection := Queryable & {
+  end: (Continuation<void>?) => void
+}
 ```
 
-Start a new database transaction and return a [Transaction][] to manage it. If
-`statement` is given it will be used in place of the default statement
-(`BEGIN`). If a `Continuation` is given it will be called after the database
-transaction has successfully started (or failed to do so).
-
-*Note for adapter authors*: This method is trivially implemented by delegating
-to [Transaction.begin][] from [any-db-transaction][] .
-
-*Callback-style*
-```javascript
-conn.begin(function (err, transaction) {
-	if (err) return console.error(err)
-	// Do work using transaction
-  transaction.query(...)
-  transaction.commit()
-})
-```
-
-*Synchronous-style*
-```javascript
-var transaction = conn.begin()
-transaction.on('error', console.error)
-// Do work using transaction, queries are queued until transaction successfully
-// starts.
-transaction.query(...)
-transaction.commit()
-```
-
-See also: the [Transaction][] API docs.
+Connection objects are obtained using [createConnection][] from [Any-DB][] or
+[ConnectionPool.acquire][], both of which delegate to the
+[createConnection](#adaptercreateconnection) implementation of the specified
+adapter.
 
 ### Connection.end
 
@@ -112,12 +100,6 @@ See also: the [Transaction][] API docs.
 
 Close the database connection. If `callback` is given it will be called after
 the connection has closed.
-
-### Connection.adapter
-
-`conn.adapter`
-
-Contains the adapter name used for this connection, e.g. `'sqlite3'`, etc.
 
 ### Connection Events
 
@@ -207,5 +189,4 @@ synchronously in the same style as a [Connection.query][].
 [ConnectionPool]: https://github.com/grncdr/node-any-db-pool#api
 [Transaction]: https://github.com/grncdr/node-any-db-transaction
 [any-db-transaction]: https://github.com/grncdr/node-any-db-transaction
-[Transaction.begin]: https://github.com/grncdr/node-any-db-transaction#transactionquery
 [Transaction.query]: https://github.com/grncdr/node-any-db-transaction#transactionquery
