@@ -1,7 +1,6 @@
 var EventEmitter = require('events').EventEmitter
 var inherits     = require('util').inherits
 var sqlite3      = require('sqlite3')
-var Transaction  = require('any-db-transaction')
 
 module.exports = SQLite3
 
@@ -102,12 +101,6 @@ SQLite3.prototype.query = function (text, values, callback) {
   }
 
   return query
-}
-
-SQLite3.prototype.begin = function (statement, callback) {
-  return Transaction
-    .begin(SQLite3.createQuery, statement, callback)
-    .setConnection(this)
 }
 
 SQLite3.prototype.end = function (callback) {
