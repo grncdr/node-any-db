@@ -40,7 +40,6 @@ module.exports := (Adapter, adapterConfig: Object, PoolConfig) => ConnectionPool
 ConnectionPool := EventEmitter & {
   adapter: String,
   query:   (String, Array?, Continuation<ResultSet>?) => Query,
-  begin:   (Continuation<Transaction>?) => Transaction,
   acquire: (Continuation<Connection>) => void,
   release: (Connection) => void,
   close:   (Continuation<void>?) => void,
@@ -69,18 +68,8 @@ A `PoolConfig` is generally a plain object with any of the following properties 
 (String, Array?, Continuation<ResultSet>?) => Query
 ```
 
-Acts exactly like [Connection.query][] by automatically acquiring a connection
-and releasing it when the query completes.
-
-### ConnectionPool.begin
-
-```ocaml
-(Continuation<Transaction>?) => Transaction
-```
-
-Creates a [Transaction][] exactly like [Connection.begin][], but the underlying
-connection is automatically returned to the pool when the transaction commits or
-rolls back.
+Implements [Queryable.query][] by automatically acquiring a connection and
+releasing it when the query completes.
 
 ### ConnectionPool.acquire
 
@@ -164,7 +153,5 @@ MIT
 [any-db-postgres]: https://github.com/grncdr/node-any-db-postgres
 [Adapter]: https://github.com/grncdr/node-any-db-adapter-spec#adapter
 [createPool]: https://github.com/grncdr/node-any-db#exportscreatepool
-[Connection.query]: https://github.com/grncdr/node-any-db-adapter-spec#connectionquery
-[Connection.begin]: https://github.com/grncdr/node-any-db-adapter-spec#connectionbegin
-[Transaction]: https://github.com/grncdr/node-any-db-transaction#api
+[Queryable.query]: https://github.com/grncdr/node-any-db-adapter-spec#queryablequery
 [Query]: https://github.com/grncdr/node-any-db-adapter-spec#query
