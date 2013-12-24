@@ -1,14 +1,29 @@
 var mysql = require('mysql')
+var Connection = require('mysql/lib/Connection')
+var ConnectionConfig = require('mysql/lib/ConnectionConfig')
+var inherits = require('inherits')
+
 
 exports.name = 'mysql'
 
-exports.createQuery = mysql.createQuery
+exports.createQuery = function (text, params, callback) {
+  if (text._query) return text
+  if (typeof params == 'function') {
+    callback = params
+    params = []
+  }
+  callback = wrapQueryCallback(callback)
+  var _q = mysql.createQuery(text, params, callback)
+  var query = _q.stream()
+  query.once('end', function () { delete query._query })
+  query._query = _q
+  query.text = text
+  query.values = params || []
+  return query
+}
 
 exports.createConnection = function createConnection(opts, callback) {
-  var conn = mysql.createConnection(opts)
-
-  conn.adapter = 'mysql'
-  conn.createQuery = exports.createQuery
+  var conn = new MySQLConnection(opts)
 
   if (callback) {
     conn.connect(function (err) {
@@ -19,30 +34,32 @@ exports.createConnection = function createConnection(opts, callback) {
     conn.connect()
   }
 
-  conn.query = wrapQueryMethod(conn.query)
   return conn
 }
 
-function wrapQueryMethod(realQuery) {
-  return function query() {
-    var q = realQuery.apply(this, arguments)
-    if (!q.hasOwnProperty('text')) {
-      Object.defineProperty(q, 'text', {
-        get: function () { return this.sql }
-      });
-    }
-    q.on('result', q.emit.bind(q, 'row'))
-    q._callback = wrapQueryCallback(q._callback)
-    return q
-  }
+inherits(MySQLConnection, Connection)
+function MySQLConnection (opts) {
+  Connection.call(this, {config: new ConnectionConfig(opts)})
+}
+
+MySQLConnection.prototype.adapter = 'mysql'
+
+MySQLConnection.prototype.query = function (text, params, callback) {
+  var query = exports.createQuery(text, params, callback)
+  Connection.prototype.query.call(this, query._query)
+  return query
+}
+
+MySQLConnection.prototype.createQuery = function (text, params, callback) {
+  return exports.createQuery(text, params, callback)
 }
 
 function wrapQueryCallback(callback) {
   if (!callback) return
   return function (err, rows) {
-    if (err) callback(err)
+    if (err) callback.call(this, err)
     else {
-      callback(null, {
+      callback.call(this, null, {
         rows: rows,
         rowCount: rows.length,
         lastInsertId: rows.insertId

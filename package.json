@@ -22,7 +22,8 @@
   "author": "Stephen Sugden <me@stephensugden.com>",
   "license": "MIT",
   "dependencies": {
-    "mysql": "*"
+    "mysql": "*",
+    "inherits": "~2.0.1"
   },
   "peerDependencies": {
     "any-db": "~1.0.0"
