@@ -1,6 +1,8 @@
 var mysql = require('mysql')
 var Connection = require('mysql/lib/Connection')
 var ConnectionConfig = require('mysql/lib/ConnectionConfig')
+
+var extend = require('extend')
 var inherits = require('inherits')
 
 
@@ -13,12 +15,14 @@ exports.createQuery = function (text, params, callback) {
     params = []
   }
   callback = wrapQueryCallback(callback)
-  var _q = mysql.createQuery(text, params, callback)
-  var query = _q.stream()
+  var _query = mysql.createQuery(text, params, callback)
+  var query = extend(_query.stream(), {
+    _query: _query,
+    text: text,
+    values: params || [],
+    callback: callback
+  })
   query.once('end', function () { delete query._query })
-  query._query = _q
-  query.text = text
-  query.values = params || []
   return query
 }
 
