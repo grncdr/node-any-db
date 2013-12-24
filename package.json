@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "tape": "~2.3.2",
-    "any-db-fake": "0.0.0",
+    "any-db-fake": "~0.0.2",
     "covert": "~0.1.1"
   }
 }
