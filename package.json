@@ -29,6 +29,6 @@
     "any-db": "~1.0.0"
   },
   "devDependencies": {
-    "any-db-adapter-spec": "~0.0.0"
+    "any-db-adapter-spec": "git://github.com/grncdr/any-db-adapter-spec.git#undep-transactions"
   }
 }
