@@ -1,6 +1,6 @@
 {
   "name": "any-db-adapter-spec",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Specification and test suite for any-db adapters",
   "main": "test-any-db-adapter.js",
   "bin": {
