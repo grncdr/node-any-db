@@ -2,7 +2,6 @@ var mysql = require('mysql')
 var Connection = require('mysql/lib/Connection')
 var ConnectionConfig = require('mysql/lib/ConnectionConfig')
 
-var extend = require('extend')
 var inherits = require('inherits')
 
 var adapter = exports
@@ -33,36 +32,52 @@ adapter.createQuery = function (text, values, callback) {
     }
   }
 
-  callback = wrapQueryCallback(callback)
-
-  var query  = mysql.createQuery(text, values, callback)
+  var query  = mysql.createQuery(text, values)
   var stream = query.stream({highWaterMark: highWaterMark})
-  extend(stream, {
-    query:    query,
-    text:     text,
-    values:   values,
-    callback: callback,
-  })
 
-  // error will be sent to callback and emitted
-  if (callback) stream.once('error', function () {})
+  stream.query  = query
+  stream.text   = text
+  stream.values = values
+
+  stream.pause()
+  if (stream.callback = callback) {
+    var result = {rowCount: 0, rows: [], lastInsertId: 0, fields: null}
+    var errored = false
+    stream
+      .on('error', function (err) {
+        errored = true
+        this.callback(err)
+      })
+      .on('fields', function (fields) {
+        result.fields = fields
+      })
+      .on('data', function (row) {
+        if (row.constructor.name == 'OkPacket') {
+          result.fieldCount = row.fieldCount
+          result.affectedRows = row.affectedRows
+          result.changedRows = row.changedRows
+          result.lastInsertId = row.insertId
+        } else {
+          result.rowCount = result.rows.push(row)
+        }
+      })
+      .on('end', function (res) {
+        if (!errored) this.callback(null, result)
+      })
+  }
 
   stream.once('end', function () { delete this.query })
-
   return stream
 }
 
 adapter.createConnection = function createConnection(opts, callback) {
   var conn = new MySQLConnection(opts)
 
-  if (callback) {
-    conn.connect(function (err) {
-      if (err) callback(err)
-      else callback(null, conn)
-    })
-  } else {
-    conn.connect()
-  }
+  conn.connect(function (err) {
+    if (err) return callback ? callback(err) : conn.emit('error', err)
+    conn.emit('open')
+    if (callback) callback(null, conn)
+  })
 
   return conn
 }
@@ -76,19 +91,8 @@ MySQLConnection.prototype.adapter = adapter
 
 MySQLConnection.prototype.query = function (text, params, callback) {
   var stream = adapter.createQuery(text, params, callback)
+  this.emit('query', stream)
   Connection.prototype.query.call(this, stream.query)
+  stream.resume()
   return stream
-}
-
-function wrapQueryCallback(callback) {
-  if (!callback) return
-  return function (err, rows, fields) {
-    if (err) callback.call(this, err)
-    else callback.call(this, null, {
-      rows: rows,
-      fields: fields,
-      rowCount: rows.length,
-      lastInsertId: rows.insertId,
-    })
-  }
 }

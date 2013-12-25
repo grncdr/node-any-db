@@ -4,7 +4,8 @@
   "description": "The MySQL adapter for any-db",
   "main": "index.js",
   "scripts": {
-    "test": "[ -z \"$any_db_test_url\" ] && export any_db_test_url='mysql://root@localhost/any_db_test'; test-any-db-adapter"
+    "test": "[ -z \"$any_db_test_url\" ] && export any_db_test_url='mysql://root@localhost/any_db_test'; test-any-db-adapter",
+    "debug": "[ -z \"$any_db_test_url\" ] && export any_db_test_url='mysql://root@localhost/any_db_test'; node debug `which test-any-db-adapter`"
   },
   "repository": {
     "type": "git",
@@ -23,8 +24,7 @@
   "license": "MIT",
   "dependencies": {
     "mysql": ">=2.0.0-rc2",
-    "inherits": "~2.0.1",
-    "extend": "~1.2.1"
+    "inherits": "~2.0.1"
   },
   "peerDependencies": {
     "any-db": "~1.0.0"
