@@ -35,11 +35,17 @@ adapter.createQuery = function (text, values, callback) {
   var query  = mysql.createQuery(text, values)
   var stream = query.stream({highWaterMark: highWaterMark})
 
+  query.on('end', function () {
+    stream.emit('close')
+  })
+  var _read = stream._read
+  stream._read = function () {
+    query._connection && _read.call(this)
+  }
   stream.query  = query
   stream.text   = text
   stream.values = values
 
-  stream.pause()
   if (stream.callback = callback) {
     var result = {rowCount: 0, rows: [], lastInsertId: 0, fields: null}
     var errored = false
@@ -93,6 +99,5 @@ MySQLConnection.prototype.query = function (text, params, callback) {
   var stream = adapter.createQuery(text, params, callback)
   this.emit('query', stream)
   Connection.prototype.query.call(this, stream.query)
-  stream.resume()
   return stream
 }
