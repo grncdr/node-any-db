@@ -1,5 +1,4 @@
 language: node_js
 node_js: [ '0.10' ]
-env: any_db_test_url="mysql://root@localhost/any_db_test"
 before_script:
   - mysql -e 'create database any_db_test' -uroot

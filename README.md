@@ -20,6 +20,16 @@ Keep in mind that these methods will *not* necessarily work with other backends.
 
     npm install any-db-mysql
 
+## Running tests
+
+Create an empty test database:
+
+    mysql -uroot -e 'CREATE DATABASE IF NOT EXISTS any_db_test'
+
+Then run tests the node way:
+
+    npm install && npm test
+
 ## License
 
 MIT
