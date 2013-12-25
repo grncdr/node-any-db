@@ -4,16 +4,18 @@ var inherits     = require('inherits')
 var Readable     = require('readable-stream')
 var concat       = require('concat-stream')
 
-exports.name = 'sqlite3'
+var adapter = exports
 
-exports.verbose = sqlite3.verbose;
+adapter.name = 'sqlite3'
 
-exports.createQuery = function (text, values, callback) {
+adapter.verbose = sqlite3.verbose;
+
+adapter.createQuery = function (text, values, callback) {
   if (text instanceof Query) return text
   return new Query(text, values, callback)
 } 
 
-exports.createConnection = function (opts, callback) {
+adapter.createConnection = function (opts, callback) {
   var filename;
   
   if (opts.host) {
@@ -54,9 +56,7 @@ function Connection(db) {
   this._db.on('error', function (err) { self.emit('error', err) })
 }
 
-Connection.prototype.adapter = 'sqlite3'
-
-Connection.prototype.createQuery = exports.createQuery
+Connection.prototype.adapter = adapter
 
 Connection.prototype.query = function (text, values, callback) {
   var query = text
@@ -64,9 +64,9 @@ Connection.prototype.query = function (text, values, callback) {
     ;
 
   if (!(query instanceof Query)) {
-    query = this.createQuery(text,
-                             values,
-                             callback);
+    query = adapter.createQuery(text,
+                                values,
+                                callback);
   }
   
   if (query.text.match(/^\s*insert\s+/i))
@@ -106,7 +106,6 @@ function Query(text, values, callback) {
   if (this.callback = callback) {
     var self = this
     this.pipe(concat(function (rows) {
-      debugger
       self._result.rows = rows
       callback(null, self._result)
     }))
@@ -116,6 +115,12 @@ function Query(text, values, callback) {
 
 Query.prototype.onRow = function (err, row) {
   if (this._error || (this._error = err)) return
+  if (!this._result.fields) {
+    this._result.fields = Object.keys(row).map(function (name) {
+      return { name: name }
+    })
+    this.emit('fields', this._result.fields)
+  }
   this.emit('data', row)
 }
 
