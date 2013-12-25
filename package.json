@@ -32,7 +32,7 @@
     "any-db": "~1.0.0"
   },
   "devDependencies": {
-    "any-db-adapter-spec": "~2.0.2",
+    "any-db-adapter-spec": "~2.0.3",
     "covert": "~0.1.0"
   }
 }
