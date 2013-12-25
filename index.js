@@ -3,15 +3,17 @@ var pg = require('pg.js')
   , inherits = require('inherits')
   , concat = require('concat-stream')
 
-exports.name = 'postgres'
+var adapter = exports
 
-exports.createQuery = function (text, params, callback) {
+adapter.name = 'postgres'
+
+adapter.createQuery = function (text, params, callback) {
   if (text instanceof PostgresQuery)
     return text
   return new PostgresQuery(text, params, callback)
 }
 
-exports.createConnection = function (opts, callback) {
+adapter.createConnection = function (opts, callback) {
   var conn = new PostgresConnection(opts)
 
   if (callback) {
@@ -30,15 +32,11 @@ function PostgresConnection (opts) {
   pg.Client.call(this, opts)
 }
 
-PostgresConnection.prototype.adapter = 'postgres'
+PostgresConnection.prototype.adapter = adapter
 
 PostgresConnection.prototype.query = function (text, params, callback) {
-  var query = this.createQuery(text, params, callback)
+  var query = this.adapter.createQuery(text, params, callback)
   return pg.Client.prototype.query.call(this, query);
-}
-
-PostgresConnection.prototype.createQuery = function (text, params, callback) {
-  return exports.createQuery(text, params, callback)
 }
 
 inherits(PostgresQuery, QueryStream)
@@ -50,9 +48,17 @@ function PostgresQuery (text, params, callback) {
   if (!params) params = [];
   QueryStream.call(this, text, params)
   if (this.callback = callback) {
+    var self = this
     this.pipe(concat(function (rows) {
-      callback(null, { rowCount: rows.length, rows: rows })
+      self._result.rows = rows
+      self._result.rowCount = rows.length
+      callback(null, self._result)
     }))
     this.on('error', callback)
   }
+}
+
+PostgresQuery.prototype.handleRowDescription = function (message) {
+  QueryStream.prototype.handleRowDescription.call(this, message)
+  this.emit('fields', message.fields)
 }
