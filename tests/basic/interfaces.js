@@ -27,20 +27,35 @@ test("interface properties", function (t) {
   })
 
   t.test('Query interface', function (t) {
-    t.plan(3)
-    var query = adapter.createQuery('SELECT 1 AS ok')
-    t.equal(query.text, 'SELECT 1 AS ok')
-    t.deepEqual(query.values, [])
-    t.ok(query instanceof EventEmitter, "Query must be an EventEmitter")
+    t.plan(5)
+    var sql = 'SELECT 1 AS ok'
+    var query = adapter.createQuery(sql)
+    t.equal(query.text, sql, 'query.text is equal to passed in SQL')
+    t.deepEqual(query.values, [], 'query.values is an empty array')
+    t.ok(query instanceof EventEmitter, "Query is an EventEmitter")
+    t.equal(typeof query.pause, 'function', 'query.pause is a function (Readable)')
+    t.equal(typeof query.resume, 'function', 'query.resume is a function (Readable)')
+  })
+
+  t.test('ResultSet interface', function (t) {
+    t.plan(5)
+    var conn = adapter.createConnection(config.url)
+    conn.query('SELECT 10 AS "shouldBeTen"', function (err, result) {
+      if (err) throw err;
+      t.ok(Array.isArray(result.rows), "result.rows is an Array")
+      t.equal(result.fields[0].name, "shouldBeTen", "field has a name property")
+      t.ok(Array.isArray(result.fields), "result.fields is an Array")
+      t.equal(result.rowCount, 1, 'rowCount == 1')
+      t.equal(result.rows[0].shouldBeTen, 10, 'shouldBeTen == 10')
+      conn.end()
+    })
   })
 
   function testConnectionInterface(t, conn) {
-    t.equal(typeof conn.adapter, 'string')
-    t.equal(conn.adapter, adapter.name)
-    t.equal(typeof conn.query, 'function')
-    t.equal(typeof conn.createQuery, 'function')
-    t.equal(typeof conn.end, 'function')
-    t.ok(conn instanceof EventEmitter, "Connection must be an EventEmitter")
+    t.ok(conn instanceof EventEmitter, "Connection is an EventEmitter")
+    t.equal(conn.adapter, adapter, 'connection.adapter == adapter')
+    t.equal(typeof conn.query, 'function', 'connection.query is a function')
+    t.equal(typeof conn.end, 'function', 'connection.end is a function')
     conn.end()
   }
 })

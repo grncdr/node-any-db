@@ -15,39 +15,27 @@ implement.
    transactions.
  - [Connection][] - the "transport" responsible for getting SQL queries to a
    database, and streaming results back through a `Query` instance.
- - [Query][] - a [Readable][] stream that emits result rows 
-
-## External Objects
-
-These come from external packages and addons that build on the core adapter API:
-
- - [ConnectionPool][] - A [Queryable][]
- - [Transaction][]
+ - [Query][] - a [Readable][] stream that emits row objects.
 
 ## Queryable
 
 ```ocaml
 Queryable := EventEmitter & {
-  adapter: String
-  query: (text: String, params: Array?, Continuation<Results>?) => Query
-  query: (Query) => Query
-  createQuery: (text: String, params: Array?, Continuation<Results>?) => Query
+  adapter: Adapter
+  query:   (text: String, params: Array?, Continuation<Results>?) => Query
+  query:   (Query) => Query
 }
 ```
 
-[Connections][Connection] [ConnectionPools][ConnectionPool] and
-[Transactions][Transaction] all implement the `Queryable` interface.
-
-`Queryable` instances are guaranteed to have the methods and events listed
-here, but drivers (and their adapters) may add additional methods or emit
-additional events. If you need to access a feature of your database that is not
-described here (such as Postgres' server-side prepared statements), consult the
-documentation for the database driver.
+Known implementations:
+ - [Connection][Connection]
+ - [ConnectionPool][ConnectionPool] (external)
+ - [Transaction][Transaction] (external).
 
 ### Queryable.adapter
 
-The string name of the adapter that will be used to perform queries, e.g.
-`'sqlite3'`.
+The [Adapter][] instance that will be used by this `Queryable` for creating
+[Query][] instances and/or connections.
 
 ### Queryable.query
 
@@ -68,20 +56,24 @@ adapters to work correctly with [ConnectionPool][] and [Transaction][]. See
 
 *Callback-style*
 ```javascript
-conn.query('SELECT * FROM my_table', function (err, res) {
+queryable.query('SELECT * FROM my_table', function (err, res) {
   if (err) return console.error(err)
   res.rows.forEach(console.log)
   console.log('All done!')
 })
 ```
 
-*EventEmitter-style*
+*Stream-style*
 ```javascript
-conn.query('SELECT * FROM my_table')
+queryable.query('SELECT * FROM my_table')
   .on('error', console.error)
-  .on('row', console.log)
+  .on('data', console.log)
   .on('end', function () { console.log('All done!') })
 ```
+
+### Queryable events
+
+ - `'query', query` - Emitted immediately before a query is executed. 
 
 ## Connection
 
@@ -91,17 +83,29 @@ Connection := Queryable & {
 }
 ```
 
+Known implementations:
+
+ - [any-db-mysql][] (external)
+ - [any-db-postgres][] (external)
+ - [any-db-sqlite3][] (external)
+
 Connection objects are obtained using [createConnection][] from [Any-DB][] or
 [ConnectionPool.acquire][], both of which delegate to the
 [createConnection](#adaptercreateconnection) implementation of the specified
 adapter.
 
+While all `Connection` objects implement the [Queryable][] interface, the
+implementations in each adapter may add additional methods or emit additional
+events. If you need to access a feature of your database that is not described
+here (such as Postgres' server-side prepared statements), consult the
+documentation for your adapter.
+
 ### Connection.end
 
-`conn.end([callback])`
+`(Continuation<void>) => void`
 
-Close the database connection. If `callback` is given it will be called after
-the connection has closed.
+Close the database connection. If a continuation is provided it will be
+called after the connection has closed.
 
 ### Connection Events
 
@@ -111,7 +115,7 @@ the connection has closed.
 ## Query
 
 ```ocaml
-Query := Readable & {
+Query := Readable<Object> & {
   text: String,
   values: Array
 }
@@ -119,14 +123,15 @@ Query := Readable & {
 
 `Query` objects are returned by the [Queryable.query][Queryable.query] method,
 available on [connections][Connection], [pools][ConnectionPool.query], and
-[transactions][Transaction.query]. Queries are instances of [Readable][] and as
-such can be [piped][Readable.pipe] through transforms and support backpressure
+[transactions][Transaction.query]. Queries are instances of [Readable][], and 
+as such can be [piped][Readable.pipe] through transforms and support backpressure
 for more efficient memory-usage on very large results sets. (Note: at this time
 the `sqlite3` driver does not support backpressure)
 
 Internally, `Query` instances are
 [created by a database Adapter][Adapter.createQuery] and may have more methods,
-properties, and events than are described here.
+properties, and events than are described here. Consult the documentation for
+your specific adapter to find out about any extensions.
 
 ### Query.text
 
@@ -139,21 +144,49 @@ The array of parameter values.
 
 ### Query Events
 
- * `'error', err` - Emitted if the query results in an error.
+ * `'error', error` - Emitted if the query results in an error.
+ * `'fields', fields` - An array of [Field][ResultSet] objects emitted before
+   any `'data'` events.
  * `'data', row` - Emitted for each row in the query result set.
- * `'end', [res]` - Emitted when the query completes.
+ * `'end'` - Emitted when the query completes.
+
+## ResultSet
+
+```ocaml
+ResultSet := {
+  fields:       Array<Field>
+  rows:         Array<Object<Any>>
+  rowCount:     Integer
+  lastInsertId: Any?
+}
+
+Field := {
+  name: String
+  {* other properties are driver specific *}
+}
+```
+
+`ResultSet` objects are just plain data that collect results of a query when a 
+continuation is provided to [Queryable.query][]. The `lastInsertId` is optional,
+and currently supported by `sqlite3` and `mysql` but not `postgres`, because
+it is not supported by Postgres itself.
 
 ## Adapter
 
 ```ocaml
 Adapter: {
-  createConnection:   (Object, Continuation<Connection>?) => Connection,
-  createQuery:        (String, Array?, Continuation<Results>?) => Query,
+  name:             String
+  createConnection: (Object, Continuation<Connection>?) => Connection,
+  createQuery:      (String, Array?, Continuation<Results>?) => Query,
 }
 ```
 
 This section is mostly intended for adapter authors, other users should rarely
 need to interact with this API directly.
+
+### Adapter.name
+
+The string name of the adapter, e.g. `'mysql'`, `'postgres'` or `'sqlite3'`.
 
 ### Adapter.createConnection
 
@@ -173,10 +206,10 @@ See also: the [Connection API](#connection)
 (text: String, params: Array?, Continuation<ResultSet>?) => Query
 ```
 
-Create a [Query](#query) that may be executed later on by a [Connection][].
-While this function is rarely needed by user code, it makes it possible for
-[ConnectionPool.query][] and [Transaction.query][] to return a [Query][] object
-synchronously in the same style as a [Connection.query][]. 
+Create a [Query](#query) that *may* eventually be executed later on by a
+[Connection][]. While this function is rarely needed by user code, it makes
+it possible for [ConnectionPool.query][] and [Transaction.query][] to fulfill
+the [Queryable.query][] contract by synchronously returning a [Query][] stream.
 
 # License
 
@@ -184,12 +217,22 @@ synchronously in the same style as a [Connection.query][].
 
 [jsig]: https://github.com/jden/jsig
 [once]: http://npm.im/once
-[Readable]: http://nodejs.org/api/stream.html#stream_class_stream_readable
-
 [parse-db-url]: https://github.com/grncdr/parse-db-url#api
-
 [any-db]: https://github.com/grncdr/node-any-db
+[any-db-mysql]: https://github.com/grncdr/node-any-db-mysql
+[any-db-postgres]: https://github.com/grncdr/node-any-db-postgres
+[any-db-sqlite3]: https://github.com/grncdr/node-any-db-sqlite3
 [createConnection]: https://github.com/grncdr/node-any-db#exportscreateconnection
+
+[Readable]: http://nodejs.org/api/stream.html#stream_class_stream_readable
+[Readable.pipe]: http://nodejs.org/api/stream.html#stream_readable_pipe_destination_options
+
+[ConnectionPool.query]: https://github.com/grncdr/node-any-db-pool#connectionpoolquery
+[ConnectionPool.acquire]: https://github.com/grncdr/node-any-db-pool#connectionpoolacquire
+[ConnectionPool]: https://github.com/grncdr/node-any-db-pool#api
+[Transaction]: https://github.com/grncdr/node-any-db-transaction#api
+[any-db-transaction]: https://github.com/grncdr/node-any-db-transaction
+[Transaction.query]: https://github.com/grncdr/node-any-db-transaction#transactionquery
 
 [test suite]: tests
 [Queryable]: #queryable
@@ -197,9 +240,4 @@ synchronously in the same style as a [Connection.query][].
 [Connection]: #connection
 [Connection.query]: #connectionquery
 [Query]: #query
-[ConnectionPool.query]: https://github.com/grncdr/node-any-db-pool#connectionpoolquery
-[ConnectionPool.acquire]: https://github.com/grncdr/node-any-db-pool#connectionpoolacquire
-[ConnectionPool]: https://github.com/grncdr/node-any-db-pool#api
-[Transaction]: https://github.com/grncdr/node-any-db-transaction
-[any-db-transaction]: https://github.com/grncdr/node-any-db-transaction
-[Transaction.query]: https://github.com/grncdr/node-any-db-transaction#transactionquery
+[Adapter.createQuery]: #adaptercreatequery
