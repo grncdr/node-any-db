@@ -63,3 +63,8 @@ PostgresQuery.prototype.handleRowDescription = function (message) {
   QueryStream.prototype.handleRowDescription.call(this, message)
   this.emit('fields', message.fields)
 }
+
+PostgresQuery.prototype.handleReadyForQuery = function () {
+  this.emit('close')
+  QueryStream.prototype.handleReadyForQuery.call(this)
+}
