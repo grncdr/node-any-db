@@ -8,13 +8,12 @@ test('A sqlite3://:memory: pool can only have one connection', function (t) {
   var warn = console.warn
   console.warn = t.pass.bind(t, "printed a warning")
 
-  var connParams = {
-    adapter: 'sqlite3',
-    database: ':memory:',
-  }
 
-  ConnectionPool(mockAdapter(), connParams, {min: 3}).close()
-  ConnectionPool(mockAdapter(), connParams, {max: 3}).close()
+  var adapter = mockAdapter({name: 'sqlite3'})
+  var connParams = {database: ':memory:'}
+
+  ConnectionPool(adapter, connParams, {min: 3}).close()
+  ConnectionPool(adapter, connParams, {max: 3}).close()
 
   console.warn = warn
 })

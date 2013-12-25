@@ -24,7 +24,7 @@ function ConnectionPool(adapter, connParams, options) {
     console.warn("PoolConfig.destroy ignored, use PoolConfig.onConnect instead")
   }
 
-  if (connParams.adapter == 'sqlite3'
+  if (adapter.name == 'sqlite3'
       && /:memory:$/i.test(connParams.database)
       && (options.min > 1 || options.max > 1))
   {
@@ -58,19 +58,14 @@ function ConnectionPool(adapter, connParams, options) {
   var resetSteps = [];
   if (adapter.reset) resetSteps.unshift(adapter.reset)
   if (options.reset) resetSteps.unshift(options.reset)
-  this.adapter = adapter.name
-  this._adapter = adapter
+  this.adapter = adapter
   this._reset = chain(resetSteps)
   this._pool = new Pool(poolOpts)
 }
 
-ConnectionPool.prototype.createQuery = function (statement, params, callback) {
-  return this._adapter.createQuery(statement, params, callback)
-}
-
 ConnectionPool.prototype.query = function (statement, params, callback) {
   var self = this
-    , query = this.createQuery(statement, params, callback)
+    , query = this.adapter.createQuery(statement, params, callback)
 
   this.acquire(function (err, conn) {
     if (err) {
