@@ -5,9 +5,11 @@ exports.testProperties = function (connection, adapter, assert) {
   assert.equal(typeof connection.end, 'function')
 }
 
-exports.testEvents = function (assert, connection) {
-  connection.on('query', function (_query) {
-    assert.equal(_query, query, "Connection emitted query object")
+exports.testEvents = function (connection, assert) {
+  connection.on('open', function () {
+    assert.ok(1, 'connection.emit("open")')
+    Queryable.testEvents(connection, assert, 'connection')
   })
-  var query = connection.query('SELECT 1')
 }
+
+exports.testEvents.plan = 1 + Queryable.testEvents.plan

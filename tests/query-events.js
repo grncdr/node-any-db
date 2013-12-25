@@ -1,5 +1,5 @@
 require('../test')("Query events", function (conn, t) {
-  conn.query("DROP TABLE IF EXISTS streaming_test", function (err) { /* swallow errors */ })
+  conn.query("DROP TABLE IF EXISTS streaming_test")
   conn.query("CREATE TABLE streaming_test (a int)")
 
   // prepare our data

@@ -1,8 +1,8 @@
 var test = require('tape')
 
-var interfaces = require('../../interfaces')
+var interfaces = require('../interfaces')
 
-var config  = require('../../config')
+var config  = require('../config')
 var adapter = config.adapter
 
 

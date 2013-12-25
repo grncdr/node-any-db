@@ -10,7 +10,7 @@ require('../test')("Last insert id", function (conn, t) {
     conn.query("CREATE TABLE last_insert_id_test (id integer primary key autoincrement, a int)")
   else if (conn.adapter.name == 'mysql')
     {
-    conn.query("CREATE TABLE last_insert_id_test (id integer primary key auto_increment, a int)").on('end', function () { console.log('create complete') })
+    conn.query("CREATE TABLE last_insert_id_test (id integer primary key auto_increment, a int)")
     }
 
   else throw new Error("Unknown adapter: " + conn.adapter.name)
