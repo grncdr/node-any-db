@@ -22,7 +22,7 @@
   "author": "Stephen Sugden <me@stephensugden.com>",
   "license": "MIT",
   "dependencies": {
-    "mysql": "*",
+    "mysql": ">=2.0.0-rc2",
     "inherits": "~2.0.1",
     "extend": "~1.2.1"
   },
@@ -30,6 +30,6 @@
     "any-db": "~1.0.0"
   },
   "devDependencies": {
-    "any-db-adapter-spec": "~2.0.1"
+    "any-db-adapter-spec": "~2.0.2"
   }
 }

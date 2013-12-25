@@ -5,28 +5,54 @@ var ConnectionConfig = require('mysql/lib/ConnectionConfig')
 var extend = require('extend')
 var inherits = require('inherits')
 
+var adapter = exports
 
-exports.name = 'mysql'
+adapter.name = 'mysql'
 
-exports.createQuery = function (text, params, callback) {
+adapter.createQuery = function (text, values, callback) {
   if (text._query) return text
-  if (typeof params == 'function') {
-    callback = params
-    params = []
+
+  var highWaterMark = 128;
+
+  if (typeof callback == 'number') {
+    // createQuery(text, values, streamOptions) => Query
+    highWaterMark = callback
+    callback = undefined
   }
+  if (!callback) {
+    switch (typeof values) {
+      case 'number':
+        highWaterMark = values
+      break
+      case 'function':
+        callback = values
+        values = []
+      break
+      default:
+        values = values || []
+    }
+  }
+
   callback = wrapQueryCallback(callback)
-  var _query = mysql.createQuery(text, params, callback)
-  var query = extend(_query.stream(), {
-    _query: _query,
-    text: text,
-    values: params || [],
-    callback: callback
+
+  var query  = mysql.createQuery(text, values, callback)
+  var stream = query.stream({highWaterMark: highWaterMark})
+  extend(stream, {
+    query:    query,
+    text:     text,
+    values:   values,
+    callback: callback,
   })
-  query.once('end', function () { delete query._query })
-  return query
+
+  // error will be sent to callback and emitted
+  if (callback) stream.once('error', function () {})
+
+  stream.once('end', function () { delete this.query })
+
+  return stream
 }
 
-exports.createConnection = function createConnection(opts, callback) {
+adapter.createConnection = function createConnection(opts, callback) {
   var conn = new MySQLConnection(opts)
 
   if (callback) {
@@ -46,28 +72,23 @@ function MySQLConnection (opts) {
   Connection.call(this, {config: new ConnectionConfig(opts)})
 }
 
-MySQLConnection.prototype.adapter = 'mysql'
+MySQLConnection.prototype.adapter = adapter
 
 MySQLConnection.prototype.query = function (text, params, callback) {
-  var query = exports.createQuery(text, params, callback)
-  Connection.prototype.query.call(this, query._query)
-  return query
-}
-
-MySQLConnection.prototype.createQuery = function (text, params, callback) {
-  return exports.createQuery(text, params, callback)
+  var stream = adapter.createQuery(text, params, callback)
+  Connection.prototype.query.call(this, stream.query)
+  return stream
 }
 
 function wrapQueryCallback(callback) {
   if (!callback) return
-  return function (err, rows) {
+  return function (err, rows, fields) {
     if (err) callback.call(this, err)
-    else {
-      callback.call(this, null, {
-        rows: rows,
-        rowCount: rows.length,
-        lastInsertId: rows.insertId
-      })
-    }
+    else callback.call(this, null, {
+      rows: rows,
+      fields: fields,
+      rowCount: rows.length,
+      lastInsertId: rows.insertId,
+    })
   }
 }

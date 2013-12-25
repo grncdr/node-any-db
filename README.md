@@ -10,9 +10,10 @@ database agnostic.
 
 ## API extensions
 
-The connections and queries this package creates here are monkey-patched
-versions of the ones created by `require('mysql')`, so any methods that
-`mysql` supports beyond those specified by Any-DB are also available to you.
+The connections and queries this package creates inherit from the constructor
+functions in `require('mysql')`, so any methods that `mysql` supports beyond
+those [specified by Any-DB][Connection] are also available to you.
+
 Keep in mind that these methods will *not* necessarily work with other backends.
 
 ## Install
@@ -23,4 +24,5 @@ Keep in mind that these methods will *not* necessarily work with other backends.
 
 MIT
 
-[mysql]: http://github.com/felixge/node-mysql
+[Connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
+[mysql]: https://github.com/felixge/node-mysql
