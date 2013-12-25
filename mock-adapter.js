@@ -4,7 +4,7 @@ var extend       = require('extend')
 module.exports = extend(createMockAdapter, {
   connection: {
     query: function (text, params, callback) {
-      var q = this._adapter.createQuery(text, params, callback)
+      var q = this.adapter.createQuery(text, params, callback)
       process.nextTick(function () {
         if (q.callback) q.callback()
         q.emit('end')
@@ -13,8 +13,6 @@ module.exports = extend(createMockAdapter, {
     },
     end: function () {}
   },
-
-  query: {},
 
   createQuery: function (text, params, callback) {
     if (typeof text == 'object') {
@@ -34,10 +32,11 @@ module.exports = extend(createMockAdapter, {
 
   createConnection: function (_, cb) {
     var connection = extend(new EventEmitter, this.connection, {
-      adapter: 'fake',
-      _adapter: this
+      adapter: this
     })
-    process.nextTick(cb.bind(null, null, connection))
+    if (cb) {
+      process.nextTick(cb.bind(null, null, connection))
+    }
     return connection
   }
 })
