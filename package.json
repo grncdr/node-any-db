@@ -9,13 +9,13 @@
   },
   "devDependencies": {
     "any-db": "~1.0.3",
-    "any-db-postgres": "git://github.com/grncdr/node-any-db-postgres#de-transactionify",
-    "any-db-sqlite3": "git://github.com/grncdr/node-any-db-sqlite3#de-transactionify",
-    "any-db-mysql": "git://github.com/grncdr/node-any-db-mysql#de-transactionify",
+    "any-db-postgres": "~2.0.0",
+    "any-db-sqlite3": "~2.0.0",
+    "any-db-mysql": "~2.0.0",
     "tape": "~2.3.2",
     "covert": "~0.1.1",
     "any-db-fake": "0.0.2",
-    "any-db-pool": "git://github.com/grncdr/node-any-db-pool#de-transactionify"
+    "any-db-pool": "~2.0.0"
   },
   "scripts": {
     "test": "tape tests/*.js",
