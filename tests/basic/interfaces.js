@@ -27,27 +27,35 @@ test("interface properties", function (t) {
   })
 
   t.test('Query interface', function (t) {
-    t.plan(5)
-    var sql = 'SELECT 1 AS ok'
-    var query = adapter.createQuery(sql)
+    var sql = 'SELECT 1 AS ok WHERE 1 = $1'
+    var query = adapter.createQuery(sql, [1], queryCallback)
     t.equal(query.text, sql, 'query.text is equal to passed in SQL')
-    t.deepEqual(query.values, [], 'query.values is an empty array')
+    t.ok(Array.isArray(query.values), 'query.values is an array')
+    t.looseEquals(query.values[0], 1)
+    t.equal(query.callback, queryCallback, 'query.callback is equal to passed callback')
     t.ok(query instanceof EventEmitter, "Query is an EventEmitter")
     t.equal(typeof query.pause, 'function', 'query.pause is a function (Readable)')
     t.equal(typeof query.resume, 'function', 'query.resume is a function (Readable)')
+    t.end()
+
+    function queryCallback (err, res) {
+      /** an empty callback we're just using for an identity check */
+    }
   })
 
   t.test('ResultSet interface', function (t) {
-    t.plan(5)
+    t.plan(6)
     var conn = adapter.createConnection(config.url)
     conn.query('SELECT 10 AS "shouldBeTen"', function (err, result) {
       if (err) throw err;
       t.ok(Array.isArray(result.rows), "result.rows is an Array")
-      t.equal(result.fields[0].name, "shouldBeTen", "field has a name property")
       t.ok(Array.isArray(result.fields), "result.fields is an Array")
+      t.equal(result.fields[0].name, "shouldBeTen", "field has a name property")
       t.equal(result.rowCount, 1, 'rowCount == 1')
       t.equal(result.rows[0].shouldBeTen, 10, 'shouldBeTen == 10')
       conn.end()
+    }).on('end', function () {
+      t.pass('got "end" event')
     })
   })
 
