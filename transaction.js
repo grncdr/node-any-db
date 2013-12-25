@@ -14,14 +14,16 @@ function begin (queryable, beginStatement, callback) {
     return beginChildTransaction.call(queryable, callback)
   }
 
+  var adapter = queryable.adapter;
+
   var tx = new Transaction({
-    createQuery: queryable.createQuery,
-    begin: beginStatement,
+    adapter:  adapter,
+    begin:    beginStatement,
     callback: callback
   })
 
-  if (!(typeof queryable.createQuery == 'function'
-        && typeof queryable.query == 'function')) {
+  if (typeof adapter.createQuery != 'function' ||
+      typeof queryable.query != 'function') {
     var error = new TypeError(queryable + ' is not a queryable!')
     if (callback) {
       callback(error)
@@ -44,6 +46,7 @@ function begin (queryable, beginStatement, callback) {
     })
   }
   else {
+    // it's a connection
     tx.setConnection(queryable)
   }
 
@@ -53,7 +56,7 @@ function begin (queryable, beginStatement, callback) {
 inherits(Transaction, FSM)
 function Transaction(opts) {
   opts = opts || {}
-  this._createQuery = opts.createQuery
+  this.adapter = opts.adapter
   this._statements = {
     begin:    opts.begin    || 'BEGIN',
     commit:   opts.commit   || 'COMMIT',
@@ -93,7 +96,7 @@ Transaction.prototype.handleError = function (err, callback) {
 
 Transaction.prototype.query = FSM.method('query', {
   'connected|disconnected': function (text, params, callback) {
-    return this._queueTask(this._createQuery(text, params, callback))
+    return this._queueTask(this.adapter.createQuery(text, params, callback))
   },
   'open': function (stmt, params, callback) {
     if (typeof params == 'function') {
@@ -136,12 +139,12 @@ Transaction.prototype._createChildTransaction = function (callback) {
   var savepointName = 'sp_' + nestingLevel
 
   var tx = new Transaction({
-    createQuery:  this._createQuery,
+    adapter:      this.adapter,
     nestingLevel: nestingLevel,
     callback:     callback,
-    begin:        'SAVEPOINT ' + savepointName,
+    begin:        'SAVEPOINT '         + savepointName,
     commit:       'RELEASE SAVEPOINT ' + savepointName,
-    rollback:     'ROLLBACK TO ' + savepointName
+    rollback:     'ROLLBACK TO '       + savepointName,
   })
 
   tx.on('query', this.emit.bind(this, 'query'))
