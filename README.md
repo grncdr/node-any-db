@@ -144,11 +144,17 @@ The array of parameter values.
 
 ### Query Events
 
- * `'error', error` - Emitted if the query results in an error.
+ * `'error', error` - Emitted at most once per query. Note that this event will
+   be emitted for errors even if a callback was provided, the callback will
+   simply be subscribed to the 'error' event.
  * `'fields', fields` - An array of [Field][ResultSet] objects emitted before
    any `'data'` events.
+
+The following events are part of the [Readable][] interface:
+
  * `'data', row` - Emitted for each row in the query result set.
- * `'end'` - Emitted when the query completes.
+ * `'close'` - Emitted when the query completes.
+ * `'end'` - Emitted after all query results have been consumed.
 
 ## ResultSet
 
