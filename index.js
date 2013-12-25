@@ -35,25 +35,26 @@ adapter.createConnection = function (opts, callback) {
   if (!mode) mode = (sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE)
 
   var db = new sqlite3.Database(filename, mode)
-    , conn = new Connection(db)
-
-  if (callback) {
-    db.on('open', function () { callback(null, conn) })
-  }
-
   db.serialize()
-
-  return conn
+  return new Connection(db, callback)
 }
 
 inherits(Connection, EventEmitter)
-function Connection(db) {
+function Connection(db, callback) {
   EventEmitter.call(this)
   this._db = db
   var self = this
-  this._db.on('open',  function ()    { self.emit('open', self) })
+  this._db.on('open',  function () { self.emit('open') })
   this._db.on('close', function ()    { self.emit('end') })
   this._db.on('error', function (err) { self.emit('error', err) })
+
+  if (callback) {
+    self.once('error', callback)
+    self.once('open', function handleOpenEvent () {
+      self.removeListener('error', callback)
+      callback(null, self)
+    })
+  }
 }
 
 Connection.prototype.adapter = adapter
@@ -64,11 +65,11 @@ Connection.prototype.query = function (text, values, callback) {
     ;
 
   if (!(query instanceof Query)) {
-    query = adapter.createQuery(text,
-                                values,
-                                callback);
+    query = adapter.createQuery(text, values, callback)
   }
   
+  this.emit('query', query)
+
   if (query.text.match(/^\s*insert\s+/i))
     this._db.run(query.text,
                  query.values,
