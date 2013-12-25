@@ -10,7 +10,7 @@ var adapter = exports
 adapter.name = 'mysql'
 
 adapter.createQuery = function (text, values, callback) {
-  if (text._query) return text
+  if (text.query) return text // being passed an existing query object
 
   var highWaterMark = 128;
 
