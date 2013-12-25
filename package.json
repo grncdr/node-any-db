@@ -4,7 +4,8 @@
   "description": "The postgres adapter for any-db",
   "main": "index.js",
   "scripts": {
-    "test": "test-any-db-adapter"
+    "test": "test-any-db-adapter",
+    "debug": "node debug `which test-any-db-adapter`"
   },
   "repository": {
     "type": "git",
