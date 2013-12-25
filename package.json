@@ -4,7 +4,8 @@
   "description": "The SQLite3 adapter for any-db",
   "main": "index.js",
   "scripts": {
-    "test": "test-any-db-adapter"
+    "test": "test-any-db-adapter",
+    "debug": "node debug `which test-any-db-adapter`"
   },
   "repository": {
     "type": "git",
@@ -24,8 +25,6 @@
   "license": "MIT",
   "dependencies": {
     "sqlite3": "*",
-    "concat-stream": "~1.2.1",
-    "readable-stream": "~1.1.9",
     "inherits": "~2.0.1"
   },
   "peerDependencies": {
