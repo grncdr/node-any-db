@@ -1,7 +1,6 @@
 var pg = require('pg.js')
   , QueryStream = require('pg-query-stream')
   , inherits = require('inherits')
-  , concat = require('concat-stream')
 
 var adapter = exports
 
@@ -15,15 +14,11 @@ adapter.createQuery = function (text, params, callback) {
 
 adapter.createConnection = function (opts, callback) {
   var conn = new PostgresConnection(opts)
-
-  if (callback) {
-    conn.connect(function (err) {
-      if (err) callback(err)
-      else callback(null, conn)
-    })
-  } else {
-    conn.connect()
-  }
+  conn.connect(function (err) {
+    if (err) return callback ? callback(err) : conn.emit('error', err)
+    conn.emit('open')
+    if (callback) callback(null, conn)
+  })
   return conn
 }
 
@@ -36,6 +31,7 @@ PostgresConnection.prototype.adapter = adapter
 
 PostgresConnection.prototype.query = function (text, params, callback) {
   var query = this.adapter.createQuery(text, params, callback)
+  this.emit('query', query)
   return pg.Client.prototype.query.call(this, query);
 }
 
@@ -48,13 +44,18 @@ function PostgresQuery (text, params, callback) {
   if (!params) params = [];
   QueryStream.call(this, text, params)
   if (this.callback = callback) {
-    var self = this
-    this.pipe(concat(function (rows) {
-      self._result.rows = rows
-      self._result.rowCount = rows.length
-      callback(null, self._result)
-    }))
-    this.on('error', callback)
+    var errored = false
+    this
+      .on('error', function (err) {
+        errored = true
+        this.callback(err)
+      })
+      .on('data', function (row) {
+        this._result.rowCount = this._result.rows.push(row)
+      })
+      .on('end', function () {
+        if (!errored) this.callback(null, this._result)
+      })
   }
 }
 
