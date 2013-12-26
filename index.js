@@ -2,7 +2,9 @@ var mysql = require('mysql')
 var Connection = require('mysql/lib/Connection')
 var ConnectionConfig = require('mysql/lib/ConnectionConfig')
 
+var prependListener = require('prepend-listener')
 var inherits = require('inherits')
+var once = require('once')
 
 var adapter = exports
 
@@ -35,11 +37,13 @@ adapter.createQuery = function (text, values, callback) {
   var query  = mysql.createQuery(text, values)
   var stream = query.stream({highWaterMark: highWaterMark})
 
-  query.on('end', function () {
-    stream.emit('close')
-  })
+  var emitClose = once(stream.emit.bind(stream, 'close'))
+
+  prependListener(query, 'end', emitClose)
+
   var _read = stream._read
   stream._read = function () {
+    // _read should be a no-op before a connection is available
     query._connection && _read.call(this)
   }
   stream.query  = query
@@ -51,6 +55,7 @@ adapter.createQuery = function (text, values, callback) {
     var errored = false
     stream
       .on('error', function (err) {
+        emitClose()
         errored = true
         this.callback(err)
       })
