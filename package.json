@@ -9,7 +9,7 @@
     "once": "~1.3.0"
   },
   "devDependencies": {
-    "any-db-pool": "~2.1.0",
+    "any-db-pool": "~2.0.0",
     "any-db-postgres": "~2.1.0",
     "any-db-sqlite3": "~2.1.0",
     "any-db-mysql": "~2.1.0",
