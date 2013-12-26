@@ -20,7 +20,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "any-db-pool": "~1.0.1",
+    "any-db-pool": "~2.0.1",
     "parse-db-url": "0.0.0"
   },
   "devDependencies": {
