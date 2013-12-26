@@ -29,7 +29,7 @@
     "once": "~1.3.0"
   },
   "peerDependencies": {
-    "any-db": "~1.0.0"
+    "any-db": "~2.1.0"
   },
   "devDependencies": {
     "any-db-adapter-spec": "~2.1.0"
