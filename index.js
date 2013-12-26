@@ -68,3 +68,9 @@ PostgresQuery.prototype.handleReadyForQuery = function () {
   this.emit('close')
   QueryStream.prototype.handleReadyForQuery.call(this)
 }
+
+PostgresQuery.prototype.handleError = function (err) {
+  this.emit('close')
+  this.push(null)
+  QueryStream.prototype.handleError.call(this, err)
+}
