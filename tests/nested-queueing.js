@@ -1,7 +1,7 @@
 var begin = require('../')
 
-require('../test')("Nested transactions", function (conn, t) {
-  conn.query("DROP TABLE transaction_test", function (err) {})
+require('../test')("Queueing nested transactions", function (conn, t) {
+  conn.query("DROP TABLE IF EXISTS transaction_test")
   conn.query("CREATE TABLE transaction_test (a int)")
 
   var parent = begin(conn)

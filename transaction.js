@@ -1,5 +1,6 @@
 var inherits = require('inherits')
 var FSM = require('yafsm')
+var once = require('once')
 
 module.exports = begin
 begin.Transaction = Transaction
@@ -11,7 +12,7 @@ function begin (queryable, beginStatement, callback) {
   }
 
   if (queryable instanceof Transaction) {
-    return beginChildTransaction.call(queryable, callback)
+    return beginWithParent(queryable, callback)
   }
 
   var adapter = queryable.adapter;
@@ -57,6 +58,7 @@ inherits(Transaction, FSM)
 function Transaction(opts) {
   opts = opts || {}
   this.adapter = opts.adapter
+  this._connection = null
   this._statements = {
     begin:    opts.begin    || 'BEGIN',
     commit:   opts.commit   || 'COMMIT',
@@ -64,6 +66,8 @@ function Transaction(opts) {
   }
   this._queue = []
   this._nestingLevel = opts.nestingLevel || 0
+
+  this.handleError = this.handleError.bind(this)
 
   FSM.call(this, 'disconnected', {
     'disconnected': [ 'connected' ],
@@ -82,40 +86,31 @@ function Transaction(opts) {
   }
 }
 
-Transaction.prototype.handleError = function (err, callback) {
+Transaction.prototype.handleError = function (err, skipEmit) {
   var self = this
-  var propagate = callback || function (err) { self.emit('error', err) }
-  var rollback = Transaction.prototype.rollback.implementations.open
+  var rollback = this.rollback.implementations['open']
   if (this.state() !== 'closed' && this._connection) {
     rollback.call(this, function (rollbackErr) {
-      propagate(err)
+      if (rollbackErr) self.emit('error', rollbackErr)
+      else if (!skipEmit) self.emit('error', err)
     })
   }
-  else propagate(err)
+  else if (!skipEmit) self.emit('error', err)
 }
 
 Transaction.prototype.query = FSM.method('query', {
   'connected|disconnected': function (text, params, callback) {
-    return this._queueTask(this.adapter.createQuery(text, params, callback))
+    var query = this.adapter.createQuery(text, params, callback)
+    this._queue.push(query)
+    return query
   },
-  'open': function (stmt, params, callback) {
-    if (typeof params == 'function') {
-      callback = params
-      params = undefined
-    }
-    var queryObject = this._connection.query(stmt, params, callback)
-    this.emit('query', queryObject)
-    if (!callback) queryObject.on('error', this.handleError)
-    return queryObject
-  }
-})
-
-var beginChildTransaction = FSM.method('begin', {
-  'open': function (callback) {
-    return this._createChildTransaction(callback).setConnection(this._connection)
-  },
-  'connected|disconnected': function (callback) {
-    return this._queueTask(this._createChildTransaction(callback))
+  'open': function (text, params, callback) {
+    var self = this
+    var query = this.adapter.createQuery(text, params, callback)
+    query.once('error', function (err) {
+      self.handleError(err, query.listeners('error').length)
+    })
+    return this._connection.query(query)
   }
 })
 
@@ -123,47 +118,30 @@ var beginChildTransaction = FSM.method('begin', {
   Transaction.prototype[methodName] = FSM.method(methodName, {
     'open': closeVia(methodName),
     'connected|disconnected': function (callback) {
-      this._queue.push([methodName, [callback]])
+      var fn = this[methodName].implementations['open']
+      this._queue.push([fn, [callback]])
       return this
     }
   })
 })
 
-Transaction.prototype._queueTask = function (task) {
-  this._queue.push(task)
-  return task
-}
-
-Transaction.prototype._createChildTransaction = function (callback) {
-  var nestingLevel = this._nestingLevel + 1
-  var savepointName = 'sp_' + nestingLevel
-
-  var tx = new Transaction({
-    adapter:      this.adapter,
-    nestingLevel: nestingLevel,
-    callback:     callback,
-    begin:        'SAVEPOINT '         + savepointName,
-    commit:       'RELEASE SAVEPOINT ' + savepointName,
-    rollback:     'ROLLBACK TO '       + savepointName,
-  })
-
-  tx.on('query', this.emit.bind(this, 'query'))
-    .once('connected', this.state.bind(this, 'connected'))
-    .once('close',  this._runQueue.bind(this))
-
-  return tx
-}
-
 Transaction.prototype.setConnection = FSM.method('setConnection', {
   'disconnected': function (connection) {
     var self = this
-    self.state('connected')
+    var err = self.state('connected')
+    if (err) {
+      process.nextTick(function () {
+        self.emit('error', err)
+      })
+      return
+    }
 
-    self._onConnectionError = self.handleError.bind(self)
-    connection.on('error', self._onConnectionError)
+    connection.on('query', self._emitQuery = function (query) {
+      self.emit('query', query)
+    })
+    connection.on('error', self.handleError)
 
     self._connection = connection
-    self.adapter = self._connection.adapter
 
     self.emit('begin:start')
     var beginQuery = connection.query(self._statements.begin, function (err) {
@@ -181,11 +159,9 @@ Transaction.prototype._runQueue = function () {
   var self = this
   return next()
 
-  var counter = 0
-  function next (err) {
+  function next (err, skipEmit) {
     if (err) {
-      self._queue.splice(0, self._queue.length)
-      return self.handleError(err)
+      self.handleError(err, skipEmit)
     }
     if (!self._queue.length) {
       if (self.state() !== 'closed' && (err = self.state('open'))) {
@@ -196,15 +172,19 @@ Transaction.prototype._runQueue = function () {
 
     var task = self._queue.shift()
 
-    if      (Array.isArray(task))         self._runQueuedMethod(task, next)
-    else if (task instanceof Transaction) self._runQueuedTransaction(task, next)
-    else                                  self._runQueuedQuery(task, next)
+    if (Array.isArray(task)) {
+      runFunctionCall(self, task, next)
+    } else if (task instanceof Transaction) {
+      runChildTransaction(self, task)
+    } else {
+      runQueuedQuery(self, task, next)
+    }
   }
 }
 
-Transaction.prototype._runQueuedMethod = function (task, next) {
-  var method = task.shift()
-    , args = task.shift()
+function runFunctionCall (ctx, fnAndArgs, next) {
+  var fn = fnAndArgs[0]
+    , args = fnAndArgs[1]
     , last = args[args.length - 1]
 
   if (typeof last == 'function') {
@@ -217,43 +197,85 @@ Transaction.prototype._runQueuedMethod = function (task, next) {
     args.push(next)
   }
 
-  this[method].implementations.open.apply(this, args)
+  return fn.apply(ctx, args)
 }
 
-Transaction.prototype._runQueuedTransaction = function (childTx) {
-  if (!childTx.listeners('error').length) {
-    childTx.on('error', this.handleError.bind(this))
-  }
-  childTx.setConnection(this._connection)
-}
-
-Transaction.prototype._runQueuedQuery = function (query, callback) {
-  var self = this
-  var cbName  = query._callback ? '_callback' : 'callback'
-  var queryCb = query[cbName]
-  if (queryCb) {
-    query[cbName] = function (err, res) {
-      if (err) return self.handleError(err, queryCb)
-      else {
-        queryCb(null, res)
-        callback()
-      }
-    }
-  } else {
-    query.once('error', function (err) {
-      if (!query.listeners('error').length) self.handleError(err)
+function runQueuedQuery (self, query, next) {
+  if (self.state() == 'closed') {
+    self.query(query, function (err) {
+      query.emit('error', err)
+      next()
     })
-
-    // Node 0.10 changed the behaviour of EventEmitter.listeners, so we need
-    // to do a little poking at internals here.
-    query.on('end', function () { callback() })
-    if (query.listeners('end').length > 1) {
-      var listeners = query._events.end
-      listeners.unshift(listeners.pop())
-    }
+    return
   }
-  self.emit('query', query)
   self._connection.query(query)
+  var onext = once(next) // ensure we only call `next` once
+  query.once('error', function (err) {
+    onext(err, this.listeners('error').length)
+  })
+  query.once('close', function () {
+    // let 'error' events have a chance to call `next` first
+    process.nextTick(onext)
+  })
+}
+
+function beginWithParent (parent, callback) {
+  var child = createChildTransaction(parent, callback)
+  switch (parent.state()) {
+    case 'disconnected':
+    case 'connected':
+      parent._queue.push(child)
+      break
+    case 'open':
+      runChildTransaction(parent, child)
+      break
+    case 'closed':
+      var error = new Error("Cannot start child transaction on parent in state 'closed'")
+      process.nextTick(function () {
+        // callback is already attached to error event
+        child.emit('error', error)
+      })
+  }
+  return child
+}
+
+function createChildTransaction (parent, callback) {
+  var nestingLevel = parent._nestingLevel + 1
+  var savepointName = 'sp_' + nestingLevel
+
+  var child = new Transaction({
+    adapter:      parent.adapter,
+    nestingLevel: nestingLevel,
+    callback:     callback,
+    begin:        'SAVEPOINT '         + savepointName,
+    commit:       'RELEASE SAVEPOINT ' + savepointName,
+    rollback:     'ROLLBACK TO '       + savepointName,
+  })
+
+  child
+    .on('query', parent.emit.bind(parent, 'query'))
+    .once('connected', parent.state.bind(parent, 'connected'))
+    .once('close',  parent._runQueue.bind(parent))
+
+  return child
+}
+
+function runChildTransaction (parent, child) {
+  // Child transaction
+  child.setConnection(parent._connection)
+  child.on('error', function (err) {
+    if (child.listeners('error').length == 1) {
+      // if a child transaction errors, and the parent is the only
+      // listener, it should re-emit the error, but *not* roll back
+      parent.emit('error', err)
+    }
+  })
+}
+
+Transaction.prototype._removeConnection = function () {
+  this._connection.removeListener('error', this.handleError)
+  this._connection.removeListener('query', this._emitQuery)
+  this._connection = null
 }
 
 function closeVia (action) {
@@ -265,8 +287,7 @@ function closeVia (action) {
     }
     self.emit(action + ':start')
     var q = self._connection.query(self._statements[action], function (err) {
-      self._connection.removeListener('error', self._onConnectionError)
-      delete self._connection
+      self._removeConnection()
       if (err) {
         self.handleError(new CloseFailedError(action, err), callback)
       } else {

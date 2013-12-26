@@ -3,9 +3,9 @@ var tape = require('tape')
 var anyDB = require('any-db')
 
 var URLS = [
-  'postgres://postgres@localhost/any_db_test',
   'mysql://root@localhost/any_db_test',
-  'sqlite3:///tmp/any_db_test.db'
+  'postgres://postgres@localhost/any_db_test',
+  'sqlite3:///tmp/any_db_test.db',
 ]
 
 module.exports = function test (description, opts, callback) {

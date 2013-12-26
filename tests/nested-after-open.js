@@ -1,6 +1,6 @@
 var begin = require('../')
 
-require('../test')("Nested transactions", function (conn, t) {
+require('../test')("Nesting on 'open' transaction", function (conn, t) {
   begin(conn, function (err, tx1) {
     if (err) throw err;
     begin(tx1, function (err, tx2) {
