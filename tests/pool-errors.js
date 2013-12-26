@@ -1,5 +1,5 @@
 var test = require('tape')
-var ConnectionPool = require('any-db-pool')
+var ConnectionPool = require('any-db/node_modules/any-db-pool')
 var mockAdapter = require('any-db-fake')
 var begin = require('../')
 
