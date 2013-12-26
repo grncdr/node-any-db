@@ -13,7 +13,6 @@ exports.createConnection = function connect (dbUrl, callback) {
   var adapterConfig = parseDbUrl(dbUrl)
   var adapter = getAdapter(adapterConfig.adapter)
   var conn = adapter.createConnection(adapterConfig, callback);
-  conn.adapter = adapterConfig.adapter
   return conn
 }
 
