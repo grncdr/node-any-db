@@ -1,6 +1,6 @@
 # any-db-sqlite3
 
-[![Build Status](https://secure.travis-ci.org/grncdr/node-any-db-sqlite3.png)](http://travis-ci.org/grncdr/node-any-db-sqlite3)
+[![Build Status](https://secure.travis-ci.org/grncdr/node-any-db-sqlite3.png?branch=master)](http://travis-ci.org/grncdr/node-any-db-sqlite3?branch=master)
 
 This is the sqlite3 adapter for Any-DB. It relies on the [sqlite3][sqlite3]
 database driver to create [Connection][] and [Query][] objects that conform to
