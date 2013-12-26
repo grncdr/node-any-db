@@ -204,6 +204,7 @@ See also: the [Connection API](#connection)
 
 ```ocaml
 (text: String, params: Array?, Continuation<ResultSet>?) => Query
+(Query) => Query {* returns same Query *}
 ```
 
 Create a [Query](#query) that *may* eventually be executed later on by a
@@ -235,6 +236,7 @@ the [Queryable.query][] contract by synchronously returning a [Query][] stream.
 [Transaction.query]: https://github.com/grncdr/node-any-db-transaction#transactionquery
 
 [test suite]: tests
+[Adapter]: #adapter
 [Queryable]: #queryable
 [Queryable.query]: #queryablequery
 [Connection]: #connection
