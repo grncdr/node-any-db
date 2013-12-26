@@ -11,12 +11,16 @@ exports.testProperties = function (queryable, adapter, test, name) {
 exports.testEvents = function (queryable, test, name) {
   name = name || 'queryable'
 
-  test.test('Queryable & Query events with callbacks', function (test) {
+  test.test(name + '.query events with callbacks', function (test) {
     testEventsWithResults(queryable, test, name)
   })
 
-  test.test('Queryable & Query events with no result and no callback', function (test) {
+  test.test(name + '.query events with no result and no callback', function (test) {
     testEventsNoResultsNoCallback(queryable, test, name)
+  })
+
+  test.test(name + '.query events with errors', function (test) {
+    testEventsQueryError(queryable, test, name)
   })
 }
 
@@ -98,4 +102,33 @@ function testEventsNoResultsNoCallback (queryable, test, name) {
   })
 }
 
-exports.testEvents.plan = 2
+function testEventsQueryError (queryable, test, name) {
+  test.plan(6)
+
+  var emittedClose = false
+    , emittedError = false
+    , emittedEnd = false
+
+  var query = queryable.query('not a valid SQL statement', function (err, result) {
+    test.ok(emittedClose, 'callback called after query.emit("close")')
+    test.ok(!emittedError, 'callback is first listener to query.emit("error")')
+    test.ok(!emittedEnd, 'callback before query.emit("end")')
+  })
+
+  query.on('error', function (err) {
+    emittedError = true
+    test.ok(err, 'query.emit("error", err)')
+  })
+
+  query.on('close', function () {
+    emittedClose = true
+    test.pass('query.emit("close")')
+  })
+
+  query.on('end', function () {
+    emittedEnd = true
+    test.pass('query.emit("end")')
+  })
+}
+
+exports.testEvents.plan = 3
