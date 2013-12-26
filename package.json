@@ -1,6 +1,6 @@
 {
   "name": "any-db-sqlite3",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "The SQLite3 adapter for any-db",
   "main": "index.js",
   "scripts": {
