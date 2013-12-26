@@ -59,13 +59,7 @@ function SQLite3Connection(db, callback) {
 SQLite3Connection.prototype.adapter = adapter
 
 SQLite3Connection.prototype.query = function (text, values, callback) {
-  var query = text
-    , rowError = false
-    ;
-
-  if (!(query instanceof SQLite3Query)) {
-    query = adapter.createQuery(text, values, callback)
-  }
+  var query = adapter.createQuery(text, values, callback)
   
   this.emit('query', query)
 
@@ -82,8 +76,7 @@ SQLite3Connection.prototype.query = function (text, values, callback) {
   return query
 
   function onComplete(err, count) {
-    if (err || rowError) return query.emit('error', err || rowError)
-    query.complete(count, this.lastID)
+    query.complete(err, count, this.lastID)
   }
 }
 
@@ -119,6 +112,7 @@ SQLite3Query.prototype.onRow = function (err, row) {
   this._gotData = true
   if (err) {
     this._errored = true
+    this.emit('close')
     this.emit('error', err)
   }
   if (!this._result.fields) {
@@ -130,14 +124,15 @@ SQLite3Query.prototype.onRow = function (err, row) {
   this.push(row)
 }
 
-SQLite3Query.prototype.complete = function (count, lastId) {
-  if (!this._gotData) this.emit('fields', [])
+SQLite3Query.prototype.complete = function (err, count, lastId) {
+  this.push(null)
+  if (this._errored) return // we've emitted an error from the row callback
+  if (!err && !this._gotData) this.emit('fields', [])
   this.emit('close')
-  if (this._errored) return
+  if (err) return this.emit('error', err)
   this._result.rowCount = count
   this._result.lastInsertId = lastId
   if (this.callback) {
     this.callback(null, this._result)
   }
-  this.push(null)
 }
