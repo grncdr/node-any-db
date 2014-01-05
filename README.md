@@ -11,12 +11,11 @@ var anyDB = require('any-db')
 var begin = require('any-db-transaction')
 
 var connection = anyDB.createConnection(...)
-var pool = anyDB.createPool(...)
 
 // Callback-style
 begin(connection, function (err, transaction) {
-	if (err) return console.error(err)
-	// Do work using transaction
+  if (err) return console.error(err)
+  // Do work using transaction
   transaction.query(...)
   transaction.commit()
 })
@@ -28,6 +27,7 @@ transaction.query(...)
 transaction.commit()
 
 // Or use a connection pool
+var pool = anyDB.createPool(...)
 var transaction = begin(pool)
 ```
 
@@ -227,41 +227,42 @@ external abuse-monitoring service, and flag or delete users as necessary, if
 for any reason we only get part way through, the entire transaction is rolled
 back and nobody is flagged or deleted:
 
-  var pool = require('any-db').createPool(...)
+```javascript
+var pool = require('any-db').createPool(...)
 
-	var tx = begin(pool)
-	tx.on('error', finished)
+// this is our external service
+var abuseService = require('./services').abuseService()
 
-	/*
-	Why query with the pool and not the transaction?
-	Because it allows the transaction queries to begin executing immediately,
-	rather than queueing them all up behind the initial SELECT.
-	*/
-	pool.query('SELECT id FROM users').on('row', function (user) {
-		if (tx.state().match('rollback')) return
-		abuseService.checkUser(user.id, function (err, result) {
-			if (err) return tx.handleError(err)
-			// Errors from these queries will propagate up to the transaction object
-			if (result.flag) {
-				tx.query('UPDATE users SET abuse_flag = 1 WHERE id = $1', [user.id])
-			} else if (result.destroy) {
-				tx.query('DELETE FROM users WHERE id = $1', [user.id])
-			}
-		})
-	}).on('error', function (err) {
-		tx.handleError(err)
-	}).on('end', function () {
-		tx.commit(finished)
-	})
-}).on('error', function (err) {
-	tx.handleError(err)
-}).on('end', function () {
-	tx.commit(finished)
-})
+var tx = begin(pool)
+tx.on('error', finished)
+
+/*
+Why query with the pool and not the transaction?
+Because it allows the transaction queries to begin executing immediately,
+rather than queueing them all up behind the initial SELECT.
+*/
+pool.query('SELECT id FROM users')
+  .on('data', function (user) {
+    if (tx.state() == 'closed') {
+      // Do not make unneccessary requests
+      return
+    }
+    abuseService.checkUser(user.id, function (err, result) {
+      if (err) return tx.handleError(err)
+      // Errors from these queries will propagate up to the transaction object
+      if (result.flag) {
+        tx.query('UPDATE users SET abuse_flag = 1 WHERE id = $1', [user.id])
+      } else if (result.destroy) {
+        tx.query('DELETE FROM users WHERE id = $1', [user.id])
+      }
+    })
+  }).on('end', function () {
+    tx.commit(finished)
+  })
 
 function finished (err) {
-	if (err) console.error(err)
-	else console.log('All done!')
+  if (err) console.error(err)
+  else console.log('All done!')
 }
 ```
 
@@ -269,9 +270,12 @@ function finished (err) {
 
 2-clause BSD
 
+[any-db]: https://github.com/grncdr/node-any-db
 [begin]: #begin
-[Connection]: https://github.com/grncdr/any-db-adapter-spec#connection
-[Queryable]: https://github.com/grncdr/any-db-adapter-spec#queryable
-[Queryable.query]: https://github.com/grncdr/any-db-adapter-spec#queryablequery
-[Query]: https://github.com/grncdr/any-db-adapter-spec#query
-[ConnectionPool]: https://github.com/grncdr/any-db-pool#connectionpool
+[Connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
+[Queryable]: https://github.com/grncdr/node-any-db-adapter-spec#queryable
+[Queryable.query]: https://github.com/grncdr/node-any-db-adapter-spec#queryablequery
+[Query]: https://github.com/grncdr/node-any-db-adapter-spec#query
+[ConnectionPool]: https://github.com/grncdr/node-any-db-pool#connectionpool
+
+[connect]: https://npm.im/connect
