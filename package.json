@@ -1,6 +1,6 @@
 {
   "name": "any-db-transaction",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Transaction object for Any-DB adapters",
   "main": "transaction.js",
   "dependencies": {
