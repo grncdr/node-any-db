@@ -39,11 +39,11 @@ function begin (queryable, beginStatement, callback) {
       if (err) return process.nextTick(function () {
         tx.emit('error', err)
       })
-      var release = pool.release.bind(pool, connection)
-      tx.on('query', pool.emit.bind(pool, 'query'))
+      var release = queryable.release.bind(queryable, conn)
+      tx.on('query', queryable.emit.bind(queryable, 'query'))
       tx.once('rollback:complete', release)
         .once('commit:complete', release)
-        .setConnection(connection)
+        .setConnection(conn)
     })
   }
   else {
