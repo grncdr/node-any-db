@@ -72,9 +72,8 @@ ConnectionPool.prototype.query = function (statement, params, callback) {
       if (typeof params === 'function') {
         return params(err)
       } else if (callback) {
-        return callback(err);
+        return callback(err)
       } else {
-        debugger
         return query.emit('error', err);
       }
     }
