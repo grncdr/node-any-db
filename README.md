@@ -53,6 +53,7 @@ PoolConfig := {
   refreshIdle: Boolean?,
   onConnect: (Connection, ready: Continuation<Connection>) => void
   reset: (Connection, done: Continuation<void>) => void
+  shouldDestroyConnection: (error: Error) => Boolean
 }
 ```
 
@@ -67,6 +68,10 @@ A `PoolConfig` is generally a plain object with any of the following properties 
  - `reapInterval` (default `1000`) How frequently the pool should check for connections that are old enough to be reaped.
  - `onConnect` Called immediately after a connection is first established. Use this to do one-time setup of new connections. The supplied `Connection` will not be added to the pool until you pass it to the `done` continuation.
  - `reset` Called each time a connection is returned to the pool. Use this to restore a connection to it's original state (e.g. rollback transactions, set the database session vars). If `reset` fails to call the `done` continuation the connection will be lost in limbo.
+ - `shouldDestroyConnection` (default `function (err) { return true }`) - Called
+   when an error is encountered by `pool.query` or emitted by an idle
+   connection. If `shouldDestroyConnection(error)` is truthy the connection will
+   be destroyed, otherwise it will be reset.
 
 ### ConnectionPool.query
 
