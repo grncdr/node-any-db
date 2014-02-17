@@ -117,7 +117,8 @@ called after the connection has closed.
 ```ocaml
 Query := Readable<Object> & {
   text: String,
-  values: Array
+  values: Array,
+  callback: null | (Error, Results) => void
 }
 ```
 
@@ -141,6 +142,13 @@ interpolated values *after* the query has been enqueued by a connection.
 ### Query.values
 
 The array of parameter values.
+
+### Query.callback
+
+The callback (if any) that was provided to [Queryable.query][Queryable.query].
+Note that `Query` objects **must not** use a closed over reference to their
+callback, as other `any-db` libraries *may* rely on modifying the `callback`
+property of a `Query` they did not create.
 
 ### Query Events
 
