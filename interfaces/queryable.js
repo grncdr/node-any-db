@@ -1,3 +1,4 @@
+var inOrder = require('assert-in-order')
 var EventEmitter = require('events').EventEmitter
 
 exports.testProperties = function (queryable, adapter, test, name) {
@@ -25,56 +26,48 @@ exports.testEvents = function (queryable, test, name) {
 }
 
 function testEventsWithResults (queryable, test, name) {
-  test.plan(19)
-  var emittedFields = false
-    , emittedData = false
-    , emittedClose = false
-    , emittedEnd = false
-    , callbackCalled = false
-
-  var query = queryable.adapter.createQuery('SELECT 1 AS val', function (err, result) {
-    test.ok(!callbackCalled, 'callback was not already called')
-    if (err) throw err
-    callbackCalled = true
-    test.ok(emittedFields, 'callback after query.emit("fields", fields)')
-    test.ok(emittedData,   'callback after query.emit("data", row)')
-    test.ok(emittedClose,  'callback after query.emit("close")')
-    test.ok(!emittedEnd,   'callback before query.emit("end")')
+  var rows = [{val: 1}]
+  var expectations = inOrder(test, {
+    'query.callback': ['equal', callback, 'query.callback === callback'],
+    queryEquals:      ['equal', 'query is identical'],
+    fields:           ['pass', 'query.emit("fields")'],
+    rowEquals:        ['deepEqual', rows[0], 'got correct row in "data" event'],
+    noCloseArgs:      ['equal', 0, 'No extra arguments to "close" event'],
+    rowsEqual:        ['deepEqual', rows, 'got correct rows in callback'],
+    noEndArgs:        ['equal', 0, 'No extra arguments to "end" event'],
   })
+
+  test.plan(Object.keys(expectations).length)
+
+  var query = queryable.adapter.createQuery('SELECT 1 AS val', callback)
+  expectations['query.callback'](query.callback)
 
   queryable.once('query', function (q) {
-    test.equal(q, query, name + '.emit("query", query)')
+    expectations.queryEquals(q, query)
   })
 
-  query.on('fields', function (fields) {
-    emittedFields = true
-    test.ok(Array.isArray(fields), '"fields" event value is an array')
+  query.on('fields', function () {
+    expectations.fields()
   })
 
   query.on('data', function (row) {
-    emittedData = true
-    test.ok(emittedFields, 'query.emit("data") after query.emit("fields")')
-    test.equal(row.val, 1)
+    expectations.rowEquals(row)
   })
 
-  query.on('close', function (arg) {
-    test.ok(!emittedClose, 'query.emit("close") emitted once')
-    emittedClose = true
-    test.ok(emittedFields, 'query.emit("close") after query.emit("fields")')
-    test.ok(emittedData, 'query.emit("close") after query.emit("data")')
-    test.ok(!arg, 'No extra arguments to "end" event')
+  query.on('close', function () {
+    expectations.noCloseArgs(arguments.length)
   })
 
-  query.on('end', function (arg) {
-    test.ok(!emittedEnd, 'query.emit("end") emitted once')
-    emittedEnd = true
-    test.ok(emittedClose, 'query.emit("end") after query.emit("close")')
-    test.ok(emittedFields, 'query.emit("end") after query.emit("fields")')
-    test.ok(emittedData, 'query.emit("end") after query.emit("data")')
-    test.ok(!arg, 'No extra arguments to "end" event')
+  query.on('end', function () {
+    expectations.noEndArgs(arguments.length)
   })
 
   test.equal(queryable.query(query), query, name + '.query(query) returns same query')
+
+  function callback (err, result) {
+    if (err) throw err
+    expectations.rowsEqual(result.rows)
+  }
 }
 
 function testEventsNoResultsNoCallback (queryable, test, name) {
