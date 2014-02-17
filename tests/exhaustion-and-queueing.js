@@ -1,4 +1,5 @@
 var EventEmitter = require('events').EventEmitter
+var extend = require('extend')
 
 var test = require('tape')
 
@@ -15,7 +16,7 @@ test("Pool.query queues when no connections available", function (t) {
     // stub connections have an incrementing ID number that we can check to see
     // if queries are executed by the connection we expect.
     createConnection: function (_, callback) {
-      var connection = {
+      var connection = extend(new EventEmitter, {
         id: ++connectionCount,
         query: function (q) {
           t.equal(++receivedQueries, q.id, "query " + q.id + " executed in order")
@@ -23,7 +24,7 @@ test("Pool.query queues when no connections available", function (t) {
           process.nextTick(function () { q.emit('end') })
         },
         end: function () {}
-      }
+      })
       callback(null, connection)
     },
 

@@ -22,6 +22,7 @@
   "devDependencies": {
     "tape": "~2.3.2",
     "any-db-fake": "~0.0.3",
-    "covert": "~0.1.1"
+    "covert": "~0.1.1",
+    "extend": "~1.2.1"
   }
 }
