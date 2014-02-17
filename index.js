@@ -52,10 +52,17 @@ function ConnectionPool(adapter, connParams, options) {
       conn._events = {}
     },
 
-    log: options.log
+    log: options.log,
+
+    idleTimeoutMillis: options.idleTimeout,
+    reapIntervalMillis: options.reapInterval,
   }
 
-  var resetSteps = [];
+  if (options.hasOwnProperty('refreshIdle')) {
+    poolOpts.refreshIdle = options.refreshIdle
+  }
+
+  var resetSteps = []
   if (adapter.reset) resetSteps.unshift(adapter.reset)
   if (options.reset) resetSteps.unshift(options.reset)
   this.adapter = adapter

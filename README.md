@@ -48,6 +48,9 @@ ConnectionPool := EventEmitter & {
 PoolConfig := {
   min: Number?,
   max: Number?,
+  idleTimeout: Number?,
+  reapInterval: Number?,
+  refreshIdle: Boolean?,
   onConnect: (Connection, ready: Continuation<Connection>) => void
   reset: (Connection, done: Continuation<void>) => void
 }
@@ -59,6 +62,9 @@ A `PoolConfig` is generally a plain object with any of the following properties 
 
  - `min` (default `0`) The minimum number of connections to keep open in the pool.
  - `max` (default `10`) The maximum number of connections to keep open in the pool. When this limit is reached further requests for connections will queue waiting for an existing connection to be released back into the pool.
+ - `refreshIdle` (default `true`) When this is true, the pool will reap connections that have been idle for more than `idleTimeout` milliseconds.
+ - `idleTimeout` (default `30000`) The maximum amount of time a connection can sit idle in the pool before being reaped.
+ - `reapInterval` (default `1000`) How frequently the pool should check for connections that are old enough to be reaped.
  - `onConnect` Called immediately after a connection is first established. Use this to do one-time setup of new connections. The supplied `Connection` will not be added to the pool until you pass it to the `done` continuation.
  - `reset` Called each time a connection is returned to the pool. Use this to restore a connection to it's original state (e.g. rollback transactions, set the database session vars). If `reset` fails to call the `done` continuation the connection will be lost in limbo.
 
