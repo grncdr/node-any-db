@@ -24,7 +24,7 @@ MIT
 
 [pg]: http://github.com/brianc/node-postgres
 [pg.Client]: https://github.com/brianc/node-postgres/wiki/Client
-[QueryStream]: https://github.com/node-pg-query-stream
+[QueryStream]: https://github.com/brianc/node-pg-query-stream
 [Connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
 [Query]: https://github.com/grncdr/node-any-db-adapter-spec#query
 [Any-DB API]: https://github.com/grncdr/node-any-db-adapter-spec
