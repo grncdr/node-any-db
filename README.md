@@ -116,12 +116,35 @@ The string name of the adapter used for this connection pool, e.g. `'sqlite3'`.
 
 ### ConnectionPool events
 
- * `'acquire'` - emitted whenever `pool.acquire` is called
- * `'release'` - emitted whenever `pool.release` is called
- * `'query', query` - emitted immediately after `.query` is called on a
-   connection via `pool.query`. The argument is a [Query][] object.
- * `'close'` - emitted when the connection pool has closed all of it
-   connections after a call to `close()`.
+#### Acquire event
+
+An `'acquire'` event is emitted by a ConnectionPool whenever the pool's
+[`acquire()`](#connectionpoolacquire) method is invoked.
+
+No arguments are passed to event listeners.
+
+#### Release event
+
+A `'release'` event is emitted by a ConnectionPool whenever the pool's
+[`release()`](#connectionpoolrelease) method is invoked.
+
+No arguments are passed to event listeners.
+
+#### Query event
+
+A `'query'` event is emitted by a ConnectionPool immediately after the pool's
+[`query()`](#connectionpoolquery) method is invoked.
+
+One argument is passed to event listeners:
+* `query` - a [Query][] object.
+
+#### Close event
+
+A `'close'` event is emitted by a ConnectionPool when the pool has closed all
+of it's connections. Invoking a pool's [`close()`](#connectionpoolclose) method would cause a `close`
+event to be emitted.
+
+No arguments are passed to event listeners.
 
 ## Why wouldn't I just use `generic-pool`?
 
