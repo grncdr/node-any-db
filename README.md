@@ -32,15 +32,20 @@ var conn = anyDB.createConnection('driver://user:pass@hostname/database')
 Make queries:
 
 ```javascript
-var sql = 'SELECT * FROM my_table'
-conn.query(sql).on('data', function (row) {})  // evented
-conn.query(sql, function (error, result) {})  // or callback
+var sql = 'SELECT * FROM questions'
+
+// query() returns a readable stream
+conn.query(sql).on('data', function (row) {})
+
+// pass a callback to collect results
+conn.query(sql, function (error, result) {})
+```
 
 Use bound parameters:
 
-sql += ' WHERE my_column = ?'
-conn.query(sql, [42]).on('data', ...)           // again, evented
-conn.query(sql, [42], function (err, res) {})  // or callback
+```javascript
+conn.query(sql, [42], function (err, res) {})
+sql += ' WHERE answer = ?'
 ```
 
 Close a connection:
