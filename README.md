@@ -33,13 +33,13 @@ Make queries:
 
 ```javascript
 var sql = 'SELECT * FROM my_table'
-conn.query(sql).on('row', function (row) {})  // evented
+conn.query(sql).on('data', function (row) {})  // evented
 conn.query(sql, function (error, result) {})  // or callback
 
 Use bound parameters:
 
 sql += ' WHERE my_column = ?'
-conn.query(sql, [42]).on('row', ...)           // again, evented
+conn.query(sql, [42]).on('data', ...)           // again, evented
 conn.query(sql, [42], function (err, res) {})  // or callback
 ```
 
