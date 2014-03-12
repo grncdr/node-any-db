@@ -48,25 +48,27 @@ conn.query(sql, [42], function (err, res) {})
 sql += ' WHERE answer = ?'
 ```
 
-Close a connection:
+Manage database transactions with [any-db-transaction][Transaction]:
 
-    conn.end()
-    
-Start a transaction:
+```javascript
+var begin = require('any-db-transaction')
 
-    var tx = conn.begin()             // Can also take a callback
-    tx.on('error', function (err) {}) // Emitted for unhandled query errors
-    tx.query(...)                     // same interface as connections, plus...
-    tx.commit()                       // takes an optional callback for errors
-    tx.rollback()                     // this too
-    
-Create a connection pool that maintains 2-20 connections
+var tx = begin(conn)              // Can also take a callback
+tx.on('error', function (err) {}) // Emitted for unhandled query errors
+tx.query(...)                     // same interface as connections, plus...
+tx.rollback()                     // this too
+tx.commit()                       // takes an optional callback for errors
+```
 
-    var pool = anyDB.createPool(dbURL, {min: 2, max: 20})
+Create a [connection pool][ConnectionPool] that maintains 2-20 connections:
+
+```javascript
+var pool = anyDB.createPool(dbURL, {min: 2, max: 20})
     
-    pool.query(...)       // perform a single query, same API as connection
-    var tx = pool.begin() // start a transaction, again, same API as connection
-    pool.close()          // close the pool (call when your app should exit)
+pool.query(...)       // perform a single query, same API as connection
+var tx = begin(pool)  // create a transaction with the first available connection
+pool.close()          // close the pool (call when your app should exit)
+```
 
 ## Description
 
@@ -103,7 +105,7 @@ will be parsed by [parse-db-url][]) or an object. When an object is used, it
 **must** have an `adapter` property, and any other properties required by the
 specified adapters [createConnection][] method.
 
-See also: README notes for your chosen adapter
+See also: README for your chosen adapter
 ([MySQL](https://github.com/grncdr/node-any-db-mysql),
  [Postgres](https://github.com/grncdr/node-any-db-postgres), and
  [SQLite3](https://github.com/grncdr/node-any-db-sqlite3))
@@ -112,5 +114,10 @@ See also: README notes for your chosen adapter
 
 MIT
 
+[Connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
+[Query]: https://github.com/grncdr/node-any-db-adapter-spec#query
+[adapter-spec]: https://github.com/grncdr/node-any-db-adapter-spec
 [createConnection]: https://github.com/grncdr/node-any-db-adapter-spec#adapter-createconnection
 [ConnectionPool]: https://github.com/grncdr/node-any-db-pool#api
+[Transaction]: https://github.com/grncdr/node-any-db-transaction#api
+[parse-db-url]: https://github.com/grncdr/parse-db-url
