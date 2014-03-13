@@ -35,12 +35,13 @@ function begin (queryable, beginStatement, callback) {
 
   if (typeof queryable.acquire == 'function') {
     // it's a pool
-    queryable.acquire(function (err, conn) {
+    var pool = queryable
+    pool.acquire(function (err, conn) {
       if (err) return process.nextTick(function () {
         tx.emit('error', err)
       })
-      var release = queryable.release.bind(queryable, conn)
-      tx.on('query', queryable.emit.bind(queryable, 'query'))
+      var release = pool.release.bind(pool, conn)
+      tx.on('query', pool.emit.bind(pool, 'query'))
       tx.once('rollback:complete', release)
         .once('commit:complete', release)
         .setConnection(conn)
@@ -67,6 +68,7 @@ function Transaction(opts) {
   this._queue = []
   this._nestingLevel = opts.nestingLevel || 0
 
+  this._emitQuery = function (query) { this.emit('query', query) }.bind(this)
   this.handleError = this.handleError.bind(this)
 
   FSM.call(this, 'disconnected', {
@@ -136,12 +138,8 @@ Transaction.prototype.setConnection = FSM.method('setConnection', {
       return
     }
 
-    connection.on('query', self._emitQuery = function (query) {
-      self.emit('query', query)
-    })
-    connection.on('error', self.handleError)
-
     self._connection = connection
+    self._addConnectionListeners()
 
     self.emit('begin:start')
     var beginQuery = connection.query(self._statements.begin, function (err) {
@@ -253,9 +251,15 @@ function createChildTransaction (parent, callback) {
   })
 
   child
-    .on('query', parent.emit.bind(parent, 'query'))
-    .once('connected', parent.state.bind(parent, 'connected'))
-    .once('close',  parent._runQueue.bind(parent))
+    .on('query', parent._emitQuery)
+    .once('connected', function () {
+      parent._removeConnectionListeners()
+      parent.state('connected')
+    })
+    .once('close', function () {
+      parent._addConnectionListeners()
+      parent._runQueue()
+    })
 
   return child
 }
@@ -272,10 +276,14 @@ function runChildTransaction (parent, child) {
   })
 }
 
-Transaction.prototype._removeConnection = function () {
+Transaction.prototype._addConnectionListeners = function () {
+  this._connection.on('error', this.handleError)
+  this._connection.on('query', this._emitQuery)
+}
+
+Transaction.prototype._removeConnectionListeners = function () {
   this._connection.removeListener('error', this.handleError)
   this._connection.removeListener('query', this._emitQuery)
-  this._connection = null
 }
 
 function closeVia (action) {
@@ -287,7 +295,8 @@ function closeVia (action) {
     }
     self.emit(action + ':start')
     var q = self._connection.query(self._statements[action], function (err) {
-      self._removeConnection()
+      self._removeConnectionListeners()
+      self._connection = null
       if (err) {
         self.handleError(new CloseFailedError(action, err), callback)
       } else {
