@@ -73,7 +73,13 @@ queryable.query('SELECT * FROM my_table')
 
 ### Queryable events
 
- - `'query', query` - Emitted immediately before a query is executed. 
+#### Query event
+
+The `'query'` event is emitted immediately before a query is executed.
+
+One argument is passed to event handlers:
+
+ * `query` - a [Query][] object
 
 ## Connection
 
@@ -109,8 +115,17 @@ called after the connection has closed.
 
 ### Connection Events
 
- * `'error', err` - Emitted when there is a connection-level error.
- * `'close'` - Emitted when the connection has been closed.
+#### Error event
+
+The `'error'` event is emitted when there is a connection-level error.
+
+No arguments are passed to event listeners.
+
+#### Close event
+
+The `'close'` event is emitted when the connection has been closed.
+
+No arguments are passed to event listeners.
 
 ## Query
 
@@ -152,17 +167,47 @@ property of a `Query` they did not create.
 
 ### Query Events
 
- * `'error', error` - Emitted at most once per query. Note that this event will
-   be emitted for errors even if a callback was provided, the callback will
-   simply be subscribed to the 'error' event.
- * `'fields', fields` - An array of [Field][ResultSet] objects emitted before
-   any `'data'` events.
+#### Error event
 
-The following events are part of the [Readable][] interface:
+The `'error'` event is emitted at most once per query. Note that this event will
+be emitted for errors even if a callback was provided, the callback will simply
+be subscribed to the `'error'` event.
 
- * `'data', row` - Emitted for each row in the query result set.
- * `'close'` - Emitted when the query completes.
- * `'end'` - Emitted after all query results have been consumed.
+One argument is passed to event listeners:
+
+* `error` - the error object.
+
+#### Fields event
+
+A `'fields'` event is emmitted before any `'data'` events.
+
+One argument is passed to event listeners:
+
+ * `fields` - an array of [Field][ResultSet] objects.
+
+### [Readable][] events
+
+The following events are part of the [Readable][] interface which is implemented by Query:
+
+#### Data event
+
+A `'data'` event is emitted for each row in the query result set.
+
+One argument is passed to event listeners:
+
+* `row` contains the contents of a single row in the query result
+
+#### Close event
+
+A `'close'` event is emitted when the query completes.
+
+No arguments are passed to event listeners.
+
+#### End event
+
+An `'end'` event is emitted after all query results have been consumed.
+
+No arguments are passed to event listeners.
 
 ## ResultSet
 
