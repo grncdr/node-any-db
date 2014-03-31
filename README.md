@@ -6,22 +6,6 @@ _The less-opinionated Node.js database abstraction layer_
 
 ## Synopsis
 
-```ocaml
-module.exports := {
-  createConnection: (Url, Continuation<Connection>?) => Connection
-  createPool: (Url, PoolConfig) => ConnectionPool
-}
-
-Url := String | { adapter: String }
-
-PoolConfig := {
-  min: Number,
-  max: Number,
-  onConnect: (Connection, ((Error) => void) => void
-  reset: (Connection, ((Error) => void) => void
-}
-```
-
 Establish a connection:
 
 ```javascript
@@ -93,6 +77,22 @@ library to satisfy the any-db dependency by installing the adapter of their
 choice.
 
 ## API
+
+```ocaml
+module.exports := {
+  createConnection: (Url, Continuation<Connection>?) => Connection
+  createPool: (Url, PoolConfig) => ConnectionPool
+}
+
+Url := String | { adapter: String }
+
+PoolConfig := {
+  min: Number,
+  max: Number,
+  onConnect: (Connection, ((Error) => void) => void
+  reset: (Connection, ((Error) => void) => void
+}
+```
 
 The API of [Connection][] and [Query][] objects is fully described in the
 [adapter-spec][], while [Transaction][] and [ConnectionPool][] objects have
