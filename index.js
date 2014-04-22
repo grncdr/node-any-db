@@ -7,9 +7,9 @@ var adapter = exports
 adapter.name = 'postgres'
 
 adapter.createQuery = function (text, params, callback) {
-  if (text instanceof PostgresQuery)
-    return text
-  return new PostgresQuery(text, params, callback)
+  if (typeof text === 'string')
+    return new PostgresQuery(text, params, callback)
+  return text
 }
 
 adapter.createConnection = function (opts, callback) {
