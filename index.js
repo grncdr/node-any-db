@@ -14,11 +14,8 @@ adapter.createQuery = function (text, params, callback) {
 
 adapter.createConnection = function (opts, callback) {
   var conn = new PostgresConnection(opts)
-  conn.connect(function (err) {
-    if (err) return callback ? callback(err) : conn.emit('error', err)
-    conn.emit('open')
-    if (callback) callback(null, conn)
-  })
+  conn.connect(callback)
+  conn.once('connect', conn.emit.bind(conn, 'open'))
   return conn
 }
 
