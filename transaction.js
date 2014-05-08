@@ -306,9 +306,7 @@ function closeVia (action) {
       return self.handleError(err, callback)
     }
     self.emit(action + ':start')
-    console.log(self);
     var q = self._connection.query(self._statements[action], function (err) {
-        console.log('foo');
       self._removeConnectionListeners()
       self._connection = null
       if (err) {
