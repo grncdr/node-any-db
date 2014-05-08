@@ -21,7 +21,13 @@ module.exports = function test (description, opts, callback) {
     var pool = opts.pool
     urls.forEach(function (url) {
       var backend = url.split(':').shift()
-      if (backend == 'sqlite3') fs.unlink('/tmp/any_db_test.db', function () {})
+      if (backend == 'sqlite3') {
+        try {
+          fs.unlinkSync('/tmp/any_db_test.db');
+        } catch (err) {
+          // ignore it
+        }
+      }
 
       var queryable, cleanup;
       if (pool) {
