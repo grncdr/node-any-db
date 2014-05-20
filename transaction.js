@@ -105,9 +105,14 @@ Transaction.prototype.handleError = function (err, skipEmit) {
   var rollback = this.rollback.implementations['open']
   if (this.state() !== 'closed' && this._connection && this._autoRollback) {
     rollback.call(this, function (rollbackErr) {
-      if (rollbackErr) self.emit('error', rollbackErr)
-      else if (!skipEmit) self.emit('error', err)
-    })
+      if (rollbackErr) {
+        rollbackErr.previous = err;
+        self.emit('error', rollbackErr)
+      }
+      else if (!skipEmit) {
+        self.emit('error', err)
+      }
+    }, err)
   }
   else if (!skipEmit) self.emit('error', err)
 }
@@ -327,4 +332,5 @@ function CloseFailedError(err, action) {
   Error.captureStackTrace(this, CloseFailedError)
   this.name = action + ' failed'
   this.message = err.getMessage()
+  this.previous = null;
 }
