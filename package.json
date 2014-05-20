@@ -1,6 +1,6 @@
 {
   "name": "any-db-pool",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Any-DB connection pool",
   "main": "index.js",
   "author": "Stephen Sugden <me@stephensugden.com>",
