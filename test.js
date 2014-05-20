@@ -13,35 +13,30 @@ module.exports = function test (description, opts, callback) {
     callback = opts
     opts = {}
   }
-  var urls = URLS.filter(function (url) {
-    return true // TODO select database via env or command line?
-  })
-  tape(description, function (t) {
-    t.plan(urls.length)
-    var pool = opts.pool
-    urls.forEach(function (url) {
-      var backend = url.split(':').shift()
-      if (backend == 'sqlite3') {
-        try {
-          fs.unlinkSync('/tmp/any_db_test.db');
-        } catch (err) {
-          // ignore it
-        }
+  var pool = opts.pool
+  URLS.forEach(function (url) {
+    var backend = url.split(':').shift()
+    if (backend == 'sqlite3') {
+      try {
+        fs.unlinkSync('/tmp/any_db_test.db');
+      } catch (err) {
+        console.error(err);
+        // ignore it
       }
+    }
 
-      var queryable, cleanup;
-      if (pool) {
-        queryable = anyDB.createPool(url, pool)
-        cleanup = queryable.close.bind(queryable)
-      } else {
-        queryable = anyDB.createConnection(url)
-        cleanup = queryable.end.bind(queryable)
-      }
+    var queryable, cleanup;
+    if (pool) {
+      queryable = anyDB.createPool(url, pool)
+      cleanup = queryable.close.bind(queryable)
+    } else {
+      queryable = anyDB.createConnection(url)
+      cleanup = queryable.end.bind(queryable)
+    }
 
-      t.test(backend + ' - ' + description, function (t) {
-        callback(queryable, t)
-        t.on('end', cleanup)
-      })
+    tape(backend + ' - ' + description, function (t) {
+      callback(queryable, t)
+      t.on('end', cleanup)
     })
   })
 }
