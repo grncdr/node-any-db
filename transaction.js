@@ -5,7 +5,17 @@ var once = require('once')
 module.exports = begin
 begin.Transaction = Transaction
 
-function begin (queryable, beginStatement, callback) {
+function begin (queryable, options, beginStatement, callback) {
+  if (typeof options != 'object') {
+    callback = beginStatement;
+    beginStatement = options;
+    options = {};
+  }
+
+  if (undefined === options.autoRollback) {
+    options.autoRollback = true;
+  }
+
   if (typeof beginStatement == 'function') {
     callback = beginStatement
     beginStatement = undefined
@@ -18,9 +28,10 @@ function begin (queryable, beginStatement, callback) {
   var adapter = queryable.adapter;
 
   var tx = new Transaction({
-    adapter:  adapter,
-    begin:    beginStatement,
-    callback: callback
+    adapter:      adapter,
+    begin:        beginStatement,
+    callback:     callback,
+    autoRollback: options.autoRollback
   })
 
   if (typeof adapter.createQuery != 'function' ||
@@ -67,6 +78,7 @@ function Transaction(opts) {
   }
   this._queue = []
   this._nestingLevel = opts.nestingLevel || 0
+  this._autoRollback = opts.autoRollback;
 
   this._emitQuery = function (query) { this.emit('query', query) }.bind(this)
   this.handleError = this.handleError.bind(this)
@@ -91,7 +103,7 @@ function Transaction(opts) {
 Transaction.prototype.handleError = function (err, skipEmit) {
   var self = this
   var rollback = this.rollback.implementations['open']
-  if (this.state() !== 'closed' && this._connection) {
+  if (this.state() !== 'closed' && this._connection && this._autoRollback) {
     rollback.call(this, function (rollbackErr) {
       if (rollbackErr) self.emit('error', rollbackErr)
       else if (!skipEmit) self.emit('error', err)
