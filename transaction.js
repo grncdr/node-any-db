@@ -310,7 +310,7 @@ function closeVia (action) {
       self._removeConnectionListeners()
       self._connection = null
       if (err) {
-        self.handleError(new CloseFailedError(action, err), callback)
+        self.handleError(new CloseFailedError(err, action), callback)
       } else {
         self.emit(action + ':complete')
         self.emit('close')
@@ -323,8 +323,8 @@ function closeVia (action) {
 }
 
 inherits(CloseFailedError, Error)
-function CloseFailedError(err, action, previous) {
+function CloseFailedError(err, action) {
   Error.captureStackTrace(this, CloseFailedError)
   this.name = action + ' failed'
-  this.message = err + "\nError causing rollback: " + previous
+  this.message = err.getMessage()
 }
