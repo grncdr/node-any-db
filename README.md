@@ -140,8 +140,12 @@ same by using nested transactions.
 ```javascript
 var tx = begin(conn, {autoRollback: false});
 var sp = begin(tx);
-sp.query('Query that produces errors', function(err) {
-    tx.query('another query');
+sp.query('query that might fail', function(err) {
+  if (err) {
+    tx.query('alternate queries');
+  } else {
+    sp.commit();
+  }
 });
 ```
 
