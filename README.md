@@ -54,7 +54,7 @@ within a single database transaction or not at all. Note that `begin` also
 understands how to acquire (and release) a connection from a [ConnectionPool][]
 as well, so you can simply pass a pool to it: `var tx = begin(pool)`
 
-Any queries that error during a transaction will cause an automatic rollback.
+By default, any queries that error during a transaction will cause an automatic rollback.
 If a query has no callback, the transaction will also handle (and re-emit)
 `'error'` events for the [Query][] instance. This enables handling errors for
 an entire transaction in a single place.
@@ -93,6 +93,60 @@ parent.query('SELECT 1', function (err) {
   child.commit();
 });
 ```
+
+
+#### Automatic Rollback on Error
+
+As stated previously, by default any queries that error during a transaction
+will cause an automatic rollback. This is to support the common pattern in which
+a transaction is a series of queries you either want to succeed or fail
+atomically.
+
+There is another common pattern for transactions where you either create or
+update a record. Many databases support an `INSERT OR REPLACE` statement, but
+quite often you'd like an `INSERT OR UPDATE` construct instead.
+
+Intuitively, a transaction can be used for this as well:
+
+1. Start a transaction
+1. Try an insert statement
+ - If that succeeds, commit.
+ - Otherwise, continue
+1. Try an update statement.
+  - If that succeeds, commit.
+  - Otherwise, roll back the transaction.
+
+A transaction is unlikely to be the best choice here. The results of the first
+statement need to make it back to the client before it can decide whether to
+commit or try something else. Usually databases better support this kind of
+construct with nested queries, which avoid those roundtrips.
+
+To facilitate this kind transaction use, automatic rollback of transactions
+can be disabled.
+
+```javascript
+var tx = begin(conn, {autoRollback: false});
+tx.query('Query that produces errors', function(err) {
+    tx.query('another query');
+});
+```
+
+**Note**: PostgreSQL does not allow you to use a transaction immediately after
+an error. However, you can get much the same behaviour by explicitly adding
+`SAVEPOINT` statements. A transaction with an error can be rolled back to a
+known good savepoint, and can be used from there onwards. You can achieve the
+same by using nested transactions.
+
+```javascript
+var tx = begin(conn, {autoRollback: false});
+var sp = begin(tx);
+sp.query('Query that produces errors', function(err) {
+    tx.query('another query');
+});
+```
+
+Note that the failing query is performed on the "savepoint" child transaction,
+but the final query is perfomed on the outer/parent transaction.
 
 ### Transaction states
 

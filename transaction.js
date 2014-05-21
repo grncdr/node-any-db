@@ -22,7 +22,7 @@ function begin (queryable, options, beginStatement, callback) {
   }
 
   if (queryable instanceof Transaction) {
-    return beginWithParent(queryable, callback)
+    return beginWithParent(queryable, options, callback)
   }
 
   var adapter = queryable.adapter;
@@ -234,8 +234,8 @@ function runQueuedQuery (self, query, next) {
   })
 }
 
-function beginWithParent (parent, callback) {
-  var child = createChildTransaction(parent, callback)
+function beginWithParent (parent, options, callback) {
+  var child = createChildTransaction(parent, options, callback)
   switch (parent.state()) {
     case 'disconnected':
     case 'connected':
@@ -254,7 +254,7 @@ function beginWithParent (parent, callback) {
   return child
 }
 
-function createChildTransaction (parent, callback) {
+function createChildTransaction (parent, options, callback) {
   var nestingLevel = parent._nestingLevel + 1
   var savepointName = 'sp_' + nestingLevel
 
@@ -265,6 +265,7 @@ function createChildTransaction (parent, callback) {
     begin:        'SAVEPOINT '         + savepointName,
     commit:       'RELEASE SAVEPOINT ' + savepointName,
     rollback:     'ROLLBACK TO '       + savepointName,
+    autoRollback: options.autoRollback,
   })
 
   child
