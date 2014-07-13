@@ -1,3 +1,4 @@
+'use strict';
 var EventEmitter = require('events').EventEmitter
 var sqlite3      = require('sqlite3')
 var inherits     = require('inherits')
@@ -63,21 +64,18 @@ SQLite3Connection.prototype.query = function (text, values, callback) {
   
   this.emit('query', query)
 
-  if (query.text.match(/^\s*insert\s+/i))
+  if (query.text.match(/^\s*(insert|update)\s+/i)) {
     this._db.run(query.text,
                  query.values,
-                 onComplete)
-  else
+                 function (err) { query.complete(err, this.changes, this.lastID) })
+  } else {
     this._db.each(query.text,
                   query.values,
                   query.onRow.bind(query),
-                  onComplete)
+                  query.complete.bind(query))
+  }
 
   return query
-
-  function onComplete(err, count) {
-    query.complete(err, count, this.lastID)
-  }
 }
 
 SQLite3Connection.prototype.end = function (callback) {
