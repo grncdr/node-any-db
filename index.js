@@ -39,7 +39,8 @@ function PostgresQuery (text, params, callback) {
     params = []
   }
   if (!params) params = [];
-  QueryStream.call(this, text, params)
+  this.constructor.super_.call(this, text, params)
+  this.super_ = this.constructor.super_.prototype
   if (this.callback = callback) {
     var errored = false
     this
@@ -57,17 +58,17 @@ function PostgresQuery (text, params, callback) {
 }
 
 PostgresQuery.prototype.handleRowDescription = function (message) {
-  QueryStream.prototype.handleRowDescription.call(this, message)
+  this.super_.handleRowDescription.call(this, message)
   this.emit('fields', message.fields)
 }
 
 PostgresQuery.prototype.handleReadyForQuery = function () {
   this.emit('close')
-  QueryStream.prototype.handleReadyForQuery.call(this)
+  this.super_.handleReadyForQuery.call(this)
 }
 
 PostgresQuery.prototype.handleError = function (err) {
   this.emit('close')
   this.push(null)
-  QueryStream.prototype.handleError.call(this, err)
+  this.super_.handleError.call(this, err)
 }
