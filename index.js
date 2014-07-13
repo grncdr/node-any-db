@@ -46,7 +46,7 @@ adapter.createQuery = function (text, values, callback) {
   stream.values = values
 
   if (stream.callback = callback) {
-    var result = {rowCount: 0, rows: [], lastInsertId: 0, fields: null}
+    var result = {rowCount: 0, rows: [], lastInsertId: null, fields: null}
     var errored = false
     stream
       .on('error', function (err) {
@@ -59,14 +59,14 @@ adapter.createQuery = function (text, values, callback) {
       .on('data', function (row) {
         if (row.constructor.name == 'OkPacket') {
           result.fieldCount = row.fieldCount
-          result.affectedRows = row.affectedRows
+          result.rowCount = result.affectedRows = row.affectedRows
           result.changedRows = row.changedRows
           result.lastInsertId = row.insertId
         } else {
           result.rowCount = result.rows.push(row)
         }
       })
-      .on('end', function (res) {
+      .on('end', function () {
         if (!errored) this.callback(null, result)
       })
   }
