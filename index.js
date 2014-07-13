@@ -57,6 +57,11 @@ function PostgresQuery (text, params, callback) {
   }
 }
 
+PostgresQuery.prototype.handleCommandComplete = function (message) {
+  this._result.addCommandComplete(message)
+  this.super_.handleCommandComplete.apply(this, arguments)
+}
+
 PostgresQuery.prototype.handleRowDescription = function (message) {
   this.super_.handleRowDescription.call(this, message)
   this.emit('fields', message.fields)
