@@ -39,4 +39,10 @@ require('../test')("Query events", function (conn, t) {
         t.deepEqual(expected, received)
       })
   })
+
+  t.test('cleanup', function(t){
+    conn.query("DROP TABLE streaming_test", function(){
+      t.end()
+    })
+  })
 })
