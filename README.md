@@ -121,6 +121,13 @@ The `'error'` event is emitted when there is a connection-level error.
 
 No arguments are passed to event listeners.
 
+#### Open event
+
+The `'open'` event is emitted when the connection has been established and is
+ready to query.
+
+No arguments are passed to event listeners.
+
 #### Close event
 
 The `'close'` event is emitted when the connection has been closed.
