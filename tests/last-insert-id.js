@@ -3,6 +3,10 @@ require('../test')("Last insert id", function (conn, t) {
     t.skip("Last insert ID not supported by postgres")
     return t.end()
   }
+  if (conn.adapter.name == 'mssql') {
+    t.skip("Last insert ID not supported by mssql")
+    return t.end()
+  }
   t.plan(2)
 
   conn.query("DROP TABLE last_insert_id_test", function (err) {})
