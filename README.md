@@ -92,6 +92,8 @@ PoolConfig := {
   onConnect: (Connection, ((Error) => void) => void
   reset: (Connection, ((Error) => void) => void
 }
+
+Continuation := (Maybe<Error>, Any) => void
 ```
 
 The API of [Connection][] and [Query][] objects is fully described in the
