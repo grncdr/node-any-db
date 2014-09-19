@@ -28,8 +28,8 @@ conn.query(sql, function (error, result) {})
 Use bound parameters:
 
 ```javascript
-conn.query(sql, [42], function (err, res) {})
 sql += ' WHERE answer = ?'
+conn.query(sql, [42], function (err, res) {})
 ```
 
 Manage database transactions with [any-db-transaction][Transaction]:
