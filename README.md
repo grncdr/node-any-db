@@ -64,7 +64,7 @@ as much as possible.
 
 ### For Applications
 
-   npm install --save any-db-{postgres,mysql,sqlite3}
+   npm install --save any-db-{postgres,mysql,sqlite3,mssql}
 
 All of the adapter libraries have `any-db` as a *peerDependency*, which means
 that `require('any-db')` will work even though you don't install it directly or
@@ -108,7 +108,8 @@ will be parsed by [parse-db-url][]) or an object. When an object is used, it
 specified adapters [createConnection][] method.
 
 See also: README for your chosen adapter
-([MySQL](https://github.com/grncdr/node-any-db-mysql),
+([MS SQL](https://github.com/Hypermediaisobar-admin/node-any-db-mssql),
+ [MySQL](https://github.com/grncdr/node-any-db-mysql),
  [Postgres](https://github.com/grncdr/node-any-db-postgres), and
  [SQLite3](https://github.com/grncdr/node-any-db-sqlite3))
 
