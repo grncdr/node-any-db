@@ -67,7 +67,13 @@ SQLite3Connection.prototype.query = function (text, values, callback) {
   if (query.text.match(/^\s*(insert|update)\s+/i)) {
     this._db.run(query.text,
                  query.values,
-                 function (err) { query.complete(err, this.changes, this.lastID) })
+                 function (err) { 
+					query.complete(
+						err, 
+						(this ? this.changes : 0), 
+						(this ? this.lastID : -1)
+					);
+				 });
   } else {
     this._db.each(query.text,
                   query.values,
