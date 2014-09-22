@@ -13,11 +13,11 @@ adapter.verbose = sqlite3.verbose;
 adapter.createQuery = function (text, values, callback) {
   if (text instanceof SQLite3Query) return text
   return new SQLite3Query(text, values, callback)
-} 
+}
 
 adapter.createConnection = function (opts, callback) {
   var filename;
-  
+
   if (opts.host) {
     filename = opts.host + (opts.database || '')
   } else {
@@ -61,7 +61,7 @@ SQLite3Connection.prototype.adapter = adapter
 
 SQLite3Connection.prototype.query = function (text, values, callback) {
   var query = adapter.createQuery(text, values, callback)
-  
+
   this.emit('query', query)
 
   if (query.text.match(/^\s*(insert|update|replace)\s+/i)) {
@@ -75,7 +75,9 @@ SQLite3Connection.prototype.query = function (text, values, callback) {
 
 function runQuery (db, query) {
   db.run(query.text, query.values, function (err) {
-    query.complete(err, this.changes, this.lastID)
+    query.complete(err,
+                   (this ? this.changes : 0),
+                   (this ? this.lastID : -1))
   })
 }
 
@@ -141,7 +143,7 @@ SQLite3Query.prototype.complete = function (err, count, lastId, affectedRows) {
   if (err) return this.emit('error', err)
   this._result.rowCount = count
   this._result.lastInsertId = lastId
-  if(affectedRows) {
+  if (affectedRows) {
     this._result.affectedRows = affectedRows
     this._result.changedRows = affectedRows
   }
