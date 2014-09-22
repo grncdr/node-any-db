@@ -193,7 +193,7 @@ Transactions created from a [Connection][] transition to `connected` before
 
 ### Transaction.adapter
 
-Contains the adapter name used for the transaction, e.g. `'sqlite3'`, etc.
+The [Adapter](https://github.com/grncdr/node-any-db-adapter-spec/#adapter) instance used by the resource (connection or parent transaction) underlying this transaction.
 
 ### Transaction.query
 
