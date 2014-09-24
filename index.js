@@ -64,7 +64,7 @@ SQLite3Connection.prototype.query = function (text, values, callback) {
   
   this.emit('query', query)
 
-  if (query.text.match(/^\s*insert|update|delete\s+/i))
+  if (query.text.match(/^\s*insert|update|delete\s+/i)) {
     this._db.run(query.text,
                  query.values,
                  function (err) {
