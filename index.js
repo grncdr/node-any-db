@@ -65,19 +65,28 @@ SQLite3Connection.prototype.query = function (text, values, callback) {
   this.emit('query', query)
 
   if (query.text.match(/^\s*(insert|update|replace)\s+/i)) {
-    this._db.run(query.text,
-                 query.values,
-                 function (err) {
-                   query.complete(err, this.changes, this.lastID)
-                 })
+    runQuery(this._db, query);
   } else {
-    this._db.each(query.text,
-                  query.values,
-                  query.onRow.bind(query),
-                  query.complete.bind(query))
+    eachQuery(this._db, query);
   }
 
   return query
+}
+
+function runQuery (db, query) {
+  db.run(query.text, query.values, function (err) {
+    query.complete(err, this.changes, this.lastID)
+  })
+}
+
+function eachQuery (db, query) {
+  db.each(query.text, query.values, onRow, function (err, count) {
+    query.complete(err, count);
+  })
+
+  function onRow (err, row) {
+    query.onRow(err, row)
+  }
 }
 
 SQLite3Connection.prototype.end = function (callback) {
