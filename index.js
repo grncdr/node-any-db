@@ -117,6 +117,7 @@ SQLite3Query.prototype.onRow = function (err, row) {
     this._errored = true
     this.emit('close')
     this.emit('error', err)
+	return;
   }
   if (!this._result.fields) {
     this._result.fields = Object.keys(row).map(function (name) {
