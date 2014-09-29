@@ -28,14 +28,16 @@ queryable.query(sql, param.values());
 ## API
 
 ```ocaml
-module.exports =: (Queryable) => ParamFunction
+module.exports =: (Queryable) => ParamAccessor
 
-ParamFunction = ( (name: String, value?: Any) => String ) & {
+ParamAccessor = ( (name: String, value?: Any) => String ) & {
   values: () => Object|Array
 }
 ```
 
-Given a `Queryable`, returns a `ParamFunction`. The ParamFunction is an accessor that accepts 1 or 2 arguments. With 2 arguments it sets a named parameter value and returns a placeholder, with 1 argument it returns the placeholder for a previously defined parameter.
+Given a `Queryable`, returns a `ParamAccessor`. A `ParamAccessor` is a function that accepts 1 or 2 arguments. With 2 arguments it sets a named parameter value and returns a placeholder, with 1 argument it returns the placeholder for a previously defined parameter.
+
+A `ParamAccessor` also has a `values` method, which will return a shallow copy of it's internal value storage, suitable for passing as the second parameter to `queryable.query`.
 
 # License
 
