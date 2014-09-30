@@ -17,12 +17,22 @@ implement.
    database, and streaming results back through a `Query` instance.
  - [Query][] - a [Readable][] stream that emits row objects.
 
+## Callbacks
+
+All callbacks used by the API follow convention used in node.js, where first
+parameter is an error (or null) and other parameters (if any) depend on use
+case.
+
+```ocaml
+type Continuation<T> : (Error | null, T) => void
+```
+
 ## Queryable
 
 ```ocaml
 Queryable := EventEmitter & {
   adapter: Adapter
-  query:   (text: String, params: Array?, Continuation<Results>?) => Query
+  query:   (text: String, params?: Array, Continuation<ResultSet>?) => Query
   query:   (Query) => Query
 }
 ```
@@ -40,7 +50,7 @@ The [Adapter][] instance that will be used by this `Queryable` for creating
 ### Queryable.query
 
 ```ocaml
-(text: String, params: Array?, Continuation<ResultSet>?) => Query
+(text: String, params?: Array, Continuation<ResultSet>?) => Query
 (Query) => Query
 ```
 
@@ -139,8 +149,8 @@ No arguments are passed to event listeners.
 ```ocaml
 Query := Readable<Object> & {
   text: String,
-  values: Array,
-  callback: null | (Error, Results) => void
+  values?: Array,
+  callback?: Continuation<ResultSet>
 }
 ```
 
@@ -220,10 +230,10 @@ No arguments are passed to event listeners.
 
 ```ocaml
 ResultSet := {
-  fields:       Array<Field>
-  rows:         Array<Object<Any>>
-  rowCount:     Integer
-  lastInsertId: Any?
+  fields:        Array<Field>
+  rows:          Array<Object<Any>>
+  rowCount:      Integer
+  lastInsertId?: Any
 }
 
 Field := {
@@ -269,7 +279,7 @@ See also: the [Connection API](#connection)
 ### Adapter.createQuery
 
 ```ocaml
-(text: String, params: Array?, Continuation<ResultSet>?) => Query
+(text: String, params?: Array, Continuation<ResultSet>?) => Query
 (Query) => Query {* returns same Query *}
 ```
 
