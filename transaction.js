@@ -323,7 +323,6 @@ function closeVia (action) {
         if (callback) callback()
       }
     })
-    self.emit('query', q)
     return self
   }
 }
