@@ -307,6 +307,9 @@ Transaction.prototype._removeConnectionListeners = function () {
 function closeVia (action) {
   return function (callback) {
     var self = this
+    if (self.state() == 'closed') {
+      return
+    }
     var err = self.state('closed')
     if (err) {
       return self.handleError(err, callback)
