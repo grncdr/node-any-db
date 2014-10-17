@@ -334,6 +334,6 @@ inherits(CloseFailedError, Error)
 function CloseFailedError(err, action) {
   Error.captureStackTrace(this, CloseFailedError)
   this.name = action + ' failed'
-  this.message = err.getMessage()
+  this.message = err.message
   this.previous = null;
 }
