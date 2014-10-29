@@ -65,23 +65,30 @@ SQLite3Connection.prototype.query = function (text, values, callback) {
   this.emit('query', query)
 
   if (query.text.match(/^\s*(insert|update|replace)\s+/i)) {
-    this._db.run(query.text,
-                 query.values,
-                 function (err) { 
-					query.complete(
-						err, 
-						(this ? this.changes : 0), 
-						(this ? this.lastID : -1)
-					);
-				 });
+    runQuery(this._db, query);
   } else {
-    this._db.each(query.text,
-                  query.values,
-                  query.onRow.bind(query),
-                  query.complete.bind(query))
+    eachQuery(this._db, query);
   }
 
   return query
+}
+
+function runQuery (db, query) {
+  db.run(query.text, query.values, function (err) {
+    query.complete(err,
+                   (this ? this.changes : 0),
+                   (this ? this.lastID : -1))
+  })
+}
+
+function eachQuery (db, query) {
+  db.each(query.text, query.values, onRow, function (err, count) {
+    query.complete(err, count);
+  })
+
+  function onRow (err, row) {
+    query.onRow(err, row)
+  }
 }
 
 SQLite3Connection.prototype.end = function (callback) {
@@ -117,7 +124,7 @@ SQLite3Query.prototype.onRow = function (err, row) {
     this._errored = true
     this.emit('close')
     this.emit('error', err)
-	return;
+    return;
   }
   if (!this._result.fields) {
     this._result.fields = Object.keys(row).map(function (name) {
@@ -128,7 +135,7 @@ SQLite3Query.prototype.onRow = function (err, row) {
   this.push(row)
 }
 
-SQLite3Query.prototype.complete = function (err, count, lastId) {
+SQLite3Query.prototype.complete = function (err, count, lastId, affectedRows) {
   this.push(null)
   if (this._errored) return // we've emitted an error from the row callback
   if (!err && !this._gotData) this.emit('fields', [])
@@ -136,6 +143,11 @@ SQLite3Query.prototype.complete = function (err, count, lastId) {
   if (err) return this.emit('error', err)
   this._result.rowCount = count
   this._result.lastInsertId = lastId
+  if (affectedRows) {
+    this._result.affectedRows = affectedRows
+    this._result.changedRows = affectedRows
+  }
+
   if (this.callback) {
     this.callback(null, this._result)
   }
