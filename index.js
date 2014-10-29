@@ -13,11 +13,11 @@ adapter.verbose = sqlite3.verbose;
 adapter.createQuery = function (text, values, callback) {
   if (text instanceof SQLite3Query) return text
   return new SQLite3Query(text, values, callback)
-}
+} 
 
 adapter.createConnection = function (opts, callback) {
   var filename;
-
+  
   if (opts.host) {
     filename = opts.host + (opts.database || '')
   } else {
@@ -61,7 +61,7 @@ SQLite3Connection.prototype.adapter = adapter
 
 SQLite3Connection.prototype.query = function (text, values, callback) {
   var query = adapter.createQuery(text, values, callback)
-
+  
   this.emit('query', query)
 
   if (query.text.match(/^\s*(insert|update|replace)\s+/i)) {
@@ -109,7 +109,10 @@ function SQLite3Query(text, values, callback) {
   }
   this.values = values || []
   if (this.callback = callback) {
-    this.on('error', this.callback).on('data', function (row) {
+    this.on('error', function(error) {
+		this.callback(error);
+	})
+	this.on('data', function (row) {
       this._result.rows.push(row)
     })
   }
