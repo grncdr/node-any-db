@@ -109,7 +109,10 @@ function SQLite3Query(text, values, callback) {
   }
   this.values = values || []
   if (this.callback = callback) {
-    this.on('error', this.callback).on('data', function (row) {
+    this.on('error', function(error) {
+		this.callback(error);
+	})
+	this.on('data', function (row) {
       this._result.rows.push(row)
     })
   }
