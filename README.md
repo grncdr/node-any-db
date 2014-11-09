@@ -261,16 +261,18 @@ module.exports = function unitOfWorkMiddleware (pool, errorHandler) {
     // responding to the user
     var writeHead = res.writeHead
     res.writeHead = function () {
+       var args = arguments
+
        if (req.tx.state() != 'closed') {
          req.tx.commit(function (err) {
            if (err) {
              errorHandler(req, res, err)
            } else {
-             writeHead.apply(res, arguments)
+             writeHead.apply(res, args)
            }
          })
        } else {
-         writeHead.apply(res, arguments)
+         writeHead.apply(res, args)
        }
     }
     next()
