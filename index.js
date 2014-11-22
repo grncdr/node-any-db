@@ -16,7 +16,7 @@ function createParameterContext (queryable) {
   if (!(anyDbAdapter && anyDbAdapter.name)) {
     throw new TypeError('Argument must be a valid Queryable');
   }
-  var impl = exports.adapters[anyDbAdapter.name];
+  var impl = adapter.createParamAccessor || exports.adapters[anyDbAdapter.name];
 
   if (!impl) {
     throw new Error('The ' + anyDbAdapter.name + ' adapter is not yet supported');
