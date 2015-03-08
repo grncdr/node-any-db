@@ -1,4 +1,4 @@
-var pg = require('pg.js')
+var pg = require('pg')
   , QueryStream = require('pg-query-stream')
   , inherits = require('inherits')
 
