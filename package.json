@@ -4,7 +4,7 @@
   "description": "The postgres adapter for any-db",
   "main": "index.js",
   "scripts": {
-    "test": "test-any-db-adapter",
+    "test": "standard && test-any-db-adapter",
     "debug": "node debug `which test-any-db-adapter`"
   },
   "repository": {
@@ -32,6 +32,7 @@
     "any-db": "~2.1.0"
   },
   "devDependencies": {
-    "any-db-adapter-spec": "~2.1.0"
+    "any-db-adapter-spec": "~2.1.0",
+    "standard": "*"
   }
 }

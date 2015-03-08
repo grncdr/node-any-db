@@ -1,14 +1,17 @@
+'use strict'
+
 var pg = require('pg')
-  , QueryStream = require('pg-query-stream')
-  , inherits = require('inherits')
+var QueryStream = require('pg-query-stream')
+var inherits = require('inherits')
 
 var adapter = exports
 
 adapter.name = 'postgres'
 
 adapter.createQuery = function (text, params, callback) {
-  if (typeof text === 'string')
+  if (typeof text === 'string') {
     return new PostgresQuery(text, params, callback)
+  }
   return text
 }
 
@@ -29,19 +32,20 @@ PostgresConnection.prototype.adapter = adapter
 PostgresConnection.prototype.query = function (text, params, callback) {
   var query = this.adapter.createQuery(text, params, callback)
   this.emit('query', query)
-  return pg.Client.prototype.query.call(this, query);
+  return pg.Client.prototype.query.call(this, query)
 }
 
 inherits(PostgresQuery, QueryStream)
 function PostgresQuery (text, params, callback) {
-  if (typeof params == 'function') {
+  if (typeof params === 'function') {
     callback = params
     params = []
   }
-  if (!params) params = [];
+  if (!params) params = []
   this.constructor.super_.call(this, text, params)
   this.super_ = this.constructor.super_.prototype
-  if (this.callback = callback) {
+  if (callback) {
+    this.callback = callback
     var errored = false
     this
       .on('error', function (err) {
@@ -54,6 +58,8 @@ function PostgresQuery (text, params, callback) {
       .on('end', function () {
         if (!errored) this.callback(null, this._result)
       })
+  } else {
+    this.callback = null
   }
 }
 
