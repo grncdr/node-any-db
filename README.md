@@ -56,7 +56,7 @@ The [Adapter][] instance that will be used by this `Queryable` for creating
 
 Execute a SQL statement using bound parameters (if they are provided) and
 return a [Query][] object that is a [Readable][] stream of the resulting
-rows. If a `Continuation<Results>` is provided the rows returned by the
+rows. If a `Continuation<ResultSet>` is provided the rows returned by the
 database will be aggregated into a [ResultSet][] which will be passed to the
 continuation after the query has completed.
 
@@ -253,7 +253,7 @@ it is not supported by Postgres itself.
 Adapter: {
   name:             String
   createConnection: (Object, Continuation<Connection>?) => Connection,
-  createQuery:      (String, Array?, Continuation<Results>?) => Query,
+  createQuery:      (String, Array?, Continuation<ResultSet>?) => Query,
 }
 ```
 
