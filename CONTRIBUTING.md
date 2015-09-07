@@ -48,5 +48,6 @@ lines under 80 characters long if you can help it.
 If a patch you're working on is getting hairy, don't be afraid to refactor
 existing code.
 
+[the spec]: https://github.com/grncdr/node-any-db-adapter-spec
 [any-db-pool]: https://github.com/grncdr/node-any-db-pool
 [any-db-transaction]: https://github.com/grncdr/node-any-db-transaction
