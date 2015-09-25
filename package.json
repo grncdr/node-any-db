@@ -23,13 +23,13 @@
   "author": "Stephen Sugden <me@stephensugden.com>",
   "license": "MIT",
   "dependencies": {
-    "mysql": "^2.0.0",
-    "inherits": "~2.0.1"
+    "mysql": "2.9.0",
+    "inherits": "2.0.1"
   },
   "peerDependencies": {
     "any-db": "~2.1.0"
   },
   "devDependencies": {
-    "any-db-adapter-spec": "~2.1.0"
+    "any-db-adapter-spec": "2.1.2"
   }
 }
