@@ -69,6 +69,7 @@ function ConnectionPool(adapter, connParams, options) {
   }
 
   this._pool = new GenericPool(poolOpts)
+  this._cancelledQueries = []
 
   var resetSteps = []
   if (adapter.reset) resetSteps.unshift(adapter.reset)
@@ -76,7 +77,12 @@ function ConnectionPool(adapter, connParams, options) {
   this.adapter = adapter
   this._reset = chain(resetSteps)
 
-  this._shouldDestroyConnection = options.shouldDestroyConnection || function (err) { return true }
+  this._shouldDestroyConnection = function (err) {
+    if (err instanceof CancelledQueryError) {
+      return false
+    }
+    return options.shouldDestroyConnection ? options.shouldDestroyConnection(err) : true
+  }
 
   var self = this
   self._handleIdleError = function (err) {
@@ -121,8 +127,12 @@ ConnectionPool.prototype.query = function (statement, params, callback) {
    * if a connection cannot be acquired, or emits an 'error' event while a
    * query is in progress, the error should be handled by the query object.
    */
-  var handleConnectionError = function (error) {
+  function handleConnectionError (error) {
     self._maybeDestroy(connection, error)
+    forwardError(error)
+  }
+
+  function forwardError (error) {
     if (query.callback) {
       query.callback(error)
     } else {
@@ -134,7 +144,10 @@ ConnectionPool.prototype.query = function (statement, params, callback) {
     if (err) {
       return handleConnectionError(err)
     }
-
+    err = self._checkCancellation(query)
+    if (err) {
+      return forwardError(err)
+    }
 
     // expose the connection to everything else in the outer scope
     connection = connection_
@@ -150,6 +163,10 @@ ConnectionPool.prototype.query = function (statement, params, callback) {
   })
 
   return query
+}
+
+ConnectionPool.prototype.cancel = function (query) {
+  this._cancelledQueries.push(query)
 }
 
 ConnectionPool.prototype.acquire = function (callback) {
@@ -195,4 +212,19 @@ ConnectionPool.prototype._maybeDestroy = function (connection, error) {
       this.release(connection)
     }
   }
+}
+
+ConnectionPool.prototype._checkCancellation = function (query) {
+  var cancelIndex = this._cancelledQueries.indexOf(query)
+  if (cancelIndex >= 0) {
+    this._cancelledQueries.splice(cancelIndex, 1)
+    return new CancelledQueryError()
+  }
+}
+
+inherits(CancelledQueryError, Error)
+function CancelledQueryError() {
+  Error.call(this)
+  this.message = "Query was cancelled before connection was acquired"
+  this.name = "CancelledQueryError"
 }
