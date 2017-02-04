@@ -1,6 +1,6 @@
 {
   "name": "any-db",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Database-agnostic connection pooling, querying, and result sets",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "any-db-pool": "~2.0.1",
+    "any-db-pool": "~2.2.0",
     "parse-db-url": "0.0.0"
   },
   "devDependencies": {
