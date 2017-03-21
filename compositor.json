@@ -103,7 +103,7 @@
     },
     {
       "component": "header",
-      "heading": "node-any-db-adapter-spec",
+      "heading": "any-db adapter spec",
       "subhead": "Specification and test suite for any-db database adapters",
       "children": [
         {
