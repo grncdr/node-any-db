@@ -1,0 +1,143 @@
+{
+  "name": "grncdr/node-any-db-adapter-spec",
+  "version": "0.1.4",
+  "libraries": {
+    "xv": "^1.1.25"
+  },
+  "title": "Any DB Spec",
+  "branch": "",
+  "style": {
+    "name": "Default",
+    "componentSet": {
+      "nav": "nav/BasicNav",
+      "header": "header/BannerHeader",
+      "article": "article/BasicArticle",
+      "footer": "footer/BasicFooter"
+    },
+    "fontFamily": "-apple-system, BlinkMacSystemFont, sans-serif",
+    "fontWeight": 400,
+    "bold": 600,
+    "lineHeight": 1.5,
+    "typeScale": [
+      72,
+      48,
+      24,
+      20,
+      16,
+      14,
+      12
+    ],
+    "monospace": "Menlo, monospace",
+    "heading": {
+      "fontFamily": null,
+      "fontStyle": null,
+      "fontWeight": 600,
+      "lineHeight": 1.25,
+      "textTransform": null,
+      "letterSpacing": null
+    },
+    "h0": {},
+    "h1": {},
+    "h2": {},
+    "h3": {},
+    "h4": {},
+    "h5": {},
+    "h6": {},
+    "alternativeText": {},
+    "space": [
+      0,
+      8,
+      16,
+      32,
+      48,
+      64,
+      96
+    ],
+    "layout": {
+      "maxWidth": 1024,
+      "centered": false
+    },
+    "colors": {
+      "text": "#111",
+      "background": "#fff",
+      "primary": "#08e",
+      "secondary": "#059",
+      "highlight": "#e08",
+      "border": "#ddd",
+      "muted": "#eee"
+    },
+    "border": {
+      "width": 1,
+      "radius": 2
+    },
+    "link": {},
+    "button": {
+      "hover": {
+        "boxShadow": "inset 0 0 0 999px rgba(0, 0, 0, .125)"
+      }
+    },
+    "input": {},
+    "body": {
+      "margin": 0
+    },
+    "breakpoints": {
+      "xs": "@media screen and (max-width:40em)",
+      "sm": "@media screen and (min-width:40em)",
+      "md": "@media screen and (min-width:52em)",
+      "lg": "@media screen and (min-width:64em)"
+    }
+  },
+  "content": [
+    {
+      "component": "nav",
+      "links": [
+        {
+          "href": "https://github.com/grncdr/node-any-db-adapter-spec",
+          "text": "GitHub"
+        },
+        {
+          "href": "https://npmjs.com/package/any-db-adapter-spec",
+          "text": "npm"
+        }
+      ]
+    },
+    {
+      "component": "header",
+      "heading": "node-any-db-adapter-spec",
+      "subhead": "Specification and test suite for any-db database adapters",
+      "children": [
+        {
+          "component": "ui/TweetButton",
+          "text": "node-any-db-adapter-spec: Specification and test suite for any-db database adapters",
+          "url": ""
+        },
+        {
+          "component": "ui/GithubButton",
+          "user": "grncdr",
+          "repo": "node-any-db-adapter-spec"
+        }
+      ],
+      "text": "v2.1.2"
+    },
+    {
+      "component": "article",
+      "metadata": {
+        "source": "github.readme"
+      },
+      "html": "<h1>Any-DB API</h1>\n<p>This repo specifies the API that must be implemented by an Any-DB adapter. The\nAPI is described in this README using <a href=\"https://github.com/jden/jsig\">jsig</a> and prose, and the\n<a href=\"tests\">test suite</a> can be used by adapter implementations to ensure they conform.</p>\n<p>Because this documentation is primarily intended for end-users of Any-DB, it\nbegins by describing the objects an adapter must create. The final section\ndescribes the exact API for creating these objects that an adapter must\nimplement.</p>\n<h2>Interfaces</h2>\n<ul>\n<li><a href=\"#queryable\">Queryable</a> - a common interface implemented by connections, pools, and\ntransactions.</li>\n<li><a href=\"#connection\">Connection</a> - the &quot;transport&quot; responsible for getting SQL queries to a\ndatabase, and streaming results back through a <code>Query</code> instance.</li>\n<li><a href=\"#query\">Query</a> - a <a href=\"http://nodejs.org/api/stream.html#stream_class_stream_readable\">Readable</a> stream that emits row objects.</li>\n</ul>\n<h2>Callbacks</h2>\n<p>All callbacks used by the API follow convention used in node.js, where first\nparameter is an error (or null) and other parameters (if any) depend on use\ncase.</p>\n<pre><span class=\"hljs-keyword\">type</span> <span class=\"hljs-type\">Continuation</span>&lt;<span class=\"hljs-type\">T</span>&gt; : (<span class=\"hljs-type\">Error</span> | null, <span class=\"hljs-type\">T</span>) =&gt; void</pre><h2>Queryable</h2>\n<pre><span class=\"hljs-type\">Queryable</span> := <span class=\"hljs-type\">EventEmitter</span> &amp; {\n  adapter: <span class=\"hljs-type\">Adapter</span>\n  query:   (text: <span class=\"hljs-type\">String</span>, params?: <span class=\"hljs-type\">Array</span>, <span class=\"hljs-type\">Continuation</span>&lt;<span class=\"hljs-type\">ResultSet</span>&gt;?) =&gt; <span class=\"hljs-type\">Query</span>\n  query:   (<span class=\"hljs-type\">Query</span>) =&gt; <span class=\"hljs-type\">Query</span>\n}</pre><p>Known implementations:</p>\n<ul>\n<li><a href=\"#connection\">Connection</a></li>\n<li><a href=\"https://github.com/grncdr/node-any-db-pool#api\">ConnectionPool</a> (external)</li>\n<li><a href=\"https://github.com/grncdr/node-any-db-transaction#api\">Transaction</a> (external).</li>\n</ul>\n<h3>Queryable.adapter</h3>\n<p>The <a href=\"#adapter\">Adapter</a> instance that will be used by this <code>Queryable</code> for creating\n<a href=\"#query\">Query</a> instances and/or connections.</p>\n<h3>Queryable.query</h3>\n<pre>(text: <span class=\"hljs-type\">String</span>, params?: <span class=\"hljs-type\">Array</span>, <span class=\"hljs-type\">Continuation</span>&lt;<span class=\"hljs-type\">ResultSet</span>&gt;?) =&gt; <span class=\"hljs-type\">Query</span>\n(<span class=\"hljs-type\">Query</span>) =&gt; <span class=\"hljs-type\">Query</span></pre><p>Execute a SQL statement using bound parameters (if they are provided) and\nreturn a <a href=\"#query\">Query</a> object that is a <a href=\"http://nodejs.org/api/stream.html#stream_class_stream_readable\">Readable</a> stream of the resulting\nrows. If a <code>Continuation&lt;ResultSet&gt;</code> is provided the rows returned by the\ndatabase will be aggregated into a [ResultSet][] which will be passed to the\ncontinuation after the query has completed.</p>\n<p>The second form is not needed for normal use, but must be implemented by\nadapters to work correctly with <a href=\"https://github.com/grncdr/node-any-db-pool#api\">ConnectionPool</a> and <a href=\"https://github.com/grncdr/node-any-db-transaction#api\">Transaction</a>. See\n<a href=\"#adapter-createquery\">Adapter.createQuery</a> for more details.</p>\n<p><em>Callback-style</em></p>\n<pre>queryable.query(<span class=\"hljs-string\">&apos;SELECT * FROM my_table&apos;</span>, <span class=\"hljs-function\"><span class=\"hljs-keyword\">function</span> (<span class=\"hljs-params\">err, res</span>) </span>{\n  <span class=\"hljs-keyword\">if</span> (err) <span class=\"hljs-keyword\">return</span> <span class=\"hljs-built_in\">console</span>.error(err)\n  res.rows.forEach(<span class=\"hljs-built_in\">console</span>.log)\n  <span class=\"hljs-built_in\">console</span>.log(<span class=\"hljs-string\">&apos;All done!&apos;</span>)\n})</pre><p><em>Stream-style</em></p>\n<pre>queryable.query(<span class=\"hljs-string\">&apos;SELECT * FROM my_table&apos;</span>)\n  .on(<span class=\"hljs-string\">&apos;error&apos;</span>, <span class=\"hljs-built_in\">console</span>.error)\n  .on(<span class=\"hljs-string\">&apos;data&apos;</span>, <span class=\"hljs-built_in\">console</span>.log)\n  .on(<span class=\"hljs-string\">&apos;end&apos;</span>, <span class=\"hljs-function\"><span class=\"hljs-keyword\">function</span> (<span class=\"hljs-params\"></span>) </span>{ <span class=\"hljs-built_in\">console</span>.log(<span class=\"hljs-string\">&apos;All done!&apos;</span>) })</pre><h3>Queryable events</h3>\n<h4>Query event</h4>\n<p>The <code>&apos;query&apos;</code> event is emitted immediately before a query is executed.</p>\n<p>One argument is passed to event handlers:</p>\n<ul>\n<li><code>query</code> - a <a href=\"#query\">Query</a> object</li>\n</ul>\n<h2>Connection</h2>\n<pre><span class=\"hljs-type\">Connection</span> := <span class=\"hljs-type\">Queryable</span> &amp; {\n  <span class=\"hljs-keyword\">end</span>: (<span class=\"hljs-type\">Continuation</span>&lt;void&gt;?) =&gt; void\n}</pre><p>Known implementations:</p>\n<ul>\n<li><a href=\"https://github.com/grncdr/node-any-db-mysql\">any-db-mysql</a> (external)</li>\n<li><a href=\"https://github.com/grncdr/node-any-db-postgres\">any-db-postgres</a> (external)</li>\n<li><a href=\"https://github.com/grncdr/node-any-db-sqlite3\">any-db-sqlite3</a> (external)</li>\n</ul>\n<p>Connection objects are obtained using <a href=\"https://github.com/grncdr/node-any-db#exportscreateconnection\">createConnection</a> from <a href=\"https://github.com/grncdr/node-any-db\">Any-DB</a> or\n<a href=\"https://github.com/grncdr/node-any-db-pool#connectionpoolacquire\">ConnectionPool.acquire</a>, both of which delegate to the\n<a href=\"#adaptercreateconnection\">createConnection</a> implementation of the specified\nadapter.</p>\n<p>While all <code>Connection</code> objects implement the <a href=\"#queryable\">Queryable</a> interface, the\nimplementations in each adapter may add additional methods or emit additional\nevents. If you need to access a feature of your database that is not described\nhere (such as Postgres&apos; server-side prepared statements), consult the\ndocumentation for your adapter.</p>\n<h3>Connection.end</h3>\n<p><code>(Continuation&lt;void&gt;) =&gt; void</code></p>\n<p>Close the database connection. If a continuation is provided it will be\ncalled after the connection has closed.</p>\n<h3>Connection Events</h3>\n<h4>Error event</h4>\n<p>The <code>&apos;error&apos;</code> event is emitted when there is a connection-level error.</p>\n<p>No arguments are passed to event listeners.</p>\n<h4>Open event</h4>\n<p>The <code>&apos;open&apos;</code> event is emitted when the connection has been established and is\nready to query.</p>\n<p>No arguments are passed to event listeners.</p>\n<h4>Close event</h4>\n<p>The <code>&apos;close&apos;</code> event is emitted when the connection has been closed.</p>\n<p>No arguments are passed to event listeners.</p>\n<h2>Query</h2>\n<pre>Query := Readable&lt;Object&gt; &amp; {\n  text: String,\n  values?: Array,\n  callback?: Continuation&lt;ResultSet&gt;\n}</pre><p><code>Query</code> objects are returned by the <a href=\"#queryablequery\">Queryable.query</a> method,\navailable on <a href=\"#connection\">connections</a>, <a href=\"https://github.com/grncdr/node-any-db-pool#connectionpoolquery\">pools</a>, and\n<a href=\"https://github.com/grncdr/node-any-db-transaction#transactionquery\">transactions</a>. Queries are instances of <a href=\"http://nodejs.org/api/stream.html#stream_class_stream_readable\">Readable</a>, and \nas such can be <a href=\"http://nodejs.org/api/stream.html#stream_readable_pipe_destination_options\">piped</a> through transforms and support backpressure\nfor more efficient memory-usage on very large results sets. (Note: at this time\nthe <code>sqlite3</code> driver does not support backpressure)</p>\n<p>Internally, <code>Query</code> instances are\n<a href=\"#adaptercreatequery\">created by a database Adapter</a> and may have more methods,\nproperties, and events than are described here. Consult the documentation for\nyour specific adapter to find out about any extensions.</p>\n<h3>Query.text</h3>\n<p>The SQL query as a string. If you are using MySQL this will contain\ninterpolated values <em>after</em> the query has been enqueued by a connection.</p>\n<h3>Query.values</h3>\n<p>The array of parameter values.</p>\n<h3>Query.callback</h3>\n<p>The callback (if any) that was provided to <a href=\"#queryablequery\">Queryable.query</a>.\nNote that <code>Query</code> objects <strong>must not</strong> use a closed over reference to their\ncallback, as other <code>any-db</code> libraries <em>may</em> rely on modifying the <code>callback</code>\nproperty of a <code>Query</code> they did not create.</p>\n<h3>Query Events</h3>\n<h4>Error event</h4>\n<p>The <code>&apos;error&apos;</code> event is emitted at most once per query. Note that this event will\nbe emitted for errors even if a callback was provided, the callback will simply\nbe subscribed to the <code>&apos;error&apos;</code> event.</p>\n<p>One argument is passed to event listeners:</p>\n<ul>\n<li><code>error</code> - the error object.</li>\n</ul>\n<h4>Fields event</h4>\n<p>A <code>&apos;fields&apos;</code> event is emmitted before any <code>&apos;data&apos;</code> events.</p>\n<p>One argument is passed to event listeners:</p>\n<ul>\n<li><code>fields</code> - an array of [Field][ResultSet] objects.</li>\n</ul>\n<h3><a href=\"http://nodejs.org/api/stream.html#stream_class_stream_readable\">Readable</a> events</h3>\n<p>The following events are part of the <a href=\"http://nodejs.org/api/stream.html#stream_class_stream_readable\">Readable</a> interface which is implemented by Query:</p>\n<h4>Data event</h4>\n<p>A <code>&apos;data&apos;</code> event is emitted for each row in the query result set.</p>\n<p>One argument is passed to event listeners:</p>\n<ul>\n<li><code>row</code> contains the contents of a single row in the query result</li>\n</ul>\n<h4>Close event</h4>\n<p>A <code>&apos;close&apos;</code> event is emitted when the query completes.</p>\n<p>No arguments are passed to event listeners.</p>\n<h4>End event</h4>\n<p>An <code>&apos;end&apos;</code> event is emitted after all query results have been consumed.</p>\n<p>No arguments are passed to event listeners.</p>\n<h2>ResultSet</h2>\n<pre>ResultSet := {\n  fields:        Array&lt;Field&gt;\n  rows:          Array&lt;Object&lt;Any&gt;&gt;\n  rowCount:      Integer\n  lastInsertId?: Any\n}\n\nField := {\n  name: String\n  {* other properties are driver specific *}\n}</pre><p><code>ResultSet</code> objects are just plain data that collect results of a query when a \ncontinuation is provided to <a href=\"#queryablequery\">Queryable.query</a>. The <code>lastInsertId</code> is optional,\nand currently supported by <code>sqlite3</code> and <code>mysql</code> but not <code>postgres</code>, because\nit is not supported by Postgres itself.</p>\n<h2>Adapter</h2>\n<pre><span class=\"hljs-type\">Adapter</span>: {\n  name:             <span class=\"hljs-type\">String</span>\n  createConnection: (<span class=\"hljs-type\">Object</span>, <span class=\"hljs-type\">Continuation</span>&lt;<span class=\"hljs-type\">Connection</span>&gt;?) =&gt; <span class=\"hljs-type\">Connection</span>,\n  createQuery:      (<span class=\"hljs-type\">String</span>, <span class=\"hljs-type\">Array</span>?, <span class=\"hljs-type\">Continuation</span>&lt;<span class=\"hljs-type\">ResultSet</span>&gt;?) =&gt; <span class=\"hljs-type\">Query</span>,\n}</pre><p>This section is mostly intended for adapter authors, other users should rarely\nneed to interact with this API directly.</p>\n<h3>Adapter.name</h3>\n<p>The string name of the adapter, e.g. <code>&apos;mysql&apos;</code>, <code>&apos;postgres&apos;</code> or <code>&apos;sqlite3&apos;</code>.</p>\n<h3>Adapter.createConnection</h3>\n<p><code>(config: Object, Continuation&lt;Connection&gt;?) =&gt; Connection</code></p>\n<p>Create a new connection object. In common usage, <code>config</code> will be created by\n<a href=\"https://github.com/grncdr/parse-db-url#api\">parse-db-url</a> and passed to the adapter by <a href=\"https://github.com/grncdr/node-any-db\">any-db</a>.</p>\n<p>If a continuation is given, it <strong>must</strong> be called, either with an error or the\nestablished connection.</p>\n<p>See also: the <a href=\"#connection\">Connection API</a></p>\n<h3>Adapter.createQuery</h3>\n<pre>(text: <span class=\"hljs-type\">String</span>, params?: <span class=\"hljs-type\">Array</span>, <span class=\"hljs-type\">Continuation</span>&lt;<span class=\"hljs-type\">ResultSet</span>&gt;?) =&gt; <span class=\"hljs-type\">Query</span>\n(<span class=\"hljs-type\">Query</span>) =&gt; <span class=\"hljs-type\">Query</span> {* returns same <span class=\"hljs-type\">Query</span> *}</pre><p>Create a <a href=\"#query\">Query</a> that <em>may</em> eventually be executed later on by a\n<a href=\"#connection\">Connection</a>. While this function is rarely needed by user code, it makes\nit possible for <a href=\"https://github.com/grncdr/node-any-db-pool#connectionpoolquery\">ConnectionPool.query</a> and <a href=\"https://github.com/grncdr/node-any-db-transaction#transactionquery\">Transaction.query</a> to fulfill\nthe <a href=\"#queryablequery\">Queryable.query</a> contract by synchronously returning a <a href=\"#query\">Query</a> stream.</p>\n<h1>License</h1>\n<p>2-clause BSD</p>\n"
+    },
+    {
+      "component": "footer",
+      "links": [
+        {
+          "href": "https://github.com/grncdr/node-any-db-adapter-spec",
+          "text": "GitHub"
+        },
+        {
+          "href": "https://github.com/grncdr",
+          "text": "grncdr"
+        }
+      ]
+    }
+  ]
+}
