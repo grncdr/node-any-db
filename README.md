@@ -64,17 +64,16 @@ as much as possible.
 
 ### For Applications
 
-   npm install --save any-db-{postgres,mysql,sqlite3,mssql}
+   npm install --save any-db-{postgres,mysql,sqlite3,mssql} any-db
 
 All of the adapter libraries have `any-db` as a *peerDependency*, which means
-that `require('any-db')` will work even though you don't install it directly or
-add it to your package.json.
+that you will have to install `any-db` as well.
 
 ### For Libraries
 
 Add `any-db` to `peerDependencies` in package.json. This allows users of your
 library to satisfy the any-db dependency by installing the adapter of their
-choice.
+choice. If you need to run tests, list it as a `devDependency` too.
 
 ## API
 
