@@ -1,5 +1,8 @@
 language: node_js
 
+before_script:
+  - mysql -e 'create database any_db_test' -uroot
+
 script:
   - npm run lerna bootstrap
   - npm test
@@ -9,6 +12,7 @@ script:
   - ( cd packages/any-db-sqlite3 && npm test )
   - ( cd packages/any-db-transaction && npm test )
   - ( cd packages/parse-db-url && npm test )
+
 node_js:
   - "node"
   - "lts/*"
