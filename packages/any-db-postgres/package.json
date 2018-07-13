@@ -1,0 +1,38 @@
+{
+  "name": "any-db-postgres",
+  "version": "2.1.5",
+  "description": "The postgres adapter for any-db",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard && test-any-db-adapter",
+    "debug": "node debug `which test-any-db-adapter`"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grncdr/node-any-db-postgres.git"
+  },
+  "bugs": {
+    "url": "https://github.com/grncdr/node-any-db-postgres/issues"
+  },
+  "keywords": [
+    "any-db",
+    "anydb",
+    "postgres",
+    "pg",
+    "adapter"
+  ],
+  "author": "Stephen Sugden <me@stephensugden.com>",
+  "license": "MIT",
+  "dependencies": {
+    "pg": "*",
+    "pg-query-stream": "~0.2.0",
+    "inherits": "~2.0.1"
+  },
+  "peerDependencies": {
+    "any-db": "^2.1.0"
+  },
+  "devDependencies": {
+    "any-db-adapter-spec": "~2.1.0",
+    "standard": "*"
+  }
+}
