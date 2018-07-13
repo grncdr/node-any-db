@@ -1,0 +1,35 @@
+{
+  "name": "any-db-mysql",
+  "version": "2.1.2",
+  "description": "The MySQL adapter for any-db",
+  "main": "index.js",
+  "scripts": {
+    "test": "[ -z \"$any_db_test_url\" ] && export any_db_test_url='mysql://root@localhost/any_db_test'; test-any-db-adapter",
+    "debug": "[ -z \"$any_db_test_url\" ] && export any_db_test_url='mysql://root@localhost/any_db_test'; node debug `which test-any-db-adapter`"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grncdr/node-any-db-mysql.git"
+  },
+  "bugs": {
+    "url": "https://github.com/grncdr/node-any-db-mysql/issues"
+  },
+  "keywords": [
+    "any-db",
+    "anydb",
+    "mysql",
+    "adapter"
+  ],
+  "author": "Stephen Sugden <me@stephensugden.com>",
+  "license": "MIT",
+  "dependencies": {
+    "mysql": "2.13.0",
+    "inherits": "2.0.1"
+  },
+  "peerDependencies": {
+    "any-db": "~2.1.0"
+  },
+  "devDependencies": {
+    "any-db-adapter-spec": "2.1.2"
+  }
+}
