@@ -1,0 +1,11 @@
+
+{
+  "globalstrict": true,
+  "node": true,
+  "proto": true,
+  "asi": true,
+  "quotmark": "single",
+  "strict": true,
+  "unused": true,
+  "latedef": "nofunc"
+}

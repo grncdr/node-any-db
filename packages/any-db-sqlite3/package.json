@@ -1,0 +1,37 @@
+{
+  "name": "any-db-sqlite3",
+  "version": "2.1.4",
+  "description": "The SQLite3 adapter for any-db",
+  "main": "index.js",
+  "scripts": {
+    "test": "test-any-db-adapter",
+    "debug": "node debug `which test-any-db-adapter`"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grncdr/node-any-db-sqlite3"
+  },
+  "bugs": {
+    "url": "https://github.com/grncdr/node-any-db-sqlite3/issues"
+  },
+  "keywords": [
+    "any-db",
+    "anydb",
+    "sqlite3",
+    "sqlite",
+    "adapter"
+  ],
+  "author": "Stephen Sugden <me@stephensugden.com>",
+  "license": "MIT",
+  "dependencies": {
+    "sqlite3": "*",
+    "inherits": "~2.0.1"
+  },
+  "peerDependencies": {
+    "any-db": "~2.1.0"
+  },
+  "devDependencies": {
+    "any-db-adapter-spec": "~2.1.0",
+    "covert": "~0.1.0"
+  }
+}
