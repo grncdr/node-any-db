@@ -1,0 +1,28 @@
+{
+  "name": "any-db-params",
+  "version": "1.0.1",
+  "description": "Collect parameters and generate SQL placeholders for any database",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com/grncdr/node-any-db-params.git"
+  },
+  "keywords": [
+    "any-db",
+    "placeholders",
+    "sql",
+    "mysql",
+    "postgres",
+    "sqlite3",
+    "mssql"
+  ],
+  "author": "Stephen Sugden",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/grncdr/node-any-db-params/issues"
+  },
+  "homepage": "https://github.com/grncdr/node-any-db-params"
+}
