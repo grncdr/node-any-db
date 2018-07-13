@@ -1,5 +1,13 @@
 language: node_js
 
+script:
+  - npm test
+  - cd packages/any-db-pool && npm test
+  - cd packages/any-db-mysql && npm test
+  - cd packages/any-db-postgres && npm test
+  - cd packages/any-db-sqlite3 && npm test
+  - cd packages/any-db-transaction && npm test
+  - cd packages/parse-db-url && npm test
 node_js:
-  - node
-  - 8
+  - "node"
+  - "lts/*"

@@ -4,7 +4,8 @@
   "description": "Database-agnostic connection pooling, querying, and result sets",
   "main": "index.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js",
+    "lerna": "lerna"
   },
   "repository": {
     "type": "git",
