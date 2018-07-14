@@ -11,11 +11,11 @@ implement.
 
 ## Interfaces
 
- - [Queryable][] - a common interface implemented by connections, pools, and
-   transactions.
- - [Connection][] - the "transport" responsible for getting SQL queries to a
-   database, and streaming results back through a `Query` instance.
- - [Query][] - a [Readable][] stream that emits row objects.
+- [Queryable][] - a common interface implemented by connections, pools, and
+  transactions.
+- [Connection][] - the "transport" responsible for getting SQL queries to a
+  database, and streaming results back through a `Query` instance.
+- [Query][] - a [Readable][] stream that emits row objects.
 
 ## Callbacks
 
@@ -38,9 +38,10 @@ Queryable := EventEmitter & {
 ```
 
 Known implementations:
- - [Connection][Connection]
- - [ConnectionPool][ConnectionPool] (external)
- - [Transaction][Transaction] (external).
+
+- [Connection][connection]
+- [ConnectionPool][connectionpool] (external)
+- [Transaction][transaction] (external).
 
 ### Queryable.adapter
 
@@ -64,21 +65,26 @@ The second form is not needed for normal use, but must be implemented by
 adapters to work correctly with [ConnectionPool][] and [Transaction][]. See
 [Adapter.createQuery](#adapter-createquery) for more details.
 
-*Callback-style*
+_Callback-style_
+
 ```javascript
-queryable.query('SELECT * FROM my_table', function (err, res) {
+queryable.query('SELECT * FROM my_table', function(err, res) {
   if (err) return console.error(err)
   res.rows.forEach(console.log)
   console.log('All done!')
 })
 ```
 
-*Stream-style*
+_Stream-style_
+
 ```javascript
-queryable.query('SELECT * FROM my_table')
+queryable
+  .query('SELECT * FROM my_table')
   .on('error', console.error)
   .on('data', console.log)
-  .on('end', function () { console.log('All done!') })
+  .on('end', function() {
+    console.log('All done!')
+  })
 ```
 
 ### Queryable events
@@ -89,7 +95,7 @@ The `'query'` event is emitted immediately before a query is executed.
 
 One argument is passed to event handlers:
 
- * `query` - a [Query][] object
+- `query` - a [Query][] object
 
 ## Connection
 
@@ -101,9 +107,9 @@ Connection := Queryable & {
 
 Known implementations:
 
- - [any-db-mysql][] (external)
- - [any-db-postgres][] (external)
- - [any-db-sqlite3][] (external)
+- [any-db-mysql][] (external)
+- [any-db-postgres][] (external)
+- [any-db-sqlite3][] (external)
 
 Connection objects are obtained using [createConnection][] from [Any-DB][] or
 [ConnectionPool.acquire][], both of which delegate to the
@@ -154,22 +160,22 @@ Query := Readable<Object> & {
 }
 ```
 
-`Query` objects are returned by the [Queryable.query][Queryable.query] method,
-available on [connections][Connection], [pools][ConnectionPool.query], and
-[transactions][Transaction.query]. Queries are instances of [Readable][], and 
-as such can be [piped][Readable.pipe] through transforms and support backpressure
+`Query` objects are returned by the [Queryable.query][queryable.query] method,
+available on [connections][connection], [pools][connectionpool.query], and
+[transactions][transaction.query]. Queries are instances of [Readable][], and
+as such can be [piped][readable.pipe] through transforms and support backpressure
 for more efficient memory-usage on very large results sets. (Note: at this time
 the `sqlite3` driver does not support backpressure)
 
 Internally, `Query` instances are
-[created by a database Adapter][Adapter.createQuery] and may have more methods,
+[created by a database Adapter][adapter.createquery] and may have more methods,
 properties, and events than are described here. Consult the documentation for
 your specific adapter to find out about any extensions.
 
 ### Query.text
 
 The SQL query as a string. If you are using MySQL this will contain
-interpolated values *after* the query has been enqueued by a connection.
+interpolated values _after_ the query has been enqueued by a connection.
 
 ### Query.values
 
@@ -177,9 +183,9 @@ The array of parameter values.
 
 ### Query.callback
 
-The callback (if any) that was provided to [Queryable.query][Queryable.query].
+The callback (if any) that was provided to [Queryable.query][queryable.query].
 Note that `Query` objects **must not** use a closed over reference to their
-callback, as other `any-db` libraries *may* rely on modifying the `callback`
+callback, as other `any-db` libraries _may_ rely on modifying the `callback`
 property of a `Query` they did not create.
 
 ### Query Events
@@ -192,7 +198,7 @@ be subscribed to the `'error'` event.
 
 One argument is passed to event listeners:
 
-* `error` - the error object.
+- `error` - the error object.
 
 #### Fields event
 
@@ -200,7 +206,7 @@ A `'fields'` event is emmitted before any `'data'` events.
 
 One argument is passed to event listeners:
 
- * `fields` - an array of [Field][ResultSet] objects.
+- `fields` - an array of [Field][resultset] objects.
 
 ### [Readable][] events
 
@@ -212,7 +218,7 @@ A `'data'` event is emitted for each row in the query result set.
 
 One argument is passed to event listeners:
 
-* `row` contains the contents of a single row in the query result
+- `row` contains the contents of a single row in the query result
 
 #### Close event
 
@@ -242,7 +248,7 @@ Field := {
 }
 ```
 
-`ResultSet` objects are just plain data that collect results of a query when a 
+`ResultSet` objects are just plain data that collect results of a query when a
 continuation is provided to [Queryable.query][]. The `lastInsertId` is optional,
 and currently supported by `sqlite3` and `mysql` but not `postgres`, because
 it is not supported by Postgres itself.
@@ -283,7 +289,7 @@ See also: the [Connection API](#connection)
 (Query) => Query {* returns same Query *}
 ```
 
-Create a [Query](#query) that *may* eventually be executed later on by a
+Create a [Query](#query) that _may_ eventually be executed later on by a
 [Connection][]. While this function is rarely needed by user code, it makes
 it possible for [ConnectionPool.query][] and [Transaction.query][] to fulfill
 the [Queryable.query][] contract by synchronously returning a [Query][] stream.
@@ -299,23 +305,20 @@ the [Queryable.query][] contract by synchronously returning a [Query][] stream.
 [any-db-mysql]: https://github.com/grncdr/node-any-db-mysql
 [any-db-postgres]: https://github.com/grncdr/node-any-db-postgres
 [any-db-sqlite3]: https://github.com/grncdr/node-any-db-sqlite3
-[createConnection]: https://github.com/grncdr/node-any-db#exportscreateconnection
-
-[Readable]: http://nodejs.org/api/stream.html#stream_class_stream_readable
-[Readable.pipe]: http://nodejs.org/api/stream.html#stream_readable_pipe_destination_options
-
-[ConnectionPool.query]: https://github.com/grncdr/node-any-db-pool#connectionpoolquery
-[ConnectionPool.acquire]: https://github.com/grncdr/node-any-db-pool#connectionpoolacquire
-[ConnectionPool]: https://github.com/grncdr/node-any-db-pool#api
-[Transaction]: https://github.com/grncdr/node-any-db-transaction#api
+[createconnection]: https://github.com/grncdr/node-any-db#exportscreateconnection
+[readable]: http://nodejs.org/api/stream.html#stream_class_stream_readable
+[readable.pipe]: http://nodejs.org/api/stream.html#stream_readable_pipe_destination_options
+[connectionpool.query]: https://github.com/grncdr/node-any-db-pool#connectionpoolquery
+[connectionpool.acquire]: https://github.com/grncdr/node-any-db-pool#connectionpoolacquire
+[connectionpool]: https://github.com/grncdr/node-any-db-pool#api
+[transaction]: https://github.com/grncdr/node-any-db-transaction#api
 [any-db-transaction]: https://github.com/grncdr/node-any-db-transaction
-[Transaction.query]: https://github.com/grncdr/node-any-db-transaction#transactionquery
-
+[transaction.query]: https://github.com/grncdr/node-any-db-transaction#transactionquery
 [test suite]: tests
-[Adapter]: #adapter
-[Queryable]: #queryable
-[Queryable.query]: #queryablequery
-[Connection]: #connection
-[Connection.query]: #connectionquery
-[Query]: #query
-[Adapter.createQuery]: #adaptercreatequery
+[adapter]: #adapter
+[queryable]: #queryable
+[queryable.query]: #queryablequery
+[connection]: #connection
+[connection.query]: #connectionquery
+[query]: #query
+[adapter.createquery]: #adaptercreatequery

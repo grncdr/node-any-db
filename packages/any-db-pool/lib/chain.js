@@ -1,21 +1,22 @@
-module.exports = makeChain;
+module.exports = makeChain
 
 function makeChain(steps) {
-  return chain;
+  return chain
 
   function chain(it, callback) {
-    var i = 0, currentStep;
-    (function next(err) {
-      if (err) return callback(err);
+    var i = 0,
+      currentStep
+    ;(function next(err) {
+      if (err) return callback(err)
       if ((currentStep = steps[i++])) {
         try {
-          currentStep(it, next);
+          currentStep(it, next)
         } catch (err) {
-          callback(err);
+          callback(err)
         }
       } else {
-        callback(null, it);
+        callback(null, it)
       }
-    })();
+    })()
   }
 }

@@ -22,6 +22,6 @@ append `?OPEN_READONLY` to the URL. The available flags are documented in this
 MIT
 
 [sqlite3]: http://github.com/owner/node-sqlite3
-[Connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
-[Query]: https://github.com/grncdr/node-any-db-adapter-spec#query
-[Any-DB API]: https://github.com/grncdr/node-any-db-adapter-spec
+[connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
+[query]: https://github.com/grncdr/node-any-db-adapter-spec#query
+[any-db api]: https://github.com/grncdr/node-any-db-adapter-spec

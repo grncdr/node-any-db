@@ -66,9 +66,9 @@ parent transaction:
 ```javascript
 var parent = begin(connection)
 var child = begin(parent)
-child.query("some invalid sql")
-child.on('error', function () {
-  parent.query("select 1") // parent still works
+child.query('some invalid sql')
+child.on('error', function() {
+  parent.query('select 1') // parent still works
 })
 ```
 
@@ -87,13 +87,12 @@ committing the child transaction. For example:
 // Do not do this! it will deadlock!
 
 var parent = begin(connection) // starts the transaction
-var child  = begin(parent)     // creates a savepoint
+var child = begin(parent) // creates a savepoint
 
-parent.query('SELECT 1', function (err) {
-  child.commit();
-});
+parent.query('SELECT 1', function(err) {
+  child.commit()
+})
 ```
-
 
 #### Automatic Rollback on Error
 
@@ -108,13 +107,16 @@ quite often you'd like an `INSERT OR UPDATE` construct instead.
 
 Intuitively, a transaction can be used for this as well:
 
-1. Start a transaction
-1. Try an insert statement
- - If that succeeds, commit.
- - Otherwise, continue
-1. Try an update statement.
-  - If that succeeds, commit.
-  - Otherwise, roll back the transaction.
+1.  Start a transaction
+1.  Try an insert statement
+
+- If that succeeds, commit.
+- Otherwise, continue
+
+1.  Try an update statement.
+
+- If that succeeds, commit.
+- Otherwise, roll back the transaction.
 
 A transaction is unlikely to be the best choice here. The results of the first
 statement need to make it back to the client before it can decide whether to
@@ -125,10 +127,10 @@ To facilitate this kind transaction use, automatic rollback of transactions
 can be disabled.
 
 ```javascript
-var tx = begin(conn, {autoRollback: false});
+var tx = begin(conn, { autoRollback: false })
 tx.query('Query that produces errors', function(err) {
-    tx.query('another query');
-});
+  tx.query('another query')
+})
 ```
 
 **Note**: PostgreSQL does not allow you to use a transaction immediately after
@@ -138,15 +140,15 @@ known good savepoint, and can be used from there onwards. You can achieve the
 same by using nested transactions.
 
 ```javascript
-var tx = begin(conn, {autoRollback: false});
-var sp = begin(tx);
+var tx = begin(conn, { autoRollback: false })
+var sp = begin(tx)
 sp.query('query that might fail', function(err) {
   if (err) {
-    tx.query('alternate queries');
+    tx.query('alternate queries')
   } else {
-    sp.commit();
+    sp.commit()
   }
-});
+})
 ```
 
 Note that the failing query is performed on the "savepoint" child transaction,
@@ -174,9 +176,9 @@ Once the transaction acquires a connection\* it will transition to the
 state any new tasks will still be added to the end of the queue. There are two
 possible transitions from the `connected` state:
 
- * `connected → open` - When all queued tasks have finished.
- * `connected → closed` - When a rollback or commit is encountered in the queue.
-   This includes automatic rollbacks caused by query errors.
+- `connected → open` - When all queued tasks have finished.
+- `connected → closed` - When a rollback or commit is encountered in the queue.
+  This includes automatic rollbacks caused by query errors.
 
 `closed` is a terminal state in which all further database operations result in
 errors. (The errors will either be sent to any callback provided or emitted as
@@ -228,22 +230,23 @@ Again, the transaction will be unusable after calling this method.
 
 ### Transaction events
 
- * `'query', query` - emitted immediately after `.query` is called on a
-   connection via `tx.query`. The argument is a [query](#query) object.
- * `'commit:start'`      - Emitted when `.commit()` is called.
- * `'commit:complete'`   - Emitted after the transaction has committed.
- * `'rollback:start'`    - Emitted when `.rollback()` is called.
- * `'rollback:complete'` - Emitted after the transaction has rolled back.
- * `'close'`             - Emitted after `rollback` or `commit` completes.
- * `'error', err`        - Emitted under three conditions:
-   1. There was an error acquiring a connection.
-   2. Any query performed in this transaction emits an error that would otherwise
+- `'query', query` - emitted immediately after `.query` is called on a
+  connection via `tx.query`. The argument is a [query](#query) object.
+- `'commit:start'` - Emitted when `.commit()` is called.
+- `'commit:complete'` - Emitted after the transaction has committed.
+- `'rollback:start'` - Emitted when `.rollback()` is called.
+- `'rollback:complete'` - Emitted after the transaction has rolled back.
+- `'close'` - Emitted after `rollback` or `commit` completes.
+- `'error', err` - Emitted under three conditions:
+
+  1.  There was an error acquiring a connection.
+  2.  Any query performed in this transaction emits an error that would otherwise
       go unhandled.
-   3. Any of `query`, `begin`, `commit`, or `rollback` are called after the
+  3.  Any of `query`, `begin`, `commit`, or `rollback` are called after the
       connection has already been committed or rolled back.
 
-   Note that the `'error'` event **may be emitted multiple times!** depending on
-   the callback you are registering, you way want to wrap it using [once][].
+  Note that the `'error'` event **may be emitted multiple times!** depending on
+  the callback you are registering, you way want to wrap it using [once][].
 
 ## Examples
 
@@ -254,26 +257,26 @@ commit it before sending a response. Here is a simplified [connect][] middleware
 that encapsulates this pattern:
 
 ```javascript
-module.exports = function unitOfWorkMiddleware (pool, errorHandler) {
-  return function (req, res, next) {
+module.exports = function unitOfWorkMiddleware(pool, errorHandler) {
+  return function(req, res, next) {
     req.tx = pool.begin()
     // intercept writeHead to ensure we have completed our transaction before
     // responding to the user
     var writeHead = res.writeHead
-    res.writeHead = function () {
-       var args = arguments
+    res.writeHead = function() {
+      var args = arguments
 
-       if (req.tx.state() != 'closed') {
-         req.tx.commit(function (err) {
-           if (err) {
-             errorHandler(req, res, err)
-           } else {
-             writeHead.apply(res, args)
-           }
-         })
-       } else {
-         writeHead.apply(res, args)
-       }
+      if (req.tx.state() != 'closed') {
+        req.tx.commit(function(err) {
+          if (err) {
+            errorHandler(req, res, err)
+          } else {
+            writeHead.apply(res, args)
+          }
+        })
+      } else {
+        writeHead.apply(res, args)
+      }
     }
     next()
   }
@@ -332,10 +335,9 @@ function finished (err) {
 
 [any-db]: https://github.com/grncdr/node-any-db
 [begin]: #begin
-[Connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
-[Queryable]: https://github.com/grncdr/node-any-db-adapter-spec#queryable
-[Queryable.query]: https://github.com/grncdr/node-any-db-adapter-spec#queryablequery
-[Query]: https://github.com/grncdr/node-any-db-adapter-spec#query
-[ConnectionPool]: https://github.com/grncdr/node-any-db-pool#connectionpool
-
+[connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
+[queryable]: https://github.com/grncdr/node-any-db-adapter-spec#queryable
+[queryable.query]: https://github.com/grncdr/node-any-db-adapter-spec#queryablequery
+[query]: https://github.com/grncdr/node-any-db-adapter-spec#query
+[connectionpool]: https://github.com/grncdr/node-any-db-pool#connectionpool
 [connect]: https://npm.im/connect

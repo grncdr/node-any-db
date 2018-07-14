@@ -14,7 +14,7 @@ but allows your app code to be portable between databases.
 The connections and queries this package creates inherit from [pg.Client][]
 and [QueryStream][], so any methods described there are also available to you.
 
-Keep in mind that these methods will *not* necessarily work with other backends.
+Keep in mind that these methods will _not_ necessarily work with other backends.
 
 ## Install
 
@@ -25,8 +25,8 @@ Keep in mind that these methods will *not* necessarily work with other backends.
 MIT
 
 [pg]: http://github.com/brianc/node-postgres
-[pg.Client]: https://github.com/brianc/node-postgres/wiki/Client
-[QueryStream]: https://github.com/brianc/node-pg-query-stream
-[Connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
-[Query]: https://github.com/grncdr/node-any-db-adapter-spec#query
-[Any-DB API]: https://github.com/grncdr/node-any-db-adapter-spec
+[pg.client]: https://github.com/brianc/node-postgres/wiki/Client
+[querystream]: https://github.com/brianc/node-pg-query-stream
+[connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
+[query]: https://github.com/grncdr/node-any-db-adapter-spec#query
+[any-db api]: https://github.com/grncdr/node-any-db-adapter-spec

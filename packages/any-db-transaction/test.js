@@ -8,26 +8,26 @@ var URLS = [
   'sqlite3:///tmp/any_db_test.db',
 ]
 
-module.exports = function test (description, opts, callback) {
+module.exports = function test(description, opts, callback) {
   if (!callback) {
     callback = opts
     opts = {}
   }
   var pool = opts.pool
-  URLS.forEach(function (url) {
+  URLS.forEach(function(url) {
     var backend = url.split(':').shift()
 
-    tape(backend + ' - ' + description, function (t) {
+    tape(backend + ' - ' + description, function(t) {
       if (backend == 'sqlite3') {
         try {
-          fs.unlinkSync('/tmp/any_db_test.db');
+          fs.unlinkSync('/tmp/any_db_test.db')
         } catch (err) {
-          console.error(err);
+          console.error(err)
           // ignore it
         }
       }
 
-      var queryable, cleanup;
+      var queryable, cleanup
       if (pool) {
         queryable = anyDB.createPool(url, pool)
         cleanup = queryable.close.bind(queryable)

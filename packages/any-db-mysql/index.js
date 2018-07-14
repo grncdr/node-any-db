@@ -9,10 +9,10 @@ var adapter = exports
 
 adapter.name = 'mysql'
 
-adapter.createQuery = function (text, values, callback) {
+adapter.createQuery = function(text, values, callback) {
   if (text.query) return text // being passed an existing query object
 
-  var highWaterMark = 128;
+  var highWaterMark = 128
 
   if (typeof callback == 'number') {
     // createQuery(text, values, streamOptions) => Query
@@ -23,40 +23,40 @@ adapter.createQuery = function (text, values, callback) {
     switch (typeof values) {
       case 'number':
         highWaterMark = values
-      break
+        break
       case 'function':
         callback = values
         values = []
-      break
+        break
       default:
         values = values || []
     }
   }
 
-  var query  = mysql.createQuery(text, values)
-  var stream = query.stream({highWaterMark: highWaterMark})
+  var query = mysql.createQuery(text, values)
+  var stream = query.stream({ highWaterMark: highWaterMark })
 
   var _read = stream._read
-  stream._read = function () {
+  stream._read = function() {
     // _read should be a no-op before a connection is available
     query._connection && _read.call(this)
   }
-  stream.query  = query
-  stream.text   = text
+  stream.query = query
+  stream.text = text
   stream.values = values
 
-  if (stream.callback = callback) {
-    var result = {rowCount: 0, rows: [], lastInsertId: null, fields: null}
+  if ((stream.callback = callback)) {
+    var result = { rowCount: 0, rows: [], lastInsertId: null, fields: null }
     var errored = false
     stream
-      .on('error', function (err) {
+      .on('error', function(err) {
         errored = true
         this.callback(err)
       })
-      .on('fields', function (fields) {
+      .on('fields', function(fields) {
         result.fields = fields
       })
-      .on('data', function (row) {
+      .on('data', function(row) {
         if (row.constructor.name == 'OkPacket') {
           result.fieldCount = row.fieldCount
           result.rowCount = result.affectedRows = row.affectedRows
@@ -66,19 +66,21 @@ adapter.createQuery = function (text, values, callback) {
           result.rowCount = result.rows.push(row)
         }
       })
-      .on('end', function () {
+      .on('end', function() {
         if (!errored) this.callback(null, result)
       })
   }
 
-  stream.once('end', function () { delete this.query })
+  stream.once('end', function() {
+    delete this.query
+  })
   return stream
 }
 
 adapter.createConnection = function createConnection(opts, callback) {
   var conn = new MySQLConnection(opts)
 
-  conn.connect(function (err) {
+  conn.connect(function(err) {
     if (err) return callback ? callback(err) : conn.emit('error', err)
     conn.emit('open')
     if (callback) callback(null, conn)
@@ -88,13 +90,13 @@ adapter.createConnection = function createConnection(opts, callback) {
 }
 
 inherits(MySQLConnection, Connection)
-function MySQLConnection (opts) {
-  Connection.call(this, {config: new ConnectionConfig(opts)})
+function MySQLConnection(opts) {
+  Connection.call(this, { config: new ConnectionConfig(opts) })
 }
 
 MySQLConnection.prototype.adapter = adapter
 
-MySQLConnection.prototype.query = function (text, params, callback) {
+MySQLConnection.prototype.query = function(text, params, callback) {
   var stream = adapter.createQuery(text, params, callback)
   this.emit('query', stream)
   Connection.prototype.query.call(this, stream.query)

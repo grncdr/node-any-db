@@ -12,9 +12,9 @@ database agnostic.
 
 The connections and queries this package creates inherit from the constructor
 functions in `require('mysql')`, so any methods that `mysql` supports beyond
-those [specified by Any-DB][Connection] are also available to you.
+those [specified by Any-DB][connection] are also available to you.
 
-Keep in mind that these methods will *not* necessarily work with other backends.
+Keep in mind that these methods will _not_ necessarily work with other backends.
 
 ## Install
 
@@ -34,5 +34,5 @@ Then run tests the node way:
 
 MIT
 
-[Connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
+[connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
 [mysql]: https://github.com/felixge/node-mysql
