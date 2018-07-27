@@ -1,0 +1,14 @@
+{
+  "name": "any-db-common",
+  "version": "3.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/node": "^10.5.3",
+    "typedoc": "^0.11.1",
+    "typescript": "^2.9.2"
+  }
+}
