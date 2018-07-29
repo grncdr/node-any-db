@@ -2,10 +2,12 @@
   "name": "any-db-postgres",
   "version": "2.1.5",
   "description": "The postgres adapter for any-db",
-  "main": "index.js",
+  "main": "dist/Driver.js",
   "scripts": {
-    "test": "standard && test-any-db-adapter",
-    "debug": "node debug `which test-any-db-adapter`"
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "test": "test-any-db-adapter",
+    "debug": "node inspect `which test-any-db-adapter`"
   },
   "repository": {
     "type": "git",
@@ -24,14 +26,17 @@
   "author": "Stephen Sugden <me@stephensugden.com>",
   "license": "MIT",
   "dependencies": {
+    "any-db-common": "^3.0.0",
     "pg": "*",
-    "pg-query-stream": "~0.2.0",
-    "inherits": "~2.0.1"
+    "pg-cursor": "^1.3.0",
+    "pg-query-stream": "~0.2.0"
   },
   "peerDependencies": {
     "any-db": "^2.1.0"
   },
   "devDependencies": {
+    "@types/pg": "^7.4.10",
+    "typescript": "^2.9.2",
     "any-db-adapter-spec": "~2.1.0",
     "standard": "*"
   }
