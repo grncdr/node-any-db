@@ -4,6 +4,14 @@ import { makeCallbackSubscriber } from './CallbackSubscriber'
 
 export { IRowStream } from './RowStreamSubscriber'
 
+export async function testDriver(driver: IDriver, url: string): Promise<void> {
+  const spec = await import('./spec/transport')
+  const connection = await driver.createConnection(url)
+  await spec.test(connection)
+  await connection.close()
+  console.log(`Success - ${url}`)
+}
+
 /**
  * Drivers implement Any-DB interfaces for a specific database.
  */
@@ -16,12 +24,26 @@ export interface IDriver {
   createPlaceholderFactory(): () => string
 }
 
+export class Database<C extends IConnection> {
+  url: string
+  driver: IDriver
+
+  constructor(driver: IDriver, url: string) {
+    this.driver = driver
+    this.url = url
+  }
+
+  createConnection(): Promise<C> {
+    return this.driver.createConnection(this.url) as Promise<C>
+  }
+}
+
 /**
  * ITransport is a common interface implemented by connections, transactions, and connection pools.
  */
 export interface ITransport {
   driver: IDriver
-  submit<Row>(text: String, params: any[], resultHandler: IResultSubscriber<Row>): void
+  submit<Row>(text: String, params: any[], resultHandler: IQueryCallbacks<Row>): void
   on(event: 'submit', handler: (text: string, params: any[]) => void): void
 }
 
@@ -48,7 +70,7 @@ export interface IConnection extends ITransport {
  * over streaming of result rows from the underlying transport, you can implement
  * it yourself and pass it to [[ResultHandle.consume]].
  */
-export interface IResultSubscriber<Row = any> {
+export interface IQueryCallbacks<Row = { [col: string]: any }> {
   batchSize?: number
   onStart(handle: IResultFlowControl): void
   onRow(row: Row): void
@@ -166,14 +188,16 @@ class BoundQuery<Row> {
   }
 
   /**
-   * Send the query to the database with the given [[IResultSubscriber]]. Unless
-   * you require low-level streaming of query results, you probably don't want this.
+   * Send the query to the database with the given [[IQueryCallbacks]]. Unless
+   * you require low-level control over the streaming of query results, you
+   * probably don't want this.
    * 
    * @param transport 
    */
-  private consume(subscriber: IResultSubscriber<Row>) {
+  private consume(subscriber: IQueryCallbacks<Row>) {
     if (!this.transport) {
-      throw new Error('Query result was already consumed')
+      subscriber.onError(new Error('Query result was already consumed'))
+      return
     }
     this.transport.submit(this.text, this.params, subscriber)
     this.transport = null

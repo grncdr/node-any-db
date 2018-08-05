@@ -1,19 +1,24 @@
-import { ResultSet, IResultSubscriber, IFieldMetadata } from '.'
+import { ResultSet, IQueryCallbacks, IFieldMetadata } from '.'
 
 /**
  * Creates a result subscriber that aggregates rows into a [[ResultSet]] and 
- * resolves the returned promise when [[IResultSubscriber.onEnd]] is called. This
+ * resolves the returned promise when [[IQueryCallbacks.onEnd]] is called. This
  * is what underlies the implementation of [[Query.bind]].
  */
-export function makeCallbackSubscriber<R>(callback: (err: Error | null, rs?: ResultSet<R>) => void): IResultSubscriber<R> {
+export function makeCallbackSubscriber<R>(callback: (err: Error | null, rs?: ResultSet<R>) => void): IQueryCallbacks<R> {
   const resultSet = new ResultSet()
 
-  const subscriber: IResultSubscriber<R> = {
+  let called = false
+
+  const subscriber: IQueryCallbacks<R> = {
     onStart({ resume }) {
       resume()
     },
     onError(error: Error) {
-      callback(error)
+      if (!called) {
+        called = true
+        callback(error)
+      }
     },
     onFields(fields: IFieldMetadata[]) {
       resultSet.fields = fields
@@ -26,7 +31,10 @@ export function makeCallbackSubscriber<R>(callback: (err: Error | null, rs?: Res
       resultSet.meta = meta
     },
     onEnd() {
-      callback(null, resultSet)
+      if (!called) {
+        called = true
+        callback(null, resultSet)
+      }
     }
   }
 

@@ -1,4 +1,4 @@
-import { IDriver, IFieldMetadata, IResultFlowControl, IResultSubscriber } from '.'
+import { IDriver, IFieldMetadata, IResultFlowControl, IQueryCallbacks } from '.'
 import { ReadableOptions, Readable } from "stream";
 
 export interface IRowStream<Row = {}> extends Readable {
@@ -11,7 +11,7 @@ export interface IRowStream<Row = {}> extends Readable {
   on(event: string, listener: (...args: any[]) => void): this
 }
 
-export function initRowStream<R>(opts: ReadableOptions): { subscriber: IResultSubscriber<R>, stream: IRowStream<R> } {
+export function initRowStream<R>(opts: ReadableOptions): { subscriber: IQueryCallbacks<R>, stream: IRowStream<R> } {
   let flowControl: IResultFlowControl
 
   const stream = new Readable({
@@ -24,7 +24,7 @@ export function initRowStream<R>(opts: ReadableOptions): { subscriber: IResultSu
     }
   })
 
-  const subscriber: IResultSubscriber<R> = {
+  const subscriber: IQueryCallbacks<R> = {
     batchSize: opts.highWaterMark,
     onStart(controls) {
       flowControl = controls
@@ -47,7 +47,7 @@ export function initRowStream<R>(opts: ReadableOptions): { subscriber: IResultSu
       stream.emit('metadata', meta)
     },
     onEnd() {
-      stream.emit('end')
+      stream.push(null)
     }
   }
 

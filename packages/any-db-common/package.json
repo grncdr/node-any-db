@@ -3,8 +3,9 @@
   "version": "3.0.0",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "clean": "rm -rf dist"
+    "build": "tsc && npm run docs",
+    "clean": "rm -rf dist",
+    "docs": "typedoc --out docs"
   },
   "devDependencies": {
     "@types/node": "^10.5.3",
