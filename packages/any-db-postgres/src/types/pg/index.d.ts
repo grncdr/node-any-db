@@ -212,8 +212,6 @@ export class Query extends events.EventEmitter {
     on(event: "end", listener: (result: ResultBuilder) => void): this;
 }
 
-export function prepareValue(values: any): any;
-
 export class Events extends events.EventEmitter {
     on(event: "error", listener: (err: Error, client: Client) => void): this;
 }

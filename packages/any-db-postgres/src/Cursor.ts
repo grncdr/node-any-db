@@ -1,6 +1,7 @@
 import * as pg from 'pg'
-import { IResultSubscriber } from 'any-db-common'
+import { IQueryCallbacks } from 'any-db-common'
 import Result from 'pg/lib/result'
+import { prepareValue } from 'pg/lib/utils'
 
 
 export default class Cursor<R = any> {
@@ -8,51 +9,38 @@ export default class Cursor<R = any> {
   readonly values: any[]
 
   private connection: pg.Connection | null
-  private subscriber: IResultSubscriber<R>
-  private state: 'initialized' | 'idle' | 'busy' | 'error' | 'done'
+  private callbacks: IQueryCallbacks<R>
   private pgResult: Result
   private paused: boolean
   private rowBuffer: R[]
   private usePreparedStatement: boolean
+  private portal?: string
+  private ended: boolean
 
-  constructor(text: string, values: any[], subscriber: IResultSubscriber<R>) {
+  constructor(text: string, values: any[], subscriber: IQueryCallbacks<R>) {
     this.connection = null
-    this.subscriber = subscriber
+    this.ended = false
+    this.callbacks = subscriber
     this.text = text
     this.values = values
     this.usePreparedStatement = values.length > 0
-    this.state = 'initialized'
     this.pgResult = new Result()
     this.paused = false
+    this.portal = ''
     this.rowBuffer = []
   }
 
   submit(connection: pg.Connection) {
     this.connection = connection
 
-    if (this.usePreparedStatement) {
-      connection.parse({ text: this.text }, true)
-      connection.bind({ values: this.values.map(pg.prepareValue) }, true)
-      connection.describe({ type: 'P', name: '' }, true)
-      connection.execute({ portal: '' }, true)
-      connection.flush()
-    } else {
-      connection.query(this.text)
-    }
+    connection.parse({ text: this.text }, true)
+    connection.bind({ values: this.prepareValues() }, true)
+    connection.describe({ type: 'P' }, true)
+    connection.flush()
   }
-
-  private requestMoreRows() {
-    this.state = 'busy'
-    if (this.connection) {
-      const batchSize = this.subscriber.batchSize
-      this.connection.execute({ portal: '', rows: batchSize ? batchSize.toString() : void (0) }, true)
-      this.connection.flush()
-    }
-  }
-
 
   handleRowDescription(msg: { fields: pg.FieldDef[] }) {
-    this.subscriber.onStart({
+    this.callbacks.onStart({
       pause: () => {
         this.paused = true
       },
@@ -60,7 +48,7 @@ export default class Cursor<R = any> {
         this.paused = false
         let row
         while (row = this.rowBuffer.shift()) {
-          this.subscriber.onRow(row)
+          this.callbacks.onRow(row)
           if (this.paused) return
         }
         if (this.connection) {
@@ -68,8 +56,9 @@ export default class Cursor<R = any> {
         }
       }
     })
-    this.pgResult.addFields(msg.fields) // prepare the internal _result to parse data rows
-    this.subscriber.onFields(msg.fields)
+    this.pgResult.addFields(msg.fields) // prepares the pgResult to parse data rows
+    this.callbacks.onFields(msg.fields)
+    this.requestMoreRows()
   }
 
   handleDataRow(msg: { fields: any }) {
@@ -77,16 +66,13 @@ export default class Cursor<R = any> {
     if (this.paused) {
       this.rowBuffer.push(row)
     } else {
-      this.subscriber.onRow(row)
+      this.callbacks.onRow(row)
     }
   }
 
   handleCommandComplete(msg: any) {
     this.pgResult.addCommandComplete(msg)
-    if (this.connection && this.usePreparedStatement) {
-      this.connection.sync()
-    }
-    this.subscriber.onClose()
+    this.onEnd()
   }
 
   handlePortalSuspended() {
@@ -94,19 +80,36 @@ export default class Cursor<R = any> {
   }
 
   handleReadyForQuery() {
-    this.state = 'done'
-    this.subscriber.onClose()
-    this.subscriber.onEnd()
+    this.onEnd()
   }
 
   handleEmptyQuery() {
-    if (this.connection) this.connection.sync()
+    this.onEnd()
   }
 
   handleError(error: Error) {
-    this.state = 'error'
-    this.subscriber.onError(error)
-    // call sync to keep this connection from hanging
-    if (this.connection) this.connection.sync()
+    this.callbacks.onError(error)
+    this.onEnd()
+  }
+
+  private prepareValues() {
+    return this.values.length ? this.values.map(prepareValue) : void (0)
+  }
+
+  private requestMoreRows() {
+    if (this.connection) {
+      const batchSize = this.callbacks.batchSize
+      this.connection.execute({ portal: '', rows: batchSize ? batchSize.toString() : void (0) }, true)
+      this.connection.flush()
+    }
+  }
+
+  private onEnd() {
+    if (!this.ended) {
+      this.ended = true
+      if (this.connection) this.connection.sync()
+      this.connection = null
+      this.callbacks.onEnd()
+    }
   }
 }
