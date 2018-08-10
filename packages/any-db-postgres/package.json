@@ -30,7 +30,6 @@
     "pg": "*"
   },
   "devDependencies": {
-    "@types/pg": "^7.4.10",
     "typescript": "^3.0.0"
   }
 }
