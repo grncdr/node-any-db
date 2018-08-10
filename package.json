@@ -20,13 +20,6 @@
     "sqlite3"
   ],
   "license": "MIT",
-  "dependencies": {
-    "any-db-pool": "~2.2.0",
-    "parse-db-url": "0.0.0"
-  },
-  "devDependencies": {
-    "any-db-fake": "0.0.1",
-    "lerna": "^2.11.0",
-    "tape": "~2.3.2"
-  }
+  "dependencies": {},
+  "devDependencies": {}
 }
