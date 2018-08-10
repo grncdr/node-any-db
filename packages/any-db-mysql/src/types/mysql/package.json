@@ -1,0 +1,65 @@
+{
+  "_from": "@types/mysql@^2.15.5",
+  "_id": "@types/mysql@2.15.5",
+  "_inBundle": false,
+  "_integrity": "sha512-4QAISTUGZbcFh7bqdndo08xRdES5OTU+JODy8VCZbe1yiXyGjqw1H83G43XjQ3IbC10wn9xlGd44A5RXJwNh0Q==",
+  "_location": "/@types/mysql",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "range",
+    "registry": true,
+    "raw": "@types/mysql@^2.15.5",
+    "name": "@types/mysql",
+    "escapedName": "@types%2fmysql",
+    "scope": "@types",
+    "rawSpec": "^2.15.5",
+    "saveSpec": null,
+    "fetchSpec": "^2.15.5"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@types/mysql/-/mysql-2.15.5.tgz",
+  "_shasum": "6d75afb5cc018c9d66b2f37a046924e397f85430",
+  "_spec": "@types/mysql@^2.15.5",
+  "_where": "/Users/stephensugden/dev/node-any-db/packages/any-db-mysql",
+  "bugs": {
+    "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/issues"
+  },
+  "bundleDependencies": false,
+  "contributors": [
+    {
+      "name": "William Johnston",
+      "url": "https://github.com/wjohnsto"
+    },
+    {
+      "name": "Kacper Polak",
+      "url": "https://github.com/kacepe"
+    },
+    {
+      "name": "Krittanan Pingclasai",
+      "url": "https://github.com/kpping"
+    },
+    {
+      "name": "James Munro",
+      "url": "https://github.com/jdmunro"
+    }
+  ],
+  "dependencies": {
+    "@types/node": "*"
+  },
+  "deprecated": false,
+  "description": "TypeScript definitions for mysql",
+  "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped#readme",
+  "license": "MIT",
+  "main": "",
+  "name": "@types/mysql",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DefinitelyTyped/DefinitelyTyped.git"
+  },
+  "scripts": {},
+  "typeScriptVersion": "2.1",
+  "typesPublisherContentHash": "5ab0640250fb34af9e11026236c9009f506a78be9ddd17745a348947c3766d6f",
+  "version": "2.15.5"
+}
