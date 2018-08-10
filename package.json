@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node test.js",
-    "lerna": "lerna"
+    "lerna-bootstrap": "lerna bootstrap --hoist"
   },
   "repository": {
     "type": "git",
