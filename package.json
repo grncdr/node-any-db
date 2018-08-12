@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node test.js",
     "lerna-bootstrap": "lerna bootstrap --hoist",
-    "prepare": "tsc --build"
+    "tsc": "tsc --build",
+    "prepare": "npm run lerna-bootstrap && npm run tsc"
   },
   "repository": {
     "type": "git",

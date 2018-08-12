@@ -5,8 +5,6 @@ before_script:
   - psql -c 'create database any_db_test' -Upostgres
 
 script:
-  - npm run lerna-bootstrap
-  - npm run prepare
   - ( cd packages/any-db-mysql && npm test )
   - ( cd packages/any-db-postgres && npm test )
 
