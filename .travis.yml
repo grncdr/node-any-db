@@ -6,12 +6,9 @@ before_script:
 
 script:
   - npm run lerna-bootstrap
-  - ( cd packages/any-db-common && npm run build )
-  #  - ( cd packages/any-db-pool && npm test )
+  - npm run prepare
   - ( cd packages/any-db-mysql && npm test )
   - ( cd packages/any-db-postgres && npm test )
-  #  - ( cd packages/any-db-sqlite3 && npm test )
-  #  - ( cd packages/any-db-transaction && npm test )
 
 node_js:
   - 'node'

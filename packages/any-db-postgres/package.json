@@ -7,7 +7,7 @@
   "scripts": {
     "prepare": "tsc --build",
     "clean": "rm -rf dist",
-    "test": "npm run build && node test.js",
+    "test": "node test.js",
     "debug": "node inspect `which test-any-db-adapter`"
   },
   "repository": {
