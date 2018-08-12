@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "baseUrl": ".",
+    "paths": {
+      "*": ["types/*", "node_modules/@types/*", "node_modules/*"]
+    }
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "packages/any-db-common"
+    },
+    {
+      "path": "packages/any-db-mysql"
+    },
+    {
+      "path": "packages/any-db-postgres"
+    }
+  ]
+}

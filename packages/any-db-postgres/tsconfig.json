@@ -1,13 +1,14 @@
 {
   "extends": "../../tsconfig.base.json",
+  "include": ["src/**/*"],
   "compilerOptions": {
+    "rootDir": "src",
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "*": ["node_modules/*", "src/types/*"]
+      "*": ["src/types/*", "node_modules/*"]
     }
   },
-  "include": ["src/**/*"],
   "references": [
     {
       "path": "../any-db-common"

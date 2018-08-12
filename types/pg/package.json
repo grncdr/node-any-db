@@ -1,0 +1,56 @@
+{
+  "_from": "@types/pg",
+  "_id": "@types/pg@7.4.10",
+  "_inBundle": false,
+  "_integrity": "sha512-IQ9vRZ3oX99TXZiVq5PgODNoqgHvn2girbkxa6gBT7DPGgvRiJ7kZNwmPiLqSOzlRgMHBIujFeiwD5Sf5TIJqg==",
+  "_location": "/@types/pg",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "@types/pg",
+    "name": "@types/pg",
+    "escapedName": "@types%2fpg",
+    "scope": "@types",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@types/pg/-/pg-7.4.10.tgz",
+  "_shasum": "1cf4d6c5d32e621566eca82981161b371fb90ace",
+  "_spec": "@types/pg",
+  "_where": "/Users/stephensugden/dev/node-any-db",
+  "bugs": {
+    "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/issues"
+  },
+  "bundleDependencies": false,
+  "contributors": [
+    {
+      "name": "Phips Peter",
+      "url": "https://github.com/pspeter3"
+    }
+  ],
+  "dependencies": {
+    "@types/events": "*",
+    "@types/node": "*",
+    "@types/pg-types": "*"
+  },
+  "deprecated": false,
+  "description": "TypeScript definitions for pg",
+  "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped#readme",
+  "license": "MIT",
+  "main": "",
+  "name": "@types/pg",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DefinitelyTyped/DefinitelyTyped.git"
+  },
+  "scripts": {},
+  "typeScriptVersion": "2.0",
+  "typesPublisherContentHash": "3cbe9db6a8a1725403483f7ac74f2cf5d8bfd326debbe96a0d7be93fae263b9b",
+  "version": "7.4.10"
+}
