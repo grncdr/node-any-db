@@ -1,26 +1,31 @@
-var test = require('tape')
+const cp = require('child_process')
+const packagePaths = require('./tsconfig.json').references.map(ref => ref.path)
 
-test('API test', function (t) {
-  t.plan(4)
-  var anyDB = require('./')
-
-  t.pass('require("any-db") works')
-
-  t.test('exports.createConnection', function (t) {
-    t.plan(1)
-    anyDB.createConnection('fake://hostname/dbname', function (err, conn) {
-      if (err) throw err
-      t.pass('Created connection')
+function testPackage(packagePath) {
+  return new Promise(resolve => {
+    cp.exec('npm test', { cwd: packagePath }, (error, stdout, stderr) => {
+      resolve({ packagePath, error, stdout, stderr })
     })
   })
+}
 
-  t.test('exports.createPool', function (t) {
-    t.plan(1)
-    anyDB.createPool('fake://hostname/dbname')
-    t.pass('Created pool')
+function indent(text) {
+  return text
+    .split('\n')
+    .map(line => (/^(not )?ok/.test(line) ? line : `  ${line}`))
+    .join('\n')
+}
+
+Promise.all(packagePaths.map(testPackage)).then(results => {
+  let failed = false
+  results.forEach(result => {
+    console.log(`# ${result.packagePath}\n`)
+    if (result.error) {
+      failed = true
+      console.error(indent(result.stderr))
+    } else {
+      console.log(indent(result.stdout))
+    }
   })
-
-  t.throws(function () {
-    anyDB.adapters.fake
-  }, 'accessing exports.adapters throws')
+  process.exit(failed ? 1 : 0)
 })
