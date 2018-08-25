@@ -6,7 +6,8 @@
   "scripts": {
     "prepare": "tsc --build",
     "clean": "rm -rf dist",
-    "docs": "typedoc --out docs"
+    "docs": "typedoc --out docs",
+    "test": "node test.js"
   },
   "devDependencies": {
     "@types/node": "^10.5.3",

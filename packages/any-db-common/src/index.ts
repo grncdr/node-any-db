@@ -141,7 +141,7 @@ export class UnboundQuery<Row = {}> {
   }
 }
 
-class BoundQuery<Row> {
+export class BoundQuery<Row> {
   text: string
   params: any[]
   transport: ITransport | null
