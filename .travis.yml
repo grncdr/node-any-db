@@ -4,10 +4,6 @@ before_script:
   - mysql -e 'create database any_db_test' -uroot
   - psql -c 'create database any_db_test' -Upostgres
 
-script:
-  - ( cd packages/any-db-mysql && npm test )
-  - ( cd packages/any-db-postgres && npm test )
-
 node_js:
   - 'node'
   - 'lts/*'
