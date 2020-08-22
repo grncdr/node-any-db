@@ -24,7 +24,7 @@ adapter.createConnection = function(opts, callback) {
 
 inherits(PostgresConnection, pg.Client)
 function PostgresConnection(opts) {
-  pg.Client.call(this, opts)
+  return new pg.Client(opts)
 }
 
 PostgresConnection.prototype.adapter = adapter
