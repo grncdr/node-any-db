@@ -1,8 +1,6 @@
 # Contributing to Any-DB development
 
-Want to help improve Any-DB? You're in the *wrong* place :wink:. The individual
-parts of the "Any-DB ecosystem" all live in their own repos, so the right place
-to be depends on what you want to do:
+Want to help improve Any-DB? The right place to start depends on what you want to do:
 
 ## I want to write a new adapter
 
@@ -15,11 +13,11 @@ your devDependencies and use it to test your adapter for compliance:
 
 ## I want to improve an existing adapter
 
-Cool, then you will probably want one of these repos:
+Cool, then you will find the adapter code in the packages directory:
 
- * [any-db-mysql](https://github.som/grncdr/node-any-db-mysql)
- * [any-db-postgres](https://github.som/grncdr/node-any-db-postgres)
- * [any-db-sqlite3](https://github.som/grncdr/node-any-db-sqlite3)
+- [any-db-mysql](packages/any-db-mysql)
+- [any-db-postgres](packages/any-db-postgres)
+- [any-db-sqlite3](packages/any-db-sqlite3)
 
 ## I want to improve the connection pool
 
@@ -36,7 +34,7 @@ run the tests for the adapter to check your changes.
 ## Creating a pull-request
 
 For changes to an existing API please open an issue to discuss the proposed
-change before implementing it. Code-first-ask-questions-later *is* fun, but I'd
+change before implementing it. Code-first-ask-questions-later _is_ fun, but I'd
 really hate for anybody to put their time into something that won't be merged.
 
 ## Code style
@@ -48,6 +46,6 @@ lines under 80 characters long if you can help it.
 If a patch you're working on is getting hairy, don't be afraid to refactor
 existing code.
 
-[the spec]: https://github.com/grncdr/node-any-db-adapter-spec
-[any-db-pool]: https://github.com/grncdr/node-any-db-pool
-[any-db-transaction]: https://github.com/grncdr/node-any-db-transaction
+[the spec]: packages/any-db-adapter-spec
+[any-db-pool]: packages/any-db-pool
+[any-db-transaction]: packages/any-db-transaction
