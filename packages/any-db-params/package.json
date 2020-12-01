@@ -1,6 +1,6 @@
 {
   "name": "any-db-params",
-  "version": "1.0.1",
+  "version": "2.3.0",
   "description": "Collect parameters and generate SQL placeholders for any database",
   "main": "index.js",
   "scripts": {

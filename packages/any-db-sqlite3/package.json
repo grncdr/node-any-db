@@ -1,6 +1,6 @@
 {
   "name": "any-db-sqlite3",
-  "version": "2.1.4",
+  "version": "2.3.0",
   "description": "The SQLite3 adapter for any-db",
   "main": "index.js",
   "scripts": {
@@ -24,14 +24,14 @@
   "author": "Stephen Sugden <me@stephensugden.com>",
   "license": "MIT",
   "dependencies": {
-    "sqlite3": "*",
-    "inherits": "~2.0.1"
+    "inherits": "~2.0.1",
+    "sqlite3": "*"
   },
   "peerDependencies": {
     "any-db": "~2.1.0"
   },
   "devDependencies": {
-    "any-db-adapter-spec": "~2.1.0",
+    "any-db-adapter-spec": "2.3.0",
     "covert": "~0.1.0"
   }
 }

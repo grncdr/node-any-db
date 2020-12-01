@@ -1,6 +1,6 @@
 {
   "name": "any-db-postgres",
-  "version": "2.1.5",
+  "version": "2.3.0",
   "description": "The postgres adapter for any-db",
   "main": "index.js",
   "scripts": {
@@ -24,15 +24,15 @@
   "author": "Stephen Sugden <me@stephensugden.com>",
   "license": "MIT",
   "dependencies": {
+    "inherits": "~2.0.1",
     "pg": "^7.4.3",
-    "pg-query-stream": "~0.2.0",
-    "inherits": "~2.0.1"
+    "pg-query-stream": "~0.2.0"
   },
   "peerDependencies": {
     "any-db": "^2.1.0"
   },
   "devDependencies": {
-    "any-db-adapter-spec": "~2.1.0",
+    "any-db-adapter-spec": "2.3.0",
     "standard": "*"
   }
 }

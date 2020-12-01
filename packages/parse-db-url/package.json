@@ -1,6 +1,6 @@
 {
   "name": "parse-db-url",
-  "version": "0.0.0",
+  "version": "2.3.0",
   "description": "parse database URLs into configuration objects",
   "main": "parse-url.js",
   "scripts": {
