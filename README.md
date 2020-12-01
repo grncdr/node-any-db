@@ -4,6 +4,16 @@
 
 _The less-opinionated Node.js database abstraction layer_
 
+## Status
+
+Any-DB is in **maintenance mode** and bug fixes will happen infrequently/never.\* What this means for you depends on how you are using any-db:
+
+- If you need support for a fixed set of database engines: you should replace the dependency on any-db with the underlying database driver(s). Code adjustments should be minimal and you'll get access to all the modern features provided by the database drivers that any-db doesn't expose (such as promises).
+- If you need to support arbitrary runtime defined database connections: any-db is still functional, but has had to start restricting the driver versions it depends on. If you are interested in maintaining these packages feel free to contact me.
+- If you are using a library that depends on any-db: contact the author of that library and ask them to read this notice.
+
+_\* Why? I haven't used any-db myself in nearly a decade and there are no other maintainers._
+
 ## Synopsis
 
 Establish a connection:
@@ -32,7 +42,7 @@ sql += ' WHERE answer = ?'
 conn.query(sql, [42], function (err, res) {})
 ```
 
-Manage database transactions with [any-db-transaction][Transaction]:
+Manage database transactions with [any-db-transaction][transaction]:
 
 ```javascript
 var begin = require('any-db-transaction')
@@ -44,11 +54,11 @@ tx.rollback()                     // this too
 tx.commit()                       // takes an optional callback for errors
 ```
 
-Create a [connection pool][ConnectionPool] that maintains 2-20 connections:
+Create a [connection pool][connectionpool] that maintains 2-20 connections:
 
 ```javascript
 var pool = anyDB.createPool(dbURL, {min: 2, max: 20})
-    
+
 pool.query(...)       // perform a single query, same API as connection
 var tx = begin(pool)  // create a transaction with the first available connection
 pool.close()          // close the pool (call when your app should exit)
@@ -64,9 +74,9 @@ as much as possible.
 
 ### For Applications
 
-   npm install --save any-db-{postgres,mysql,sqlite3,mssql} any-db
+npm install --save any-db-{postgres,mysql,sqlite3,mssql} any-db
 
-All of the adapter libraries have `any-db` as a *peerDependency*, which means
+All of the adapter libraries have `any-db` as a _peerDependency_, which means
 that you will have to install `any-db` as well.
 
 ### For Libraries
@@ -108,18 +118,18 @@ specified adapters [createConnection][] method.
 
 See also: README for your chosen adapter
 ([MS SQL](https://github.com/Hypermediaisobar-admin/node-any-db-mssql),
- [MySQL](https://github.com/grncdr/node-any-db-mysql),
- [Postgres](https://github.com/grncdr/node-any-db-postgres), and
- [SQLite3](https://github.com/grncdr/node-any-db-sqlite3))
+[MySQL](https://github.com/grncdr/node-any-db-mysql),
+[Postgres](https://github.com/grncdr/node-any-db-postgres), and
+[SQLite3](https://github.com/grncdr/node-any-db-sqlite3))
 
 ## License
 
 MIT
 
-[Connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
-[Query]: https://github.com/grncdr/node-any-db-adapter-spec#query
+[connection]: https://github.com/grncdr/node-any-db-adapter-spec#connection
+[query]: https://github.com/grncdr/node-any-db-adapter-spec#query
 [adapter-spec]: https://github.com/grncdr/node-any-db-adapter-spec
-[createConnection]: https://github.com/grncdr/node-any-db-adapter-spec#adapter-createconnection
-[ConnectionPool]: https://github.com/grncdr/node-any-db-pool#api
-[Transaction]: https://github.com/grncdr/node-any-db-transaction#api
+[createconnection]: https://github.com/grncdr/node-any-db-adapter-spec#adapter-createconnection
+[connectionpool]: https://github.com/grncdr/node-any-db-pool#api
+[transaction]: https://github.com/grncdr/node-any-db-transaction#api
 [parse-db-url]: https://github.com/grncdr/parse-db-url
