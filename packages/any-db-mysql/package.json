@@ -24,7 +24,7 @@
   "license": "MIT",
   "dependencies": {
     "inherits": "2.0.1",
-    "mysql": "2.13.0"
+    "mysql": "2.14.0"
   },
   "peerDependencies": {
     "any-db": "~2.1.0"
