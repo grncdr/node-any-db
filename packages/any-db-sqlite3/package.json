@@ -32,6 +32,6 @@
   },
   "devDependencies": {
     "any-db-adapter-spec": "2.3.0",
-    "covert": "~0.1.0"
+    "covert": "~1.1.1"
   }
 }
