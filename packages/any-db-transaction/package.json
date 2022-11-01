@@ -16,7 +16,7 @@
     "any-db-postgres": "2.3.0",
     "any-db-sqlite3": "2.3.0",
     "assert-in-order": "0.0.1",
-    "covert": "~0.2.0",
+    "covert": "~1.1.1",
     "tape": "~2.3.2"
   },
   "scripts": {
